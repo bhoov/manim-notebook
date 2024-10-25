@@ -132,6 +132,18 @@ export class ManimShell {
         this.detectShellExecutionEnd = true;
     }
 
+    /**
+     * Retrieves the active shell or spawns a new one if no active shell can
+     * be found. If a new shell is spawned, the Manim session is started at the
+     * given line.
+     * 
+     * A shell that was previously used to run Manim, but has exited from the
+     * Manim session (IPython environment), is considered inactive.
+     * 
+     * @param startLine The line number in the active editor where the Manim
+     * session should start in case a new terminal is spawned.
+     * Also see: `startScene()`.
+     */
     private async retrieveOrInitActiveShell(startLine?: number): Promise<vscode.Terminal> {
         if (this.activeShell === null || this.activeShell.exitStatus !== undefined) {
             this.activeShell = vscode.window.createTerminal();
