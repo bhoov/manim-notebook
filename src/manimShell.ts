@@ -191,7 +191,7 @@ export class ManimShell {
             async (event: vscode.TerminalShellExecutionStartEvent) => {
                 const stream = event.execution.read();
                 for await (const data of withoutAnsiCodes(stream)) {
-                    if (data.includes(MANIM_WELCOME_STRING)) {
+                    if (data.match(MANIM_WELCOME_REGEX)) {
                         this.activeShell = event.terminal;
                     }
                     if (data.match(IPYTHON_CELL_START_REGEX)) {
