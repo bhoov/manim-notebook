@@ -71,12 +71,9 @@ export class ManimShell {
     }
 
     /**
-     * Executes the given command in the VSCode terminal:
-     * - either using shell integration (if supported),
-     * - otherwise using `sendText`.
-     * 
-     * If no active terminal running Manim is found, a new terminal is spawned,
-     * and a new Manim session is started in it.
+     * Executes the given command in a VSCode terminal. If no active terminal
+     * running Manim is found, a new terminal is spawned, and a new Manim
+     * session is started in it before executing the given command.
      * 
      * Even though this method is asynchronous, it does only wait for the initial
      * setup of the terminal and the creation of the Manim session, but NOT for
@@ -85,10 +82,10 @@ export class ManimShell {
      * 
      * @param command The command to execute in the VSCode terminal.
      * @param startLine The line number in the active editor where the Manim
-     * session should start in case a new terminal is spawned. See `startScene`
-     * for 
+     * session should start in case a new terminal is spawned.
+     * Also see `startScene()`.
      */
-    public async executeCommand(command: string, startLine?: number) {
+    public async executeCommand(command: string, startLine: number) {
         const clipboardBuffer = await vscode.env.clipboard.readText();
         const shell = await this.retrieveOrInitActiveShell(startLine);
         this.exec(shell, command);
@@ -167,7 +164,7 @@ export class ManimShell {
      * session should start in case a new terminal is spawned.
      * Also see: `startScene()`.
      */
-    private async retrieveOrInitActiveShell(startLine?: number): Promise<vscode.Terminal> {
+    private async retrieveOrInitActiveShell(startLine: number): Promise<vscode.Terminal> {
         if (this.activeShell === null || this.activeShell.exitStatus !== undefined) {
             this.activeShell = vscode.window.createTerminal();
             await startScene(startLine);

@@ -55,7 +55,7 @@ export function deactivate() { }
  * the codelens was clicked.
  */
 function previewManimCell(cellCode?: string, startLine?: number) {
-	let line = startLine;
+	let startLineFinal: number | undefined = startLine;
 
 	// User has executed the command via command pallette
 	if (cellCode === undefined) {
@@ -69,21 +69,21 @@ function previewManimCell(cellCode?: string, startLine?: number) {
 
 		// Get the code of the cell where the cursor is placed
 		const cursorLine = editor.selection.active.line;
-		line = cursorLine;
 		const range = ManimCellRanges.getCellRangeAtLine(document, cursorLine);
 		if (!range) {
 			window.showErrorMessage('Place your cursor in a Manim cell.');
 			return;
 		}
 		cellCode = document.getText(range);
+		startLineFinal = range.start.line;
 	}
 
-	if (line === undefined) {
-		window.showErrorMessage('Internal error: Line number not found. Please report this bug.');
+	if (startLineFinal === undefined) {
+		window.showErrorMessage('Internal error: Line number not found in `previewManimCell()`.');
 		return;
 	}
 
-	previewCode(cellCode, line);
+	previewCode(cellCode, startLineFinal);
 }
 
 /**
