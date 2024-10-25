@@ -14,7 +14,9 @@ import { window } from 'vscode';
  *   args `--prerun --finder -w`. We don't do that here.)
  * 
  * @param lineStart The line number where the scene should start. If omitted,
- * the scene will start from the current cursor position.
+ * the scene will start from the current cursor position, which is the default
+ * behavior when the command is invoked from the command palette (and not from
+ * ManimShell).
  */
 export async function startScene(lineStart?: number) {
     const editor = window.activeTextEditor;
@@ -80,11 +82,7 @@ export async function startScene(lineStart?: number) {
     // await vscode.env.clipboard.writeText(command + " --prerun --finder -w");
 
     // Run the command
-    // Note that this is the only point where "terminal" and "active Manim session"
-    // actually DON'T denote the same thing. At this point, we have a handle on
-    // an existing VSCode terminal, but that one is not running ManimGL yet.
-    // Therefore, we now spawn the interactive Manim session.
-    await ManimShell.instance.executeCommand(command, cursorLine, true);
+    await ManimShell.instance.executeStartCommand(command);
 
     // // Commented out - in case someone would like it.
     // // For us - it would require MacOS. Also - the effect is not desired.
@@ -99,4 +97,17 @@ export async function startScene(lineStart?: number) {
     // } else {
     // 	terminal.show();
     // }
+}
+
+/**
+ * Runs the `exit()` command in the terminal to close the animation window
+ * and the IPython terminal.
+ */
+export async function exitScene() {
+    const success = await ManimShell.instance.executeCommandEnsureActiveSession("exit()");
+    if (success) {
+        ManimShell.instance.resetActiveShell();
+    } else {
+        window.showErrorMessage('No active ManimGL scene found to exit.');
+    }
 }

@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import { window } from 'vscode';
-import { startScene } from './startScene';
+import { startScene, exitScene } from './startStopScene';
 import { EventEmitter } from 'events';
 
 /**
@@ -106,7 +106,32 @@ export class ManimShell {
                 this.eventEmitter.once(ManimShellEvent.IPYTHON_CELL_FINISHED, resolve);
             });
         }
-        return Promise.resolve(false);
+        return Promise.resolve(true);
+    }
+
+    /**
+     * This command should only be used from within the actual `startScene()`
+     * method. It starts a new ManimGL scene in the terminal and waits until
+     * Manim is initialized. If an active shell is already running, it will be
+     * exited before starting the new scene.
+     * 
+     * This method is needed to avoid recursion issues since the usual
+     * command execution will already start a new scene if no active shell is
+     * found.
+     * 
+     * @param command The command to execute in the VSCode terminal. This is
+     * usually the command to start the ManimGL scene (at a specific line).
+     */
+    public async executeStartCommand(command: string) {
+        if (this.hasActiveShell()) {
+            exitScene();
+            await new Promise(resolve => setTimeout(resolve, 2000));
+        }
+        this.activeShell = window.createTerminal();
+        this.exec(this.activeShell, command);
+        await new Promise(resolve => {
+            this.eventEmitter.once(ManimShellEvent.IPYTHON_CELL_FINISHED, resolve);
+        });
     }
 
     /**
@@ -166,7 +191,7 @@ export class ManimShell {
      */
     private async retrieveOrInitActiveShell(startLine: number): Promise<vscode.Terminal> {
         if (!this.hasActiveShell()) {
-            this.activeShell = vscode.window.createTerminal();
+            this.activeShell = window.createTerminal();
             await startScene(startLine);
         }
         return this.activeShell as vscode.Terminal;

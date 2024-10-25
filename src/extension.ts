@@ -4,7 +4,7 @@ import { ManimShell } from './manimShell';
 import { ManimCell } from './manimCell';
 import { ManimCellRanges } from './manimCellRanges';
 import { previewCode } from './previewCode';
-import { startScene } from './startScene';
+import { startScene, exitScene } from './startStopScene';
 
 export function activate(context: vscode.ExtensionContext) {
 
@@ -117,19 +117,6 @@ function previewSelection() {
 	}
 
 	previewCode(selectedText, selection.start.line);
-}
-
-/**
- * Runs the `exit()` command in the terminal to close the animation window
- * and the IPython terminal.
- */
-async function exitScene() {
-	const success = await ManimShell.instance.executeCommandEnsureActiveSession("exit()");
-	if (success) {
-		ManimShell.instance.resetActiveShell();
-	} else {
-		window.showErrorMessage('No active ManimGL scene found to exit.');
-	}
 }
 
 /**
