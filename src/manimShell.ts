@@ -53,6 +53,20 @@ export class ManimShell {
 
     private activeShell: Terminal | null = null;
     private eventEmitter = new EventEmitter();
+
+    /**
+     * Whether to detect the end of a shell execution.
+     * 
+     * We disable this while programmatically executing commands in the shell
+     * (over the whole duration of the command execution) since we only want to
+     * detect user-triggered "shell execution ends". The only such event is
+     * when the user somehow exists the IPython shell (e.g. Ctrl + D) or typing
+     * exit() etc. A "shell execution end" is not triggered when they run a
+     * command manually inside the active Manim session.
+     * 
+     * If the user invokes the exit() command via the command pallette, we
+     * also reset the active shell.
+     */
     private detectShellExecutionEnd = true;
 
     private constructor() {
