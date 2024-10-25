@@ -82,6 +82,10 @@ export async function startScene(line?: number) {
     // await vscode.env.clipboard.writeText(command + " --prerun --finder -w");
 
     // Run the command
+    // Note that this is the only point where "terminal" and "active Manim session"
+    // actually DON'T denote the same thing. At this point, we have a handle on
+    // an existing VSCode terminal, but that one is not running ManimGL yet.
+    // Therefore, we now spawn the interactive Manim session.
     const success = await ManimShell.instance.executeCommandEnsureActiveSessionAndWait(command);
     if (!success) {
         window.showErrorMessage(

@@ -110,8 +110,8 @@ export class ManimShell {
     }
 
     /**
-     * Executes the given command and waits for the IPython cell to finish. Also
-     * ensures that an active ManimGL shell exists.
+     * Executes the given command and waits for the IPython cell to finish,
+     * but only if an active ManimGL shell exists.
      *
      * @param command The command to execute in the VSCode terminal.
      * @results A boolean indicating whether an active shell was found or not.
