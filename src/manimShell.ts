@@ -177,13 +177,12 @@ export class ManimShell {
      * 
      * This method is NOT asynchronous by design, as Manim commands run in the
      * IPython terminal that the VSCode API does not natively support. I.e.
-     * the event does not actually end, when the command has finished running,
+     * the event does not actually end when the command has finished running,
      * since we are still in the IPython environment.
      * 
      * Note that this does not hold true for the initial setup of the terminal
      * and the first `checkpoint_paste()` call, which is why we disable the
-     * detection of the "shell execution end" when while the commands are
-     * issued.
+     * detection of the "shell execution end" while the commands are issued.
      * 
      * @param shell The shell to execute the command in.
      * @param command The command to execute in the shell.
