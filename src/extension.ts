@@ -1,4 +1,5 @@
 import * as vscode from 'vscode';
+import { window } from 'vscode';
 import { ManimShell } from './manimShell';
 import { ManimCell } from './manimCell';
 import { ManimCellRanges } from './manimCellRanges';
@@ -58,9 +59,9 @@ function previewManimCell(cellCode?: string, startLine?: number) {
 
 	// User has executed the command via command pallette
 	if (cellCode === undefined) {
-		const editor = vscode.window.activeTextEditor;
+		const editor = window.activeTextEditor;
 		if (!editor) {
-			vscode.window.showErrorMessage(
+			window.showErrorMessage(
 				'No opened file found. Place your cursor in a Manim cell.');
 			return;
 		}
@@ -71,14 +72,14 @@ function previewManimCell(cellCode?: string, startLine?: number) {
 		line = cursorLine;
 		const range = ManimCellRanges.getCellRangeAtLine(document, cursorLine);
 		if (!range) {
-			vscode.window.showErrorMessage('Place your cursor in a Manim cell.');
+			window.showErrorMessage('Place your cursor in a Manim cell.');
 			return;
 		}
 		cellCode = document.getText(range);
 	}
 
 	if (line === undefined) {
-		vscode.window.showErrorMessage('Internal error: Line number not found. Please report this bug.');
+		window.showErrorMessage('Internal error: Line number not found. Please report this bug.');
 		return;
 	}
 
@@ -89,9 +90,9 @@ function previewManimCell(cellCode?: string, startLine?: number) {
  * Previews the Manim code of the selected text.
  */
 function previewSelection() {
-	const editor = vscode.window.activeTextEditor;
+	const editor = window.activeTextEditor;
 	if (!editor) {
-		vscode.window.showErrorMessage('Select some code to preview.');
+		window.showErrorMessage('Select some code to preview.');
 		return;
 	}
 
@@ -111,7 +112,7 @@ function previewSelection() {
 	}
 
 	if (!selectedText) {
-		vscode.window.showErrorMessage('Select some code to preview.');
+		window.showErrorMessage('Select some code to preview.');
 		return;
 	}
 
@@ -123,8 +124,11 @@ function previewSelection() {
  * and the IPython terminal.
  */
 function exitScene() {
-	ManimShell.instance.executeCommand("exit()");
-	ManimShell.instance.resetActiveShell();
+	ManimShell.instance.executeCommandEnsureActiveSession("exit()", () => {
+		window.showErrorMessage('No active ManimGL scene found to exit.');
+	}).then(() => {
+		ManimShell.instance.resetActiveShell();
+	});
 }
 
 /**
@@ -132,7 +136,9 @@ function exitScene() {
  * the scene.
  */
 function clearScene() {
-	ManimShell.instance.executeCommand("clear()");
+	ManimShell.instance.executeCommandEnsureActiveSession("clear()", () => {
+		window.showErrorMessage('No active ManimGL scene found to remove objects from.');
+	});
 }
 
 /**
@@ -147,24 +153,24 @@ function registerManimCellProviders(context: vscode.ExtensionContext) {
 		{ language: 'python' }, manimCell);
 	context.subscriptions.push(codeLensProvider, foldingRangeProvider);
 
-	vscode.window.onDidChangeActiveTextEditor(editor => {
+	window.onDidChangeActiveTextEditor(editor => {
 		if (editor) {
 			manimCell.applyCellDecorations(editor);
 		}
 	}, null, context.subscriptions);
 
 	vscode.workspace.onDidChangeTextDocument(event => {
-		const editor = vscode.window.activeTextEditor;
+		const editor = window.activeTextEditor;
 		if (editor && event.document === editor.document) {
 			manimCell.applyCellDecorations(editor);
 		}
 	}, null, context.subscriptions);
 
-	vscode.window.onDidChangeTextEditorSelection(event => {
+	window.onDidChangeTextEditorSelection(event => {
 		manimCell.applyCellDecorations(event.textEditor);
 	}, null, context.subscriptions);
 
-	if (vscode.window.activeTextEditor) {
-		manimCell.applyCellDecorations(vscode.window.activeTextEditor);
+	if (window.activeTextEditor) {
+		manimCell.applyCellDecorations(window.activeTextEditor);
 	}
 }
