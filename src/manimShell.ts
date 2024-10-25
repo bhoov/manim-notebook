@@ -97,10 +97,10 @@ export class ManimShell {
      */
     public async executeCommandEnsureActiveSession(
         command: string, waitUntilFinished = false): Promise<boolean> {
-        if (this.activeShell === null || this.activeShell.exitStatus !== undefined) {
+        if (!this.hasActiveShell()) {
             return Promise.resolve(false);
         }
-        this.exec(this.activeShell, command);
+        this.exec(this.activeShell as vscode.Terminal, command);
         if (waitUntilFinished) {
             await new Promise(resolve => {
                 this.eventEmitter.once(ManimShellEvent.IPYTHON_CELL_FINISHED, resolve);
@@ -115,6 +115,17 @@ export class ManimShell {
     */
     public resetActiveShell() {
         this.activeShell = null;
+    }
+
+    /**
+     * Returns whether an active shell exists, i.e. a terminal that has an
+     * active ManimGL IPython session running.
+     * 
+     * A shell that was previously used to run Manim, but has exited from the
+     * Manim session (IPython environment), is considered inactive.
+     */
+    public hasActiveShell(): boolean {
+        return this.activeShell !== null && this.activeShell.exitStatus === undefined;
     }
 
     /**
@@ -149,19 +160,16 @@ export class ManimShell {
      * be found. If a new shell is spawned, the Manim session is started at the
      * given line.
      * 
-     * A shell that was previously used to run Manim, but has exited from the
-     * Manim session (IPython environment), is considered inactive.
-     * 
      * @param startLine The line number in the active editor where the Manim
      * session should start in case a new terminal is spawned.
      * Also see: `startScene()`.
      */
     private async retrieveOrInitActiveShell(startLine: number): Promise<vscode.Terminal> {
-        if (this.activeShell === null || this.activeShell.exitStatus !== undefined) {
+        if (!this.hasActiveShell()) {
             this.activeShell = vscode.window.createTerminal();
             await startScene(startLine);
         }
-        return this.activeShell;
+        return this.activeShell as vscode.Terminal;
     }
 
     /**
