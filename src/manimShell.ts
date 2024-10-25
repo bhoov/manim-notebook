@@ -24,6 +24,7 @@ export class ManimShell {
     // At the moment assume that there is only one shell that executes ManimGL
     private activeShell: vscode.Terminal | null = null;
     private eventEmitter = new EventEmitter();
+    private detectShellExit = true;
 
 
     private constructor() {
@@ -55,12 +56,17 @@ export class ManimShell {
     public async executeCommand(command: string, startLine?: number) {
         console.log(`🙌 Executing command: ${command}, startLine: ${startLine}`);
         const clipboardBuffer = await vscode.env.clipboard.readText();
+
         const shell = await this.retrieveOrInitActiveShell(startLine);
+
+        this.detectShellExit = false;
         if (shell.shellIntegration) {
             shell.shellIntegration.executeCommand(command);
         } else {
             shell.sendText(command);
         }
+        this.detectShellExit = true;
+
         await vscode.env.clipboard.writeText(clipboardBuffer);
     }
 
@@ -93,31 +99,29 @@ export class ManimShell {
                 const stream = event.execution.read();
                 for await (const data of withoutAnsiCodes(stream)) {
                     console.log(`🎧: ${data}`);
-                    // TODO: detect quitting of IPython terminal using
-                    // raw ANSI escape sequences
                     if (data.includes(MANIM_WELCOME_STRING)) {
                         this.activeShell = event.terminal;
                     }
-
                     if (data.match(IPYTHON_CELL_START_REGEX)) {
                         this.eventEmitter.emit(ManimShellEvent.IPYTHON_CELL_FINISHED);
                     }
-
                 }
             });
 
-        window.onDidEndTerminalShellExecution(async (event: vscode.TerminalShellExecutionEndEvent) => {
-            console.log('▶ onDidEndTerminalShellExecution', event);
-        });
+        window.onDidEndTerminalShellExecution(
+            async (event: vscode.TerminalShellExecutionEndEvent) => {
+                if (!this.detectShellExit) {
+                    return;
+                }
+                if (event.terminal === this.activeShell) {
+                    this.resetActiveShell();
+                }
+            });
     }
 }
 
 async function* withoutAnsiCodes(stream: AsyncIterable<string>) {
     for await (const data of stream) {
-        yield stripAnsiCodes(data);
+        yield data.replace(ANSI_CONTROL_SEQUENCE_REGEX, '');
     }
-}
-
-function stripAnsiCodes(str: string) {
-    return str.replace(ANSI_CONTROL_SEQUENCE_REGEX, '');
 }
