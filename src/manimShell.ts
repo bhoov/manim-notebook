@@ -26,7 +26,7 @@ export class ManimShell {
 
     private activeShell: vscode.Terminal | null = null;
     private eventEmitter = new EventEmitter();
-    private detectShellExit = true;
+    private detectShellExecutionEnd = true;
 
     private constructor() {
         this.initiateTerminalDataReading();
@@ -74,20 +74,6 @@ export class ManimShell {
     }
 
     /**
-     * Note by design not async. TODO.
-     * @param command 
-     */
-    private exec(shell: vscode.Terminal, command: string) {
-        this.detectShellExit = false;
-        if (shell.shellIntegration) {
-            shell.shellIntegration.executeCommand(command);
-        } else {
-            shell.sendText(command);
-        }
-        this.detectShellExit = true;
-    }
-
-    /**
      * Executes the given command, but only if an active ManimGL shell exists.
      * If not, the given callback is executed.
      * 
@@ -117,6 +103,33 @@ export class ManimShell {
         await new Promise(resolve => {
             this.eventEmitter.once(ManimShellEvent.IPYTHON_CELL_FINISHED, resolve);
         });
+    }
+
+    /**
+     * Executes the command in the shell using shell integration if available,
+     * otherwise using `sendText`.
+     * 
+     * This method is NOT asynchronous by design, as Manim commands run in the
+     * IPython terminal that the VSCode API does not natively support. I.e.
+     * the event does not actually end, when the command has finished running,
+     * since we are still in the IPython environment.
+     * 
+     * Note that this does not hold true for the initial setup of the terminal
+     * and the first `checkpoint_paste()` call, which is why we disable the
+     * detection of the "shell execution end" when while the commands are
+     * issued.
+     * 
+     * @param shell The shell to execute the command in.
+     * @param command The command to execute in the shell.
+     */
+    private exec(shell: vscode.Terminal, command: string) {
+        this.detectShellExecutionEnd = false;
+        if (shell.shellIntegration) {
+            shell.shellIntegration.executeCommand(command);
+        } else {
+            shell.sendText(command);
+        }
+        this.detectShellExecutionEnd = true;
     }
 
     private async retrieveOrInitActiveShell(startLine?: number): Promise<vscode.Terminal> {
@@ -150,7 +163,7 @@ export class ManimShell {
 
         window.onDidEndTerminalShellExecution(
             async (event: vscode.TerminalShellExecutionEndEvent) => {
-                if (!this.detectShellExit) {
+                if (!this.detectShellExecutionEnd) {
                     return;
                 }
                 if (event.terminal === this.activeShell) {
