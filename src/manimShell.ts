@@ -77,6 +77,7 @@ export class ManimShell {
     private detectShellExecutionEnd = true;
 
     private constructor() {
+        this.activeShell = null;
         this.initiateTerminalDataReading();
     }
 
@@ -160,15 +161,22 @@ export class ManimShell {
      * 
      * @param command The command to execute in the VSCode terminal. This is
      * usually the command to start the ManimGL scene (at a specific line).
+     * @param isRequestedForAnotherCommand Whether the command is executed
+     * because another command needed to have a new shell started.
+     * Only if the user manually starts a new scene, we want to exit a
+     * potentially already running scene beforehand.
      */
-    public async executeStartCommand(command: string) {
-        if (this.hasActiveShell()) {
-            exitScene();
-            await new Promise(resolve => setTimeout(resolve, 2000));
+    public async executeStartCommand(command: string, isRequestedForAnotherCommand: boolean) {
+        if (!isRequestedForAnotherCommand) {
+            if (this.hasActiveShell()) {
+                exitScene();
+                await new Promise(resolve => setTimeout(resolve, 2000));
+            }
+            this.activeShell = window.createTerminal();
         }
-
-        this.activeShell = window.createTerminal();
-        this.exec(this.activeShell, command);
+        // We are sure that the active shell is set since it is invoked
+        // in `retrieveOrInitActiveShell()` or in the line above.
+        this.exec(this.activeShell as Terminal, command);
         await new Promise(resolve => {
             this.eventEmitter.once(ManimShellEvent.IPYTHON_CELL_FINISHED, resolve);
         });
@@ -255,6 +263,7 @@ export class ManimShell {
                 for await (const data of withoutAnsiCodes(stream)) {
 
                     if (data.match(MANIM_WELCOME_REGEX)) {
+                        console.log("Active shell seen");
                         this.activeShell = event.terminal;
                     }
 

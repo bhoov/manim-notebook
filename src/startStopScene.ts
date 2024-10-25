@@ -15,8 +15,11 @@ import { window } from 'vscode';
  * 
  * @param lineStart The line number where the scene should start. If omitted,
  * the scene will start from the current cursor position, which is the default
- * behavior when the command is invoked from the command palette (and not from
- * ManimShell).
+ * behavior when the command is invoked from the command palette.
+ * This parameter is set when invoked from ManimShell in order to spawn a new
+ * scene for another command at the given line number. You are probably doing
+ * something wrong if you invoke this method with lineStart !== undefined
+ * from somewhere else than the ManimShell.
  */
 export async function startScene(lineStart?: number) {
     const editor = window.activeTextEditor;
@@ -82,7 +85,8 @@ export async function startScene(lineStart?: number) {
     // await vscode.env.clipboard.writeText(command + " --prerun --finder -w");
 
     // Run the command
-    await ManimShell.instance.executeStartCommand(command);
+    const isRequestedForAnotherCommand = (lineStart !== undefined);
+    await ManimShell.instance.executeStartCommand(command, isRequestedForAnotherCommand);
 
     // // Commented out - in case someone would like it.
     // // For us - it would require MacOS. Also - the effect is not desired.
