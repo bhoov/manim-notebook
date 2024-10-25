@@ -55,6 +55,13 @@ export class ManimShell {
     private eventEmitter = new EventEmitter();
 
     /**
+     * Whether the execution of a new command is locked. This is used to prevent
+     * multiple new scenes from being started at the same time, e.g. when users
+     * click on "Preview Manim Cell" multiple times in quick succession.
+     */
+    private lockDuringStartup = false;
+
+    /**
      * Whether to detect the end of a shell execution.
      * 
      * We disable this while programmatically executing commands in the shell
@@ -85,6 +92,9 @@ export class ManimShell {
      * running Manim is found, a new terminal is spawned, and a new Manim
      * session is started in it before executing the given command.
      * 
+     * This command is locked during startup to prevent multiple new scenes from
+     * being started at the same time, see `lockDuringStartup`.
+     * 
      * @param command The command to execute in the VSCode terminal.
      * @param startLine The line number in the active editor where the Manim
      * session should start in case a new terminal is spawned.
@@ -93,14 +103,24 @@ export class ManimShell {
      * has finished executing, e.g. when the whole animation has been previewed.
      */
     public async executeCommand(command: string, startLine: number, waitUntilFinished = false) {
+        if (this.lockDuringStartup) {
+            return vscode.window.showWarningMessage("Manim is currently starting. Please wait a moment.");
+        }
+
         const clipboardBuffer = await vscode.env.clipboard.readText();
+
+        this.lockDuringStartup = true;
         const shell = await this.retrieveOrInitActiveShell(startLine);
+        this.lockDuringStartup = false;
+
         this.exec(shell, command);
+
         if (waitUntilFinished) {
             await new Promise(resolve => {
                 this.eventEmitter.once(ManimShellEvent.IPYTHON_CELL_FINISHED, resolve);
             });
         }
+
         await vscode.env.clipboard.writeText(clipboardBuffer);
     }
 
