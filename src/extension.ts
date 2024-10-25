@@ -1,4 +1,5 @@
 import * as vscode from 'vscode';
+import { ManimShell } from './manimShell';
 import { ManimCell } from './manimCell';
 import { ManimCellRanges } from './manimCellRanges';
 import { previewCode } from './previewCode';
@@ -43,6 +44,8 @@ export function activate(context: vscode.ExtensionContext) {
 		clearSceneCommand
 	);
 	registerManimCellProviders(context);
+
+	const shell = new ManimShell();
 }
 
 export function deactivate() { }
