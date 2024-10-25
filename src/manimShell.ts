@@ -3,8 +3,13 @@ import { window } from 'vscode';
 import { startScene } from './startScene';
 import { EventEmitter } from 'events';
 
-// https://stackoverflow.com/a/14693789/
+/**
+ * Regular expression to match ANSI control sequences. Even though we might miss
+ * some control sequences, this is good enough for our purposes as the relevant
+ * ones are matched. From: https://stackoverflow.com/a/14693789/
+ */
 const ANSI_CONTROL_SEQUENCE_REGEX = /(?:\x1B[@-Z\\-_]|[\x80-\x9A\x9C-\x9F]|(?:\x1B\[|\x9B)[0-?]*[ -/]*[@-~])/g;
+
 const IPYTHON_CELL_START_REGEX = /^\s*In \[\d+\]:/m;
 const ERROR_REGEX = /^\s*Cell In\[\d+\],\s*line\s*\d+/m;
 const MANIM_WELCOME_STRING = "ManimGL";
@@ -193,6 +198,13 @@ export class ManimShell {
     }
 }
 
+/**
+ * Removes ANSI control codes from the given stream of strings and yields the
+ * cleaned strings.
+ * 
+ * @param stream The stream of strings to clean.
+ * @returns An async iterable stream of strings without ANSI control codes.
+ */
 async function* withoutAnsiCodes(stream: AsyncIterable<string>) {
     for await (const data of stream) {
         yield data.replace(ANSI_CONTROL_SEQUENCE_REGEX, '');
