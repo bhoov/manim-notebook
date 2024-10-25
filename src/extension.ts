@@ -8,6 +8,9 @@ import { startScene, exitScene } from './startStopScene';
 
 export function activate(context: vscode.ExtensionContext) {
 
+	// Trigger the Manim shell to start listening to the terminal
+	ManimShell.instance;
+
 	const previewManimCellCommand = vscode.commands.registerCommand(
 		'manim-notebook.previewManimCell', (cellCode?: string, startLine?: number) => {
 			previewManimCell(cellCode, startLine);
