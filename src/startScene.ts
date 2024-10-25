@@ -82,7 +82,7 @@ export async function startScene(line?: number) {
     // await vscode.env.clipboard.writeText(command + " --prerun --finder -w");
 
     // Run the command
-    ManimShell.instance.executeCommand(command);
+    await ManimShell.instance.executeCommandAndWait(command);
 
     // // Commented out - in case someone would like it.
     // // For us - it would require MacOS. Also - the effect is not desired.

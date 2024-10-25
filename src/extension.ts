@@ -124,6 +124,7 @@ function previewSelection() {
  */
 function exitScene() {
 	ManimShell.instance.executeCommand("exit()");
+	ManimShell.instance.resetActiveShell();
 }
 
 /**

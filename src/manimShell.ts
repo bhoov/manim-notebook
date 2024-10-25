@@ -1,10 +1,16 @@
 import * as vscode from 'vscode';
 import { window } from 'vscode';
 import { startScene } from './startScene';
+import { EventEmitter } from 'events';
 
 // https://stackoverflow.com/a/14693789/
 const ANSI_CONTROL_SEQUENCE_REGEX = /(?:\x1B[@-Z\\-_]|[\x80-\x9A\x9C-\x9F]|(?:\x1B\[|\x9B)[0-?]*[ -/]*[@-~])/g;
+const IPYTHON_CELL_START_REGEX = /^\s*In \[\d+\]:/m;
 const MANIM_WELCOME_STRING = "ManimGL";
+
+enum ManimShellEvent {
+    IPYTHON_CELL_FINISHED = 'ipythonCellFinished',
+}
 
 /**
  * TODO Description.
@@ -17,10 +23,11 @@ export class ManimShell {
 
     // At the moment assume that there is only one shell that executes ManimGL
     private activeShell: vscode.Terminal | null = null;
+    private eventEmitter = new EventEmitter();
 
 
     private constructor() {
-        this.initiateActiveShellSearching();
+        this.initiateTerminalDataReading();
     }
 
     public static get instance(): ManimShell {
@@ -30,6 +37,10 @@ export class ManimShell {
         return ManimShell.#instance;
     }
 
+    public resetActiveShell() {
+        this.activeShell = null;
+    }
+
     /**
      * Executes the given command in the VSCode terminal:
      * - either using shell integration (if supported),
@@ -37,49 +48,66 @@ export class ManimShell {
      * 
      * If no active terminal running Manim is found, a new terminal is created.
      * 
+     * The actual command execution is not awaited for.
+     * 
      * @param command The command to execute in the VSCode terminal.
      */
-    public async executeCommand(command: string, startLine?: number): Promise<void> {
-        const shell = await this.retrieveActiveShell(startLine);
-
-        // See the new Terminal shell integration API (from VSCode release 1.93)
-        // https://code.visualstudio.com/updates/v1_93#_terminal-shell-integration-api
+    public async executeCommand(command: string, startLine?: number) {
+        console.log(`🙌 Executing command: ${command}, startLine: ${startLine}`);
+        const clipboardBuffer = await vscode.env.clipboard.readText();
+        const shell = await this.retrieveOrInitActiveShell(startLine);
         if (shell.shellIntegration) {
             shell.shellIntegration.executeCommand(command);
         } else {
             shell.sendText(command);
         }
+        await vscode.env.clipboard.writeText(clipboardBuffer);
     }
 
-    private async retrieveActiveShell(startLine?: number): Promise<vscode.Terminal> {
-        if (this.activeShell === null || this.activeShell.exitStatus !== undefined) {
-            console.log("❌ Active shell is null");
-            this.activeShell = vscode.window.createTerminal();
-            startScene(startLine);
-            await new Promise(resolve => setTimeout(resolve, 5000));
+    /**
+     * Executes the given command and waits for the IPython cell to finish.
+     *
+     * @param command The command to execute in the VSCode terminal.
+     */
+    public async executeCommandAndWait(command: string) {
+        this.executeCommand(command);
+        await new Promise(resolve => {
+            this.eventEmitter.once(ManimShellEvent.IPYTHON_CELL_FINISHED, resolve);
+        });
+    }
 
+    private async retrieveOrInitActiveShell(startLine?: number): Promise<vscode.Terminal> {
+        if (this.activeShell === null || this.activeShell.exitStatus !== undefined) {
+            this.activeShell = vscode.window.createTerminal();
+            await startScene(startLine);
         }
-        console.log(`✅ Active shell: ${this.activeShell}`);
         return this.activeShell;
     }
 
     /**
      * Continuously searches for the active shell that executes ManimGL.
      */
-    private initiateActiveShellSearching() {
+    private initiateTerminalDataReading() {
         window.onDidStartTerminalShellExecution(
             async (event: vscode.TerminalShellExecutionStartEvent) => {
                 const stream = event.execution.read();
                 for await (const data of withoutAnsiCodes(stream)) {
                     console.log(`🎧: ${data}`);
+                    // TODO: detect quitting of IPython terminal using
+                    // raw ANSI escape sequences
                     if (data.includes(MANIM_WELCOME_STRING)) {
                         this.activeShell = event.terminal;
                     }
+
+                    if (data.match(IPYTHON_CELL_START_REGEX)) {
+                        this.eventEmitter.emit(ManimShellEvent.IPYTHON_CELL_FINISHED);
+                    }
+
                 }
             });
 
         window.onDidEndTerminalShellExecution(async (event: vscode.TerminalShellExecutionEndEvent) => {
-            console.log('🔎 onDidEndTerminalShellExecution', event);
+            console.log('▶ onDidEndTerminalShellExecution', event);
         });
     }
 }
