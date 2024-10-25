@@ -63,14 +63,6 @@ export class ManimShell {
     }
 
     /**
-     * Resets the active shell such that a new terminal is created on the next
-     * command execution.
-     */
-    public resetActiveShell() {
-        this.activeShell = null;
-    }
-
-    /**
      * Executes the given command in a VSCode terminal. If no active terminal
      * running Manim is found, a new terminal is spawned, and a new Manim
      * session is started in it before executing the given command.
@@ -115,6 +107,14 @@ export class ManimShell {
             });
         }
         return Promise.resolve(false);
+    }
+
+    /**
+    * Resets the active shell such that a new terminal is created on the next
+    * command execution.
+    */
+    public resetActiveShell() {
+        this.activeShell = null;
     }
 
     /**
