@@ -123,8 +123,8 @@ function previewSelection() {
  * Runs the `exit()` command in the terminal to close the animation window
  * and the IPython terminal.
  */
-function exitScene() {
-	const success = ManimShell.instance.executeCommandEnsureActiveSession("exit()");
+async function exitScene() {
+	const success = await ManimShell.instance.executeCommandEnsureActiveSession("exit()");
 	if (success) {
 		ManimShell.instance.resetActiveShell();
 	} else {
@@ -136,8 +136,8 @@ function exitScene() {
  * Runs the `clear()` command in the terminal to remove all objects from
  * the scene.
  */
-function clearScene() {
-	const success = ManimShell.instance.executeCommandEnsureActiveSession("clear()");
+async function clearScene() {
+	const success = await ManimShell.instance.executeCommandEnsureActiveSession("clear()");
 	if (!success) {
 		window.showErrorMessage('No active ManimGL scene found to remove objects from.');
 	}

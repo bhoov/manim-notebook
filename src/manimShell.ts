@@ -75,20 +75,22 @@ export class ManimShell {
      * running Manim is found, a new terminal is spawned, and a new Manim
      * session is started in it before executing the given command.
      * 
-     * Even though this method is asynchronous, it does only wait for the initial
-     * setup of the terminal and the creation of the Manim session, but NOT for
-     * the end of the actual command execution. That is, it will return before
-     * the actual command has finished executing.
-     * 
      * @param command The command to execute in the VSCode terminal.
      * @param startLine The line number in the active editor where the Manim
      * session should start in case a new terminal is spawned.
      * Also see `startScene()`.
+     * @param [waitUntilFinished=false] Whether to wait until the actual command
+     * has finished executing, e.g. when the whole animation has been previewed.
      */
-    public async executeCommand(command: string, startLine: number) {
+    public async executeCommand(command: string, startLine: number, waitUntilFinished = false) {
         const clipboardBuffer = await vscode.env.clipboard.readText();
         const shell = await this.retrieveOrInitActiveShell(startLine);
         this.exec(shell, command);
+        if (waitUntilFinished) {
+            await new Promise(resolve => {
+                this.eventEmitter.once(ManimShellEvent.IPYTHON_CELL_FINISHED, resolve);
+            });
+        }
         await vscode.env.clipboard.writeText(clipboardBuffer);
     }
 
@@ -96,33 +98,23 @@ export class ManimShell {
      * Executes the given command, but only if an active ManimGL shell exists.
      * 
      * @param command The command to execute in the VSCode terminal.
+     * @param [waitUntilFinished=false] Whether to wait until the actual command
+     * has finished executing, e.g. when the whole animation has been previewed.
      * @returns A boolean indicating whether an active shell was found or not.
+     * If no active shell was found, the command was also not executed.
      */
-    public executeCommandEnsureActiveSession(command: string): boolean {
+    public async executeCommandEnsureActiveSession(
+        command: string, waitUntilFinished = false): Promise<boolean> {
         if (this.activeShell === null || this.activeShell.exitStatus !== undefined) {
-            return false;
+            return Promise.resolve(false);
         }
         this.exec(this.activeShell, command);
-        return true;
-    }
-
-    /**
-     * Executes the given command and waits for the IPython cell to finish,
-     * but only if an active ManimGL shell exists.
-     *
-     * @param command The command to execute in the VSCode terminal.
-     * @results A boolean indicating whether an active shell was found or not.
-     */
-    public async executeCommandEnsureActiveSessionAndWait(command: string) {
-        const success = this.executeCommandEnsureActiveSession(command);
-        if (!success) {
-            return false;
+        if (waitUntilFinished) {
+            await new Promise(resolve => {
+                this.eventEmitter.once(ManimShellEvent.IPYTHON_CELL_FINISHED, resolve);
+            });
         }
-
-        await new Promise(resolve => {
-            this.eventEmitter.once(ManimShellEvent.IPYTHON_CELL_FINISHED, resolve);
-        });
-        return true;
+        return Promise.resolve(false);
     }
 
     /**

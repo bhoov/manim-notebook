@@ -12,8 +12,11 @@ import { window } from 'vscode';
  *   is NOT added, i.e. the whole scene is previewed.
  * - (3b1b's version also copies this command to the clipboard with additional
  *   args `--prerun --finder -w`. We don't do that here.)
+ * 
+ * @param lineStart The line number where the scene should start. If omitted,
+ * the scene will start from the current cursor position.
  */
-export async function startScene(line?: number) {
+export async function startScene(lineStart?: number) {
     const editor = window.activeTextEditor;
     if (!editor) {
         window.showErrorMessage(
@@ -39,12 +42,7 @@ export async function startScene(line?: number) {
         .map((line, index) => ({ line, index }))
         .filter(({ line }) => /^class (.+?)\((.+?)\):/.test(line));
 
-    let cursorLine;
-    if (line !== undefined) {
-        cursorLine = line;
-    } else {
-        cursorLine = editor.selection.start.line;
-    }
+    let cursorLine = lineStart || editor.selection.start.line;
 
     // Find the first class defined before where the cursor is
     // E.g. here, matchingClass = { line: "class SelectedScene(Scene):", index: 42 }
@@ -86,11 +84,7 @@ export async function startScene(line?: number) {
     // actually DON'T denote the same thing. At this point, we have a handle on
     // an existing VSCode terminal, but that one is not running ManimGL yet.
     // Therefore, we now spawn the interactive Manim session.
-    const success = await ManimShell.instance.executeCommandEnsureActiveSessionAndWait(command);
-    if (!success) {
-        window.showErrorMessage(
-            'Internal error: Failed to spawn a new ManimGL shell inside `startScene()`');
-    }
+    await ManimShell.instance.executeCommand(command, cursorLine, true);
 
     // // Commented out - in case someone would like it.
     // // For us - it would require MacOS. Also - the effect is not desired.
