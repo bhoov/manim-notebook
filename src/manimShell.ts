@@ -41,7 +41,10 @@ enum ManimShellEvent {
  * Wrapper around the IPython terminal that ManimGL uses. Ensures that commands
  * are executed at the right place and spans a new Manim session if necessary.
  * 
- * The words "shell" and "terminal" are used interchangeably.
+ * The words "shell" and "terminal" are used interchangeably. "ManimShell" refers
+ * to a VSCode terminal that has a ManimGL IPython session running. The notion
+ * of "just a terminal", without a running Manim session, is not needed, as we
+ * always ensure that commands are run inside an active Manim session.
  * 
  * This class is a singleton and should be accessed via `ManimShell.instance`.
  */
