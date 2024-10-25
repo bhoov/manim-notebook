@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
 import { window } from 'vscode';
+import { Terminal } from 'vscode';
 import { startScene, exitScene } from './startStopScene';
 import { EventEmitter } from 'events';
 
@@ -47,7 +48,7 @@ enum ManimShellEvent {
 export class ManimShell {
     static #instance: ManimShell;
 
-    private activeShell: vscode.Terminal | null = null;
+    private activeShell: Terminal | null = null;
     private eventEmitter = new EventEmitter();
     private detectShellExecutionEnd = true;
 
@@ -100,7 +101,7 @@ export class ManimShell {
         if (!this.hasActiveShell()) {
             return Promise.resolve(false);
         }
-        this.exec(this.activeShell as vscode.Terminal, command);
+        this.exec(this.activeShell as Terminal, command);
         if (waitUntilFinished) {
             await new Promise(resolve => {
                 this.eventEmitter.once(ManimShellEvent.IPYTHON_CELL_FINISHED, resolve);
@@ -170,7 +171,7 @@ export class ManimShell {
      * @param shell The shell to execute the command in.
      * @param command The command to execute in the shell.
      */
-    private exec(shell: vscode.Terminal, command: string) {
+    private exec(shell: Terminal, command: string) {
         this.detectShellExecutionEnd = false;
         if (shell.shellIntegration) {
             shell.shellIntegration.executeCommand(command);
@@ -189,12 +190,12 @@ export class ManimShell {
      * session should start in case a new terminal is spawned.
      * Also see: `startScene()`.
      */
-    private async retrieveOrInitActiveShell(startLine: number): Promise<vscode.Terminal> {
+    private async retrieveOrInitActiveShell(startLine: number): Promise<Terminal> {
         if (!this.hasActiveShell()) {
             this.activeShell = window.createTerminal();
             await startScene(startLine);
         }
-        return this.activeShell as vscode.Terminal;
+        return this.activeShell as Terminal;
     }
 
     /**
