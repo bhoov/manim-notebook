@@ -149,7 +149,7 @@ export class ManimShell {
      * A shell that was previously used to run Manim, but has exited from the
      * Manim session (IPython environment), is considered inactive.
      */
-    public hasActiveShell(): boolean {
+    private hasActiveShell(): boolean {
         return this.activeShell !== null && this.activeShell.exitStatus === undefined;
     }
 
