@@ -89,7 +89,6 @@ export class ManimShell {
      * for 
      */
     public async executeCommand(command: string, startLine?: number) {
-        console.log(`🙌 Executing command: ${command}, startLine: ${startLine}`);
         const clipboardBuffer = await vscode.env.clipboard.readText();
         const shell = await this.retrieveOrInitActiveShell(startLine);
         this.exec(shell, command);
