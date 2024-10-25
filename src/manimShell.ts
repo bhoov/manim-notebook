@@ -10,11 +10,29 @@ import { EventEmitter } from 'events';
  */
 const ANSI_CONTROL_SEQUENCE_REGEX = /(?:\x1B[@-Z\\-_]|[\x80-\x9A\x9C-\x9F]|(?:\x1B\[|\x9B)[0-?]*[ -/]*[@-~])/g;
 
+/**
+ * Regular expression to match the start of an IPython cell, e.g. "In [5]:"
+ */
 const IPYTHON_CELL_START_REGEX = /^\s*In \[\d+\]:/m;
+
+/**
+ * Regular expression to match an error message in the terminal. For any error
+ * message, IPython prints "Cell In[<number>], line <number>" to a new line.
+ */
 const ERROR_REGEX = /^\s*Cell In\[\d+\],\s*line\s*\d+/m;
-const MANIM_WELCOME_STRING = "ManimGL";
+
+/**
+ * Regular expression to match the welcome string that ManimGL prints when the
+ * interactive session is started, e.g. "ManimGL v1.7.1". This is used to detect
+ * if the terminal is related to ManimGL.
+ */
+const MANIM_WELCOME_REGEX = /^\s*ManimGL/m;
 
 enum ManimShellEvent {
+    /**
+     * Event emitted when an IPython cell has finished executing, i.e. when the
+     * IPYTHON_CELL_START_REGEX is matched.
+     */
     IPYTHON_CELL_FINISHED = 'ipythonCellFinished',
 }
 
