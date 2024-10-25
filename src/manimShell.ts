@@ -138,6 +138,7 @@ export class ManimShell {
         if (!this.hasActiveShell()) {
             return Promise.resolve(false);
         }
+
         this.exec(this.activeShell as Terminal, command);
         if (waitUntilFinished) {
             await new Promise(resolve => {
@@ -165,6 +166,7 @@ export class ManimShell {
             exitScene();
             await new Promise(resolve => setTimeout(resolve, 2000));
         }
+
         this.activeShell = window.createTerminal();
         this.exec(this.activeShell, command);
         await new Promise(resolve => {
@@ -251,12 +253,15 @@ export class ManimShell {
             async (event: vscode.TerminalShellExecutionStartEvent) => {
                 const stream = event.execution.read();
                 for await (const data of withoutAnsiCodes(stream)) {
+
                     if (data.match(MANIM_WELCOME_REGEX)) {
                         this.activeShell = event.terminal;
                     }
+
                     if (data.match(IPYTHON_CELL_START_REGEX)) {
                         this.eventEmitter.emit(ManimShellEvent.IPYTHON_CELL_FINISHED);
                     }
+
                     if (data.match(ERROR_REGEX)) {
                         this.activeShell?.show();
                     }
@@ -265,9 +270,11 @@ export class ManimShell {
 
         window.onDidEndTerminalShellExecution(
             async (event: vscode.TerminalShellExecutionEndEvent) => {
+
                 if (!this.detectShellExecutionEnd) {
                     return;
                 }
+
                 if (event.terminal === this.activeShell) {
                     this.resetActiveShell();
                 }
