@@ -153,14 +153,22 @@ export class ManimShell {
     }
 
     /**
-     * Continuously searches for the active shell that executes ManimGL.
+     * Inits the reading of data from the terminal and issues actions/events
+     * based on the data received:
+     * 
+     * - If the Manim welcome string is detected, the terminal is marked as
+     *   active.
+     * - If an IPython cell has finished executing, an event is emitted such
+     *   that commands know when they are actually completely finished, e.g.
+     *   when the whole animation has been previewed.
+     * - If an error is detected, the terminal is opened to show the error.
+     * - If the whole Manim session has ended, the active shell is reset.
      */
     private initiateTerminalDataReading() {
         window.onDidStartTerminalShellExecution(
             async (event: vscode.TerminalShellExecutionStartEvent) => {
                 const stream = event.execution.read();
                 for await (const data of withoutAnsiCodes(stream)) {
-                    console.log(`🎧: ${data}`);
                     if (data.includes(MANIM_WELCOME_STRING)) {
                         this.activeShell = event.terminal;
                     }
