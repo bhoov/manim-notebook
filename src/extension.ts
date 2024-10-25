@@ -124,11 +124,12 @@ function previewSelection() {
  * and the IPython terminal.
  */
 function exitScene() {
-	ManimShell.instance.executeCommandEnsureActiveSession("exit()", () => {
-		window.showErrorMessage('No active ManimGL scene found to exit.');
-	}).then(() => {
+	const success = ManimShell.instance.executeCommandEnsureActiveSession("exit()");
+	if (success) {
 		ManimShell.instance.resetActiveShell();
-	});
+	} else {
+		window.showErrorMessage('No active ManimGL scene found to exit.');
+	}
 }
 
 /**
@@ -136,9 +137,10 @@ function exitScene() {
  * the scene.
  */
 function clearScene() {
-	ManimShell.instance.executeCommandEnsureActiveSession("clear()", () => {
+	const success = ManimShell.instance.executeCommandEnsureActiveSession("clear()");
+	if (!success) {
 		window.showErrorMessage('No active ManimGL scene found to remove objects from.');
-	});
+	}
 }
 
 /**

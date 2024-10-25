@@ -97,34 +97,35 @@ export class ManimShell {
 
     /**
      * Executes the given command, but only if an active ManimGL shell exists.
-     * If not, the given callback is executed.
      * 
      * @param command The command to execute in the VSCode terminal.
-     * @param onNoActiveSession Callback to execute if no active ManimGL shell
-     * exists.
-     * @returns A promise that resolves when the command could be successfully
-     * started. Note that this is NOT the point when the command execution finishes.
+     * @returns A boolean indicating whether an active shell was found or not.
      */
-    public async executeCommandEnsureActiveSession(
-        command: string, onNoActiveSession: () => void): Promise<void> {
-        if (this.activeShell === null) {
-            onNoActiveSession();
-            return Promise.reject();
+    public executeCommandEnsureActiveSession(command: string): boolean {
+        if (this.activeShell === null || this.activeShell.exitStatus !== undefined) {
+            return false;
         }
         this.exec(this.activeShell, command);
-        return Promise.resolve();
+        return true;
     }
 
     /**
-     * Executes the given command and waits for the IPython cell to finish.
+     * Executes the given command and waits for the IPython cell to finish. Also
+     * ensures that an active ManimGL shell exists.
      *
      * @param command The command to execute in the VSCode terminal.
+     * @results A boolean indicating whether an active shell was found or not.
      */
-    public async executeCommandAndWait(command: string) {
-        this.executeCommand(command);
+    public async executeCommandEnsureActiveSessionAndWait(command: string) {
+        const success = this.executeCommandEnsureActiveSession(command);
+        if (!success) {
+            return false;
+        }
+
         await new Promise(resolve => {
             this.eventEmitter.once(ManimShellEvent.IPYTHON_CELL_FINISHED, resolve);
         });
+        return true;
     }
 
     /**

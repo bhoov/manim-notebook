@@ -82,7 +82,11 @@ export async function startScene(line?: number) {
     // await vscode.env.clipboard.writeText(command + " --prerun --finder -w");
 
     // Run the command
-    await ManimShell.instance.executeCommandAndWait(command);
+    const success = await ManimShell.instance.executeCommandEnsureActiveSessionAndWait(command);
+    if (!success) {
+        window.showErrorMessage(
+            'Internal error: Failed to spawn a new ManimGL shell inside `startScene()`');
+    }
 
     // // Commented out - in case someone would like it.
     // // For us - it would require MacOS. Also - the effect is not desired.
