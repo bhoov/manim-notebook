@@ -107,8 +107,6 @@ export class ManimShell {
             return vscode.window.showWarningMessage("Manim is currently starting. Please wait a moment.");
         }
 
-        const clipboardBuffer = await vscode.env.clipboard.readText();
-
         this.lockDuringStartup = true;
         const shell = await this.retrieveOrInitActiveShell(startLine);
         this.lockDuringStartup = false;
@@ -120,8 +118,6 @@ export class ManimShell {
                 this.eventEmitter.once(ManimShellEvent.IPYTHON_CELL_FINISHED, resolve);
             });
         }
-
-        await vscode.env.clipboard.writeText(clipboardBuffer);
     }
 
     /**

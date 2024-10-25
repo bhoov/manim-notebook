@@ -47,7 +47,7 @@ export async function previewCode(code: string, startLine: number): Promise<void
         const clipboardBuffer = await vscode.env.clipboard.readText();
         await vscode.env.clipboard.writeText(code);
 
-        ManimShell.instance.executeCommand(PREVIEW_COMMAND, startLine);
+        await ManimShell.instance.executeCommand(PREVIEW_COMMAND, startLine);
 
         // Restore original clipboard content
         const timeout = vscode.workspace.getConfiguration("manim-notebook").clipboardTimeout;
