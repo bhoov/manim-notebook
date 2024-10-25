@@ -77,7 +77,6 @@ export class ManimShell {
     private detectShellExecutionEnd = true;
 
     private constructor() {
-        this.activeShell = null;
         this.initiateTerminalDataReading();
     }
 
@@ -263,7 +262,6 @@ export class ManimShell {
                 for await (const data of withoutAnsiCodes(stream)) {
 
                     if (data.match(MANIM_WELCOME_REGEX)) {
-                        console.log("Active shell seen");
                         this.activeShell = event.terminal;
                     }
 
