@@ -6,6 +6,7 @@ import { EventEmitter } from 'events';
 // https://stackoverflow.com/a/14693789/
 const ANSI_CONTROL_SEQUENCE_REGEX = /(?:\x1B[@-Z\\-_]|[\x80-\x9A\x9C-\x9F]|(?:\x1B\[|\x9B)[0-?]*[ -/]*[@-~])/g;
 const IPYTHON_CELL_START_REGEX = /^\s*In \[\d+\]:/m;
+const ERROR_REGEX = /^\s*Cell In\[\d+\],\s*line\s*\d+/m;
 const MANIM_WELCOME_STRING = "ManimGL";
 
 enum ManimShellEvent {
@@ -104,6 +105,9 @@ export class ManimShell {
                     }
                     if (data.match(IPYTHON_CELL_START_REGEX)) {
                         this.eventEmitter.emit(ManimShellEvent.IPYTHON_CELL_FINISHED);
+                    }
+                    if (data.match(ERROR_REGEX)) {
+                        this.activeShell?.show();
                     }
                 }
             });
