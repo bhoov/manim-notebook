@@ -214,11 +214,18 @@ export class ManimShell {
             }
             this.activeShell = window.createTerminal();
         }
-        // We are sure that the active shell is set since it is invoked
-        // in `retrieveOrInitActiveShell()` or in the line above.
-        this.exec(this.activeShell as Terminal, command);
-        await new Promise(resolve => {
-            this.eventEmitter.once(ManimShellEvent.IPYTHON_CELL_FINISHED, resolve);
+        
+        await window.withProgress({
+            location: vscode.ProgressLocation.Notification,
+            title: "Starting Manim...",
+            cancellable: false
+        }, async (progress, token) => {
+            // We are sure that the active shell is set since it is invoked
+            // in `retrieveOrInitActiveShell()` or in the line above.
+            this.exec(this.activeShell as Terminal, command);
+            await new Promise(resolve => {
+                this.eventEmitter.once(ManimShellEvent.IPYTHON_CELL_FINISHED, resolve);
+            });
         });
     }
 
