@@ -35,6 +35,8 @@ enum ManimShellEvent {
      * IPYTHON_CELL_START_REGEX is matched.
      */
     IPYTHON_CELL_FINISHED = 'ipythonCellFinished',
+
+    DATA = 'generalData'
 }
 
 const MAC_OS_MULTIPLE_COMMANDS_ERROR = `On MacOS, we don't support running`
@@ -121,7 +123,8 @@ export class ManimShell {
      * has finished executing, e.g. when the whole animation has been previewed.
      */
     public async executeCommand(command: string, startLine: number,
-        waitUntilFinished = false, onCommandIssued?: () => void) {
+        waitUntilFinished = false, onCommandIssued?: () => void,
+        onData?: (data: string) => void) {
         if (this.lockDuringStartup) {
             return vscode.window.showWarningMessage("Manim is currently starting. Please wait a moment.");
         }
@@ -135,6 +138,14 @@ export class ManimShell {
         const shell = await this.retrieveOrInitActiveShell(startLine);
         this.lockDuringStartup = false;
 
+        const dataListener = (data: string) => {
+            if (onData) {
+                onData(data);
+            }
+        };
+
+        this.eventEmitter.on(ManimShellEvent.DATA, dataListener);
+
         this.exec(shell, command);
         if (onCommandIssued) {
             onCommandIssued();
@@ -142,12 +153,16 @@ export class ManimShell {
 
         if (waitUntilFinished) {
             await new Promise(resolve => {
-                this.eventEmitter.once(ManimShellEvent.IPYTHON_CELL_FINISHED, resolve);
+                // first IPython cell is actually printing the issued command
+                this.eventEmitter.once(ManimShellEvent.IPYTHON_CELL_FINISHED, () => {
+                    this.eventEmitter.once(ManimShellEvent.IPYTHON_CELL_FINISHED, resolve);
+                });
             });
         }
 
         this.eventEmitter.once(ManimShellEvent.IPYTHON_CELL_FINISHED, () => {
             this.isExecutingCommand = false;
+            this.eventEmitter.off(ManimShellEvent.DATA, dataListener);
         });
     }
 
@@ -178,7 +193,10 @@ export class ManimShell {
         this.exec(this.activeShell as Terminal, command);
         if (waitUntilFinished) {
             await new Promise(resolve => {
-                this.eventEmitter.once(ManimShellEvent.IPYTHON_CELL_FINISHED, resolve);
+                // first IPython cell is actually printing the issued command
+                this.eventEmitter.once(ManimShellEvent.IPYTHON_CELL_FINISHED, () => {
+                    this.eventEmitter.once(ManimShellEvent.IPYTHON_CELL_FINISHED, resolve);
+                });
             });
         }
 
@@ -307,6 +325,7 @@ export class ManimShell {
             async (event: vscode.TerminalShellExecutionStartEvent) => {
                 const stream = event.execution.read();
                 for await (const data of withoutAnsiCodes(stream)) {
+                    this.eventEmitter.emit(ManimShellEvent.DATA, data);
 
                     if (data.match(MANIM_WELCOME_REGEX)) {
                         this.activeShell = event.terminal;

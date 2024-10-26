@@ -2,7 +2,7 @@ import * as vscode from 'vscode';
 import { ManimShell } from './manimShell';
 import { window } from 'vscode';
 
-const PREVIEW_COMMAND = `\x0C checkpoint_paste()\x1b`;
+const PREVIEW_COMMAND = `checkpoint_paste()`;
 // \x0C: is Ctrl + L
 // \x1b: https://github.com/bhoov/manim-notebook/issues/18#issuecomment-2431146809
 
@@ -26,10 +26,61 @@ export async function previewCode(code: string, startLine: number): Promise<void
         const clipboardBuffer = await vscode.env.clipboard.readText();
         await vscode.env.clipboard.writeText(code);
 
-        await ManimShell.instance.executeCommand(
-            PREVIEW_COMMAND, startLine, true,
-            () => restoreClipboard(clipboardBuffer)
-        );
+        let currentSceneName: string | undefined = undefined;
+        let currentProgress: number = 0;
+
+        await window.withProgress({
+            location: vscode.ProgressLocation.Notification,
+            title: "Previewing Manim",
+            cancellable: false
+        }, async (progress, token) => {
+            progress.report({ increment: 0 });
+
+            await ManimShell.instance.executeCommand(
+                PREVIEW_COMMAND, startLine, true,
+                () => restoreClipboard(clipboardBuffer),
+                (data) => {
+                    // TODO: Refactor (!!!)
+                    // TODO: Make sure progress is reset when current command
+                    // is somehow aborted, e.g. when clicking on preview
+                    // while another preview is running.
+                    if (!data.includes("%")) {
+                        return;
+                    }
+                    const progressString = data.match(/\b\d{1,2}(?=\s?%)/)?.[0];
+                    if (!progressString) {
+                        return;
+                    }
+
+                    const newProgress = parseInt(progressString);
+                    console.log(`✅ ${newProgress}`);
+
+                    let progressIncrement = newProgress - currentProgress;
+
+                    const split = data.split(" ");
+                    if (split.length < 2) {
+                        return;
+                    }
+                    let sceneName = data.split(" ")[1];
+                    // remove last char which is a ":"
+                    sceneName = sceneName.substring(0, sceneName.length - 1);
+                    if (sceneName !== currentSceneName) {
+                        if (currentSceneName === undefined) {
+                            // Reset progress to 0
+                            progressIncrement = -currentProgress;
+                        }
+                        currentSceneName = sceneName;
+                    }
+
+                    currentProgress = newProgress;
+
+                    progress.report({
+                        increment: progressIncrement,
+                        message: sceneName
+                    });
+                }
+            );
+        });
     } catch (error) {
         vscode.window.showErrorMessage(`Error: ${error}`);
     }
