@@ -147,7 +147,6 @@ export class ManimShell {
         }
 
         this.eventEmitter.once(ManimShellEvent.IPYTHON_CELL_FINISHED, () => {
-            console.log("Finished command execution.");
             this.isExecutingCommand = false;
         });
     }
