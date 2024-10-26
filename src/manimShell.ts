@@ -17,6 +17,11 @@ const ANSI_CONTROL_SEQUENCE_REGEX = /(?:\x1B[@-Z\\-_]|[\x80-\x9A\x9C-\x9F]|(?:\x
 const IPYTHON_CELL_START_REGEX = /^\s*In \[\d+\]:/m;
 
 /**
+ * Regular expression to match a KeyboardInterrupt.
+ */
+const KEYBOARD_INTERRUPT_REGEX = /^\s*KeyboardInterrupt/m;
+
+/**
  * Regular expression to match an error message in the terminal. For any error
  * message, IPython prints "Cell In[<number>], line <number>" to a new line.
  */
@@ -35,6 +40,12 @@ enum ManimShellEvent {
      * IPYTHON_CELL_START_REGEX is matched.
      */
     IPYTHON_CELL_FINISHED = 'ipythonCellFinished',
+
+    /**
+     * Event emitted when a keyboard interrupt is detected in the terminal, e.g.
+     * when `Ctrl+C` is pressed to stop the current command execution.
+     */
+    KEYBOARD_INTERRUPT = 'keyboardInterrupt',
 
     DATA = 'generalData'
 }
@@ -153,6 +164,7 @@ export class ManimShell {
 
         if (waitUntilFinished) {
             await new Promise(resolve => {
+                this.eventEmitter.once(ManimShellEvent.KEYBOARD_INTERRUPT, resolve);
                 // first IPython cell is actually printing the issued command
                 this.eventEmitter.once(ManimShellEvent.IPYTHON_CELL_FINISHED, () => {
                     this.eventEmitter.once(ManimShellEvent.IPYTHON_CELL_FINISHED, resolve);
@@ -193,6 +205,7 @@ export class ManimShell {
         this.exec(this.activeShell as Terminal, command);
         if (waitUntilFinished) {
             await new Promise(resolve => {
+                this.eventEmitter.once(ManimShellEvent.KEYBOARD_INTERRUPT, resolve);
                 // first IPython cell is actually printing the issued command
                 this.eventEmitter.once(ManimShellEvent.IPYTHON_CELL_FINISHED, () => {
                     this.eventEmitter.once(ManimShellEvent.IPYTHON_CELL_FINISHED, resolve);
@@ -231,7 +244,7 @@ export class ManimShell {
             }
             this.activeShell = window.createTerminal();
         }
-        
+
         await window.withProgress({
             location: vscode.ProgressLocation.Notification,
             title: "Starting Manim...",
@@ -331,6 +344,10 @@ export class ManimShell {
                         this.activeShell = event.terminal;
                     }
 
+                    if (data.match(KEYBOARD_INTERRUPT_REGEX)) {
+                        this.eventEmitter.emit(ManimShellEvent.KEYBOARD_INTERRUPT);
+                    }
+                    
                     if (data.match(IPYTHON_CELL_START_REGEX)) {
                         this.eventEmitter.emit(ManimShellEvent.IPYTHON_CELL_FINISHED);
                     }
