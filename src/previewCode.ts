@@ -41,9 +41,6 @@ export async function previewCode(code: string, startLine: number): Promise<void
                 () => restoreClipboard(clipboardBuffer),
                 (data) => {
                     // TODO: Refactor (!!!)
-                    // TODO: Make sure progress is reset when current command
-                    // is somehow aborted, e.g. when clicking on preview
-                    // while another preview is running.
                     if (!data.includes("%")) {
                         return;
                     }
