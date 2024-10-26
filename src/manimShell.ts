@@ -37,6 +37,10 @@ enum ManimShellEvent {
     IPYTHON_CELL_FINISHED = 'ipythonCellFinished',
 }
 
+const MAC_OS_MULTIPLE_COMMANDS_ERROR = `On MacOS, we don't support running`
+    + ` multiple Manim commands at the same time. Please wait until the`
+    + ` current command has finished.`;
+
 /**
  * Wrapper around the IPython terminal that ManimGL uses. Ensures that commands
  * are executed at the right place and spans a new Manim session if necessary.
@@ -62,6 +66,15 @@ export class ManimShell {
     private lockDuringStartup = false;
 
     /**
+     * Whether to lock the execution of a new command while another command is
+     * currently running. On MacOS, we do lock since the IPython terminal *exits*
+     * when sending Ctrl+C instead of just interrupting the current command.
+     * See issue #16: https://github.com/bhoov/manim-notebook/issues/16
+     */
+    private shouldLockDuringCommandExecution = false;
+    private isExecutingCommand = false;
+
+    /**
      * Whether to detect the end of a shell execution.
      * 
      * We disable this while programmatically executing commands in the shell
@@ -78,6 +91,11 @@ export class ManimShell {
 
     private constructor() {
         this.initiateTerminalDataReading();
+
+        // on MacOS
+        if (process.platform === "darwin") {
+            this.shouldLockDuringCommandExecution = true;
+        }
     }
 
     public static get instance(): ManimShell {
@@ -102,22 +120,36 @@ export class ManimShell {
      * @param [waitUntilFinished=false] Whether to wait until the actual command
      * has finished executing, e.g. when the whole animation has been previewed.
      */
-    public async executeCommand(command: string, startLine: number, waitUntilFinished = false) {
+    public async executeCommand(command: string, startLine: number,
+        waitUntilFinished = false, onCommandIssued?: () => void) {
         if (this.lockDuringStartup) {
             return vscode.window.showWarningMessage("Manim is currently starting. Please wait a moment.");
         }
+        if (this.shouldLockDuringCommandExecution && this.isExecutingCommand) {
+            return vscode.window.showWarningMessage(MAC_OS_MULTIPLE_COMMANDS_ERROR);
+        }
+
+        this.isExecutingCommand = true;
 
         this.lockDuringStartup = true;
         const shell = await this.retrieveOrInitActiveShell(startLine);
         this.lockDuringStartup = false;
 
         this.exec(shell, command);
+        if (onCommandIssued) {
+            onCommandIssued();
+        }
 
         if (waitUntilFinished) {
             await new Promise(resolve => {
                 this.eventEmitter.once(ManimShellEvent.IPYTHON_CELL_FINISHED, resolve);
             });
         }
+
+        this.eventEmitter.once(ManimShellEvent.IPYTHON_CELL_FINISHED, () => {
+            console.log("Finished command execution.");
+            this.isExecutingCommand = false;
+        });
     }
 
     /**
@@ -126,14 +158,23 @@ export class ManimShell {
      * @param command The command to execute in the VSCode terminal.
      * @param [waitUntilFinished=false] Whether to wait until the actual command
      * has finished executing, e.g. when the whole animation has been previewed.
+     * @param [forceExecute=false] Whether to force the execution of the command
+     * even if another command is currently running. This is only necessary when
+     * the `shouldLockDuringCommandExecution` is set to true.
      * @returns A boolean indicating whether an active shell was found or not.
      * If no active shell was found, the command was also not executed.
      */
     public async executeCommandEnsureActiveSession(
-        command: string, waitUntilFinished = false): Promise<boolean> {
+        command: string, waitUntilFinished = false, forceExecute = false): Promise<boolean> {
         if (!this.hasActiveShell()) {
             return Promise.resolve(false);
         }
+        if (this.shouldLockDuringCommandExecution && !forceExecute && this.isExecutingCommand) {
+            vscode.window.showWarningMessage(MAC_OS_MULTIPLE_COMMANDS_ERROR);
+            return Promise.resolve(true);
+        }
+
+        this.isExecutingCommand = true;
 
         this.exec(this.activeShell as Terminal, command);
         if (waitUntilFinished) {
@@ -141,6 +182,10 @@ export class ManimShell {
                 this.eventEmitter.once(ManimShellEvent.IPYTHON_CELL_FINISHED, resolve);
             });
         }
+
+        this.eventEmitter.once(ManimShellEvent.IPYTHON_CELL_FINISHED, () => {
+            this.isExecutingCommand = false;
+        });
         return Promise.resolve(true);
     }
 

@@ -108,7 +108,8 @@ export async function startScene(lineStart?: number) {
  * and the IPython terminal.
  */
 export async function exitScene() {
-    const success = await ManimShell.instance.executeCommandEnsureActiveSession("exit()");
+    const success = await ManimShell.instance.executeCommandEnsureActiveSession(
+        "exit()", false, true);
     if (success) {
         ManimShell.instance.resetActiveShell();
     } else {
