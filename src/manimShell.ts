@@ -139,8 +139,12 @@ export class ManimShell {
         if (this.lockDuringStartup) {
             return vscode.window.showWarningMessage("Manim is currently starting. Please wait a moment.");
         }
-        if (this.shouldLockDuringCommandExecution && this.isExecutingCommand) {
-            return vscode.window.showWarningMessage(MAC_OS_MULTIPLE_COMMANDS_ERROR);
+        if (this.isExecutingCommand) {
+            if (this.shouldLockDuringCommandExecution) {
+                return vscode.window.showWarningMessage(MAC_OS_MULTIPLE_COMMANDS_ERROR);
+            }
+            this.sendKeyboardInterrupt();
+            await new Promise(resolve => setTimeout(resolve, 650));
         }
 
         this.isExecutingCommand = true;
@@ -163,16 +167,9 @@ export class ManimShell {
         }
 
         if (waitUntilFinished) {
-            await new Promise(resolve => {
-                this.eventEmitter.once(ManimShellEvent.KEYBOARD_INTERRUPT, resolve);
-                // first IPython cell is actually printing the issued command
-                this.eventEmitter.once(ManimShellEvent.IPYTHON_CELL_FINISHED, () => {
-                    this.eventEmitter.once(ManimShellEvent.IPYTHON_CELL_FINISHED, resolve);
-                });
-            });
+            await this.waitUntilCommandFinished();
         }
-
-        this.eventEmitter.once(ManimShellEvent.IPYTHON_CELL_FINISHED, () => {
+        this.waitUntilCommandFinished(() => {
             this.isExecutingCommand = false;
             this.eventEmitter.off(ManimShellEvent.DATA, dataListener);
         });
@@ -195,27 +192,27 @@ export class ManimShell {
         if (!this.hasActiveShell()) {
             return Promise.resolve(false);
         }
-        if (this.shouldLockDuringCommandExecution && !forceExecute && this.isExecutingCommand) {
-            vscode.window.showWarningMessage(MAC_OS_MULTIPLE_COMMANDS_ERROR);
-            return Promise.resolve(true);
+        if (this.isExecutingCommand) {
+            if (this.shouldLockDuringCommandExecution && !forceExecute) {
+                vscode.window.showWarningMessage(MAC_OS_MULTIPLE_COMMANDS_ERROR);
+                return Promise.resolve(true);
+            }
+            this.sendKeyboardInterrupt();
+            await new Promise(resolve => setTimeout(resolve, 650));
         }
+
 
         this.isExecutingCommand = true;
 
         this.exec(this.activeShell as Terminal, command);
-        if (waitUntilFinished) {
-            await new Promise(resolve => {
-                this.eventEmitter.once(ManimShellEvent.KEYBOARD_INTERRUPT, resolve);
-                // first IPython cell is actually printing the issued command
-                this.eventEmitter.once(ManimShellEvent.IPYTHON_CELL_FINISHED, () => {
-                    this.eventEmitter.once(ManimShellEvent.IPYTHON_CELL_FINISHED, resolve);
-                });
-            });
-        }
 
-        this.eventEmitter.once(ManimShellEvent.IPYTHON_CELL_FINISHED, () => {
+        if (waitUntilFinished) {
+            await this.waitUntilCommandFinished();
+        }
+        this.waitUntilCommandFinished(() => {
             this.isExecutingCommand = false;
         });
+
         return Promise.resolve(true);
     }
 
@@ -321,6 +318,26 @@ export class ManimShell {
         return this.activeShell as Terminal;
     }
 
+    private async waitUntilCommandFinished(callback?: () => void) {
+        await new Promise(resolve => {
+            this.eventEmitter.once(ManimShellEvent.KEYBOARD_INTERRUPT, resolve);
+
+            // The first IPython cell is actually printing the issued command,
+            // which we want to just ignore, and then we wait for the actual
+            // command to finish.
+            this.eventEmitter.once(ManimShellEvent.IPYTHON_CELL_FINISHED, () => {
+                this.eventEmitter.once(ManimShellEvent.IPYTHON_CELL_FINISHED, resolve);
+            });
+        });
+        if (callback) {
+            callback();
+        }
+    }
+
+    private async sendKeyboardInterrupt() {
+        this.activeShell?.sendText('\x03'); // send `Ctrl+C`
+    }
+
     /**
      * Inits the reading of data from the terminal and issues actions/events
      * based on the data received:
@@ -347,7 +364,7 @@ export class ManimShell {
                     if (data.match(KEYBOARD_INTERRUPT_REGEX)) {
                         this.eventEmitter.emit(ManimShellEvent.KEYBOARD_INTERRUPT);
                     }
-                    
+
                     if (data.match(IPYTHON_CELL_START_REGEX)) {
                         this.eventEmitter.emit(ManimShellEvent.IPYTHON_CELL_FINISHED);
                     }
