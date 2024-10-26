@@ -53,8 +53,6 @@ export async function previewCode(code: string, startLine: number): Promise<void
                     }
 
                     const newProgress = parseInt(progressString);
-                    console.log(`✅ ${newProgress}`);
-
                     let progressIncrement = newProgress - currentProgress;
 
                     const split = data.split(" ");
