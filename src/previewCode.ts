@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import { ManimShell } from './manimShell';
 import { window } from 'vscode';
+import { EventEmitter } from 'events';
 
 const PREVIEW_COMMAND = `\x0C checkpoint_paste()\x1b`;
 // \x0C: is Ctrl + L
@@ -29,53 +30,22 @@ export async function previewCode(code: string, startLine: number): Promise<void
         let currentSceneName: string | undefined = undefined;
         let currentProgress: number = 0;
 
-        await window.withProgress({
-            location: vscode.ProgressLocation.Notification,
-            title: "Previewing Manim",
-            cancellable: false
-        }, async (progress, token) => {
-            progress.report({ increment: 0 });
+        let progress: PreviewProgress | undefined;
 
-            await ManimShell.instance.executeCommand(
-                PREVIEW_COMMAND, startLine, true,
-                () => restoreClipboard(clipboardBuffer),
-                (data) => {
-                    // TODO: Refactor (!!!)
-                    if (!data.includes("%")) {
-                        return;
-                    }
-                    const progressString = data.match(/\b\d{1,2}(?=\s?%)/)?.[0];
-                    if (!progressString) {
-                        return;
-                    }
+        await ManimShell.instance.executeCommand(
+            PREVIEW_COMMAND, startLine, true,
+            () => {
+                // Executed after command is sent to terminal
+                restoreClipboard(clipboardBuffer);
+                progress = new PreviewProgress();
+            },
+            (data) => {
+                progress?.reportOnData(data);
+            }
+        );
 
-                    const newProgress = parseInt(progressString);
-                    let progressIncrement = newProgress - currentProgress;
+        progress?.finish();
 
-                    const split = data.split(" ");
-                    if (split.length < 2) {
-                        return;
-                    }
-                    let sceneName = data.split(" ")[1];
-                    // remove last char which is a ":"
-                    sceneName = sceneName.substring(0, sceneName.length - 1);
-                    if (sceneName !== currentSceneName) {
-                        if (currentSceneName === undefined) {
-                            // Reset progress to 0
-                            progressIncrement = -currentProgress;
-                        }
-                        currentSceneName = sceneName;
-                    }
-
-                    currentProgress = newProgress;
-
-                    progress.report({
-                        increment: progressIncrement,
-                        message: sceneName
-                    });
-                }
-            );
-        });
     } catch (error) {
         vscode.window.showErrorMessage(`Error: ${error}`);
     }
@@ -86,4 +56,75 @@ function restoreClipboard(clipboardBuffer: string) {
     setTimeout(async () => {
         await vscode.env.clipboard.writeText(clipboardBuffer);
     }, timeout);
+}
+
+class PreviewProgress {
+    private eventEmitter = new EventEmitter();
+    private FINISH_EVENT = "finished";
+    private REPORT_EVENT = "report";
+
+    private progress: number = 0;
+    private sceneName: string | undefined;
+
+    constructor() {
+        vscode.window.withProgress({
+            location: vscode.ProgressLocation.Notification,
+            title: "Previewing Manim",
+            cancellable: false
+        }, async (progressIndicator, token) => {
+            await new Promise((resolve) => {
+                this.eventEmitter.on(this.FINISH_EVENT, resolve);
+                this.eventEmitter.on(this.REPORT_EVENT,
+                    (data: { increment: number, message: string }) => {
+                        this.progress += data.increment;
+                        progressIndicator.report(
+                            {
+                                increment: data.increment,
+                                message: data.message
+                            });
+                    });
+            });
+        });
+    }
+
+    public reportOnData(data: string) {
+        const newProgress = this.extractProgressFromString(data);
+        if (newProgress === -1) {
+            return;
+        }
+        let progressIncrement = newProgress - this.progress;
+
+        const split = data.split(" ");
+        if (split.length < 2) {
+            return;
+        }
+        let newSceneName = data.split(" ")[1];
+        // remove last char which is a ":"
+        newSceneName = newSceneName.substring(0, newSceneName.length - 1);
+        if (newSceneName !== this.sceneName) {
+            progressIncrement = -this.progress; // reset progress to 0
+            this.sceneName = newSceneName;
+        }
+
+        this.eventEmitter.emit(this.REPORT_EVENT, {
+            increment: progressIncrement,
+            message: newSceneName
+        });
+    }
+
+    public finish() {
+        this.eventEmitter.emit(this.FINISH_EVENT);
+    }
+
+    private extractProgressFromString(data: string): number {
+        if (!data.includes("%")) {
+            return -1;
+        }
+        const progressString = data.match(/\b\d{1,2}(?=\s?%)/)?.[0];
+        if (!progressString) {
+            return -1;
+        }
+
+        return parseInt(progressString);
+    }
 }
