@@ -84,6 +84,11 @@
           "type": "number",
           "default": 650,
           "markdownDescription": "Configures the number of milliseconds (ms) to wait before your clipboard is restored. (Your clipboard is used to temporarily copy the selected code to be accessible by Manim)."
+        },
+        "manim-notebook.confirmKillingActiveSceneToStartNewOne": {
+        "type": "boolean",
+          "default": true,
+          "markdownDescription": "If enabled, you will be prompted to confirm killing an old session when you want to start a new scene at the cursor while an active scene is running."
         }
       }
     }
