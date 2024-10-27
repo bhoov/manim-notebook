@@ -255,8 +255,14 @@ export class ManimShell {
     public async executeStartCommand(command: string, isRequestedForAnotherCommand: boolean) {
         if (!isRequestedForAnotherCommand) {
             if (this.hasActiveShell()) {
+                const shouldAsk = await vscode.workspace.getConfiguration("manim-notebook")
+                    .get("confirmKillingActiveSceneToStartNewOne");
+                if (shouldAsk) {
+                    if (!await this.doesUserWantToKillActiveScene()) {
+                        return;
+                    }
+                }
                 exitScene();
-                await new Promise(resolve => setTimeout(resolve, 2000));
             }
             this.activeShell = window.createTerminal();
         }
@@ -274,6 +280,32 @@ export class ManimShell {
     */
     public resetActiveShell() {
         this.activeShell = null;
+    }
+
+    /**
+     * Ask the user if they want to kill the active scene. Might modify the
+     * setting that control if the user should be asked in the future.
+     * 
+     * @returns true if the user wants to kill the active scene, false otherwise.
+     */
+    private async doesUserWantToKillActiveScene(): Promise<boolean> {
+        const CANCEL_OPTION = "Cancel";
+        const KILL_IT_ALWAYS_OPTION = "Kill it (don't ask the next time)";
+
+        const selection = await window.showWarningMessage(
+            "We need to kill your Manim session to spawn a new one.",
+            "Kill it", KILL_IT_ALWAYS_OPTION, CANCEL_OPTION);
+        if (selection === undefined || selection === CANCEL_OPTION) {
+            return false;
+        }
+
+        if (selection === KILL_IT_ALWAYS_OPTION) {
+            await vscode.workspace.getConfiguration("manim-notebook")
+                .update("confirmKillingActiveSceneToStartNewOne", false);
+            window.showInformationMessage(
+                "You can re-enable the confirmation in the settings.");
+        }
+        return true;
     }
 
     /**
