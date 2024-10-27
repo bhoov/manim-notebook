@@ -21,6 +21,8 @@ const PREVIEW_COMMAND = `\x0C checkpoint_paste()\x1b`;
  * [3] https://youtu.be/rbu7Zu5X1zI
  *
  * @param code The code to preview (e.g. from a Manim cell or from a custom selection).
+ * @param startLine The line number in the active editor where the Manim session
+ * should start in case a new terminal is spawned. Also see `startScene().
  */
 export async function previewCode(code: string, startLine: number): Promise<void> {
     let progress: PreviewProgress | undefined;
@@ -44,6 +46,11 @@ export async function previewCode(code: string, startLine: number): Promise<void
     }
 }
 
+/**
+ * Restores the clipboard content after a user-defined timeout.
+ * 
+ * @param clipboardBuffer The content to restore.
+ */
 function restoreClipboard(clipboardBuffer: string) {
     const timeout = vscode.workspace.getConfiguration("manim-notebook").clipboardTimeout;
     setTimeout(async () => {
@@ -51,13 +58,23 @@ function restoreClipboard(clipboardBuffer: string) {
     }, timeout);
 }
 
+/**
+ * Class to handle the progress notification of the preview code command.
+ */
 class PreviewProgress {
     private eventEmitter = new EventEmitter();
     private FINISH_EVENT = "finished";
     private REPORT_EVENT = "report";
 
+    /**
+     * Current progress of the preview command.
+     */
     private progress: number = 0;
-    private sceneName: string | undefined;
+
+    /**
+     * Name of the animation being previewed.
+     */
+    private animationName: string | undefined;
 
     constructor() {
         vscode.window.withProgress({
@@ -80,6 +97,12 @@ class PreviewProgress {
         });
     }
 
+    /**
+     * Updates the progress based on the given Manim preview output.
+     * E.g. `2 ShowCreationNumberPlane, etc.:   7%| 2  /30  16.03it/s`
+     * 
+     * @param data The Manim preview output to parse.
+     */
     public reportOnData(data: string) {
         const newProgress = this.extractProgressFromString(data);
         if (newProgress === -1) {
@@ -91,24 +114,34 @@ class PreviewProgress {
         if (split.length < 2) {
             return;
         }
-        let newSceneName = data.split(" ")[1];
+        let newAnimName = data.split(" ")[1];
         // remove last char which is a ":"
-        newSceneName = newSceneName.substring(0, newSceneName.length - 1);
-        if (newSceneName !== this.sceneName) {
+        newAnimName = newAnimName.substring(0, newAnimName.length - 1);
+        if (newAnimName !== this.animationName) {
             progressIncrement = -this.progress; // reset progress to 0
-            this.sceneName = newSceneName;
+            this.animationName = newAnimName;
         }
 
         this.eventEmitter.emit(this.REPORT_EVENT, {
             increment: progressIncrement,
-            message: newSceneName
+            message: newAnimName
         });
     }
 
+    /**
+     * Finishes the progress notification, i.e. closes the progress bar.
+     */
     public finish() {
         this.eventEmitter.emit(this.FINISH_EVENT);
     }
 
+    /**
+     * Extracts the progress information from the given Manim preview output.
+     * 
+     * @param data The Manim preview output to parse.
+     * @returns The progress percentage as in the interval [0, 100],
+     * or -1 if no progress information was found.
+     */
     private extractProgressFromString(data: string): number {
         if (!data.includes("%")) {
             return -1;
