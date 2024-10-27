@@ -37,9 +37,10 @@ enum ManimShellEvent {
     IPYTHON_CELL_FINISHED = 'ipythonCellFinished',
 }
 
-const MAC_OS_MULTIPLE_COMMANDS_ERROR = `On MacOS, we don't support running`
-    + ` multiple Manim commands at the same time. Please wait until the`
-    + ` current command has finished.`;
+const MAC_OS_MULTIPLE_COMMANDS_ERROR =
+    `Simultaneous Manim commands are not currently supported on macOS. `
+    + `Please wait for the current operations to finish before initiating `
+    + `a new command.`;
 
 /**
  * Wrapper around the IPython terminal that ManimGL uses. Ensures that commands
