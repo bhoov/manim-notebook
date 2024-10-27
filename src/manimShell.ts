@@ -43,6 +43,19 @@ const MAC_OS_MULTIPLE_COMMANDS_ERROR =
     + `a new command.`;
 
 /**
+ * Event handler for command execution events.
+ */
+export interface CommandExecutionEventHandler {
+    /**
+     * Callback that is invoked when the command is issued, i.e. sent to the
+     * terminal. At this point, the command is probably not yet finished
+     * executing.
+     */
+    onCommandIssued?: () => void;
+}
+
+
+/**
  * Wrapper around the IPython terminal that ManimGL uses. Ensures that commands
  * are executed at the right place and spans a new Manim session if necessary.
  * 
@@ -120,9 +133,11 @@ export class ManimShell {
      * Also see `startScene()`.
      * @param [waitUntilFinished=false] Whether to wait until the actual command
      * has finished executing, e.g. when the whole animation has been previewed.
+     * @param handler Event handler for command execution events. See the
+     * interface `CommandExecutionEventHandler`.
      */
     public async executeCommand(command: string, startLine: number,
-        waitUntilFinished = false, onCommandIssued?: () => void) {
+        waitUntilFinished = false, handler?: CommandExecutionEventHandler) {
         if (this.lockDuringStartup) {
             return vscode.window.showWarningMessage("Manim is currently starting. Please wait a moment.");
         }
@@ -137,9 +152,7 @@ export class ManimShell {
         this.lockDuringStartup = false;
 
         this.exec(shell, command);
-        if (onCommandIssued) {
-            onCommandIssued();
-        }
+        handler?.onCommandIssued?.();
 
         if (waitUntilFinished) {
             await new Promise(resolve => {

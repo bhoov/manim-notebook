@@ -27,8 +27,11 @@ export async function previewCode(code: string, startLine: number): Promise<void
         await vscode.env.clipboard.writeText(code);
 
         await ManimShell.instance.executeCommand(
-            PREVIEW_COMMAND, startLine, true,
-            () => restoreClipboard(clipboardBuffer)
+            PREVIEW_COMMAND, startLine, true, {
+            onCommandIssued: () => {
+                restoreClipboard(clipboardBuffer);
+            }
+        }
         );
     } catch (error) {
         vscode.window.showErrorMessage(`Error: ${error}`);
