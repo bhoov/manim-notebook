@@ -127,10 +127,10 @@ function previewSelection() {
  * the scene.
  */
 async function clearScene() {
-	const success = await ManimShell.instance.executeCommandEnsureActiveSession("clear()");
-	if (!success) {
-		window.showErrorMessage('No active ManimGL scene found to remove objects from.');
-	}
+	await ManimShell.instance.executeCommandEnsureActiveSession("clear()");
+	// if (!success) {
+	// 	window.showErrorMessage('No active ManimGL scene found to remove objects from.');
+	// }
 }
 
 /**

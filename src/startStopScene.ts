@@ -108,11 +108,11 @@ export async function startScene(lineStart?: number) {
  * and the IPython terminal.
  */
 export async function exitScene() {
-    const success = await ManimShell.instance.executeCommandEnsureActiveSession(
-        "exit()", false, true);
-    if (success) {
-        ManimShell.instance.resetActiveShell();
-    } else {
-        window.showErrorMessage('No active ManimGL scene found to exit.');
-    }
+    await ManimShell.instance.executeCommandEnsureActiveSession("exit()", false, true);
+    // TODO: Implement error handling, and if no error resetActiveShell() (!!!)
+    // if (success) {
+    //     ManimShell.instance.resetActiveShell();
+    // } else {
+    //     window.showErrorMessage('No active ManimGL scene found to exit.');
+    // }
 }
