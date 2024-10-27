@@ -47,7 +47,11 @@ enum ManimShellEvent {
      */
     KEYBOARD_INTERRUPT = 'keyboardInterrupt',
 
-    DATA = 'generalData'
+    /**
+     * Event emitted when data is received from the terminal, but stripped of
+     * ANSI control codes.
+     */
+    DATA = 'ansiStrippedData'
 }
 
 /**
