@@ -49,6 +49,16 @@ export interface CommandExecutionEventHandler {
     onCommandIssued?: () => void;
 }
 
+/**
+ * Error thrown when no active shell is found, but an active shell is required
+ * for the command execution.
+ */
+export class NoActiveShellError extends Error {
+    constructor() {
+        super();
+        this.name = "NoActiveShellError";
+    }
+}
 
 /**
  * Wrapper around the IPython terminal that ManimGL uses. Ensures that commands
@@ -134,10 +144,12 @@ export class ManimShell {
 
     /**
      * Executes the given command, but only if an active ManimGL shell exists.
+     * Otherwise throws a `NoActiveShellError`.
      * 
      * For params explanations, see the docs for `execCommand()`.
+     * @throws NoActiveShellError If no active shell is found.
      */
-    public async executeCommandEnsureActiveSession(
+    public async executeCommandErrorOnNoActiveSession(
         command: string, waitUntilFinished = false, forceExecute = false
     ) {
         await this.execCommand(
@@ -159,8 +171,7 @@ export class ManimShell {
      * another command is currently running. This is only taken into account
      * when the `shouldLockDuringCommandExecution` is set to true.
      * @param errorOnNoActiveShell Whether to execute the command only if an
-     * active shell exists. If no active shell is found, a warning message is
-     * shown to the user.
+     * active shell exists. If no active shell is found, an error is thrown.
      * @param startLine The line number in the active editor where the Manim
      * session should start in case a new terminal is spawned.
      * Also see `startScene(). You MUST set a startLine if `errorOnNoActiveShell`
@@ -168,6 +179,10 @@ export class ManimShell {
      * and needs to know at which line to start it.
      * @param handler Event handler for command execution events. See the
      * interface `CommandExecutionEventHandler`.
+     * 
+     * @throws NoActiveShellError If no active shell is found, but an active
+     * shell is required for the command execution (when `errorOnNoActiveShell`
+     * is set to true).
      */
     private async execCommand(
         command: string,
@@ -189,9 +204,7 @@ export class ManimShell {
         }
 
         if (errorOnNoActiveShell && !this.hasActiveShell()) {
-            window.showWarningMessage(
-                "No active Manim session found, which is required for this command.");
-            return;
+            throw new NoActiveShellError();
         }
 
         if (this.shouldLockDuringCommandExecution && !forceExecute && this.isExecutingCommand) {
