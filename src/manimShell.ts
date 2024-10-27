@@ -313,9 +313,7 @@ export class ManimShell {
             // We are sure that the active shell is set since it is invoked
             // in `retrieveOrInitActiveShell()` or in the line above.
             this.exec(this.activeShell as Terminal, command);
-            await new Promise(resolve => {
-                this.eventEmitter.once(ManimShellEvent.IPYTHON_CELL_FINISHED, resolve);
-            });
+            await this.waitUntilCommandFinished(this.iPythonCellCount);
         });
     }
 
