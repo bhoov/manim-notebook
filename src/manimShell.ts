@@ -38,7 +38,7 @@ enum ManimShellEvent {
 }
 
 const MAC_OS_MULTIPLE_COMMANDS_ERROR =
-    `Simultaneous Manim commands are not currently supported on macOS. `
+    `Simultaneous Manim commands are not currently supported on MacOS. `
     + `Please wait for the current operations to finish before initiating `
     + `a new command.`;
 
