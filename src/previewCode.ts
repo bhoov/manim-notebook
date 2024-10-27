@@ -23,11 +23,11 @@ const PREVIEW_COMMAND = `\x0C checkpoint_paste()\x1b`;
  * @param code The code to preview (e.g. from a Manim cell or from a custom selection).
  */
 export async function previewCode(code: string, startLine: number): Promise<void> {
+    let progress: PreviewProgress | undefined;
+
     try {
         const clipboardBuffer = await vscode.env.clipboard.readText();
         await vscode.env.clipboard.writeText(code);
-
-        let progress: PreviewProgress | undefined;
 
         await ManimShell.instance.executeCommand(
             PREVIEW_COMMAND, startLine, true, {
@@ -39,9 +39,8 @@ export async function previewCode(code: string, startLine: number): Promise<void
                 progress?.reportOnData(data);
             }
         });
+    } finally {
         progress?.finish();
-    } catch (error) {
-        vscode.window.showErrorMessage(`Error: ${error}`);
     }
 }
 
