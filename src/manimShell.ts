@@ -453,6 +453,9 @@ export class ManimShell {
                     this.eventEmitter.emit(ManimShellEvent.DATA, data);
 
                     if (data.match(MANIM_WELCOME_REGEX)) {
+                        if (this.activeShell && this.activeShell !== event.terminal) {
+                            exitScene(); // Manim detected in new terminal
+                        }
                         this.activeShell = event.terminal;
                     }
 
