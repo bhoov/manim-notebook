@@ -255,8 +255,14 @@ export class ManimShell {
     public async executeStartCommand(command: string, isRequestedForAnotherCommand: boolean) {
         if (!isRequestedForAnotherCommand) {
             if (this.hasActiveShell()) {
+                const KILL_IT_OPTION = "Kill it";
+                const selection = await window.showWarningMessage(
+                    "We need to kill your Manim session to spawn a new one",
+                    KILL_IT_OPTION, "Cancel");
+                if (selection === undefined || selection !== KILL_IT_OPTION) {
+                    return;
+                }
                 exitScene();
-                await new Promise(resolve => setTimeout(resolve, 2000));
             }
             this.activeShell = window.createTerminal();
         }
