@@ -33,19 +33,16 @@ export async function previewCode(code: string, startLine: number): Promise<void
         let progress: PreviewProgress | undefined;
 
         await ManimShell.instance.executeCommand(
-            PREVIEW_COMMAND, startLine, true,
-            () => {
-                // Executed after command is sent to terminal
+            PREVIEW_COMMAND, startLine, true, {
+            onCommandIssued: () => {
                 restoreClipboard(clipboardBuffer);
                 progress = new PreviewProgress();
             },
-            (data) => {
+            onData: (data) => {
                 progress?.reportOnData(data);
             }
-        );
-
+        });
         progress?.finish();
-
     } catch (error) {
         vscode.window.showErrorMessage(`Error: ${error}`);
     }

@@ -50,9 +50,32 @@ enum ManimShellEvent {
     DATA = 'generalData'
 }
 
-const MAC_OS_MULTIPLE_COMMANDS_ERROR = `On MacOS, we don't support running`
-    + ` multiple Manim commands at the same time. Please wait until the`
-    + ` current command has finished.`;
+/**
+ * Event handler for command execution events.
+ */
+export interface CommandExecutionEventHandler {
+    /**
+     * Callback that is invoked when the command is issued, i.e. sent to the
+     * terminal. At this point, the command is probably not yet finished
+     * executing.
+     */
+    onCommandIssued?: () => void;
+
+    /**
+     * Callback that is invoked when data is received from the active Manim
+     * session (IPython shell).
+     * 
+     * @param data The data that was received from the terminal, but stripped
+     * of ANSI control codes.
+     */
+    onData?: (data: string) => void;
+}
+
+/**
+ * Error thrown when no active shell is found, but an active shell is required
+ * for the command execution.
+ */
+export class NoActiveShellError extends Error { }
 
 /**
  * Wrapper around the IPython terminal that ManimGL uses. Ensures that commands
@@ -119,52 +142,118 @@ export class ManimShell {
     }
 
     /**
-     * Executes the given command in a VSCode terminal. If no active terminal
-     * running Manim is found, a new terminal is spawned, and a new Manim
-     * session is started in it before executing the given command.
+     * Executes the given command. If no active terminal running Manim is found,
+     * a new terminal is spawned, and a new Manim session is started in it
+     * before executing the given command.
      * 
      * This command is locked during startup to prevent multiple new scenes from
      * being started at the same time, see `lockDuringStartup`.
      * 
+     * For params explanations, see the docs for `execCommand()`.
+     */
+    public async executeCommand(
+        command: string, startLine: number, waitUntilFinished = false,
+        handler?: CommandExecutionEventHandler
+    ) {
+        await this.execCommand(
+            command, waitUntilFinished, false, false, startLine, handler);
+    }
+
+    /**
+     * Executes the given command, but only if an active ManimGL shell exists.
+     * Otherwise throws a `NoActiveShellError`.
+     * 
+     * For params explanations, see the docs for `execCommand()`.
+     * @throws NoActiveShellError If no active shell is found.
+     */
+    public async executeCommandErrorOnNoActiveSession(
+        command: string, waitUntilFinished = false, forceExecute = false
+    ) {
+        await this.execCommand(
+            command, waitUntilFinished, forceExecute, true, undefined, undefined);
+    }
+
+    /**
+     * Executes a given command and bundles many different behaviors and options.
+     * 
+     * This method is internal and only exposed via other public methods that
+     * select a specific behavior.
+     * 
      * @param command The command to execute in the VSCode terminal.
+     * @param waitUntilFinished Whether to wait until the actual command has
+     * finished executing, e.g. when the whole animation has been previewed.
+     * If set to false (default), we only wait until the command has been issued,
+     * i.e. sent to the terminal.
+     * @param forceExecute Whether to force the execution of the command even if
+     * another command is currently running. This is only taken into account
+     * when the `shouldLockDuringCommandExecution` is set to true.
+     * @param errorOnNoActiveShell Whether to execute the command only if an
+     * active shell exists. If no active shell is found, an error is thrown.
      * @param startLine The line number in the active editor where the Manim
      * session should start in case a new terminal is spawned.
-     * Also see `startScene()`.
-     * @param [waitUntilFinished=false] Whether to wait until the actual command
-     * has finished executing, e.g. when the whole animation has been previewed.
+     * Also see `startScene(). You MUST set a startLine if `errorOnNoActiveShell`
+     * is set to false, since the method might invoke a new shell in this case
+     * and needs to know at which line to start it.
+     * @param handler Event handler for command execution events. See the
+     * interface `CommandExecutionEventHandler`.
+     * 
+     * @throws NoActiveShellError If no active shell is found, but an active
+     * shell is required for the command execution (when `errorOnNoActiveShell`
+     * is set to true).
      */
-    public async executeCommand(command: string, startLine: number,
-        waitUntilFinished = false, onCommandIssued?: () => void,
-        onData?: (data: string) => void) {
-        if (this.lockDuringStartup) {
-            return vscode.window.showWarningMessage("Manim is currently starting. Please wait a moment.");
+    private async execCommand(
+        command: string,
+        waitUntilFinished: boolean,
+        forceExecute: boolean,
+        errorOnNoActiveShell: boolean,
+        startLine?: number,
+        handler?: CommandExecutionEventHandler
+    ) {
+        if (!errorOnNoActiveShell && startLine === undefined) {
+            // should never happen if method is called correctly
+            window.showErrorMessage("Start line not set. Internal extension error.");
+            return;
         }
+
+        if (this.lockDuringStartup) {
+            window.showWarningMessage("Manim is currently starting. Please wait a moment.");
+            return;
+        }
+
+        if (errorOnNoActiveShell && !this.hasActiveShell()) {
+            throw new NoActiveShellError();
+        }
+
         if (this.isExecutingCommand) {
-            if (this.shouldLockDuringCommandExecution) {
-                return vscode.window.showWarningMessage(MAC_OS_MULTIPLE_COMMANDS_ERROR);
+            // MacOS specific behavior
+            if (this.shouldLockDuringCommandExecution && !forceExecute) {
+                window.showWarningMessage(
+                    `Simultaneous Manim commands are not currently supported on MacOS. `
+                    + `Please wait for the current operations to finish before initiating `
+                    + `a new command.`);
+                return;
             }
-            this.sendKeyboardInterrupt();
-            await new Promise(resolve => setTimeout(resolve, 650));
+
+            this.sendKeyboardInterrupt(); // TODO: explain why we send this manually
+            await new Promise(resolve => setTimeout(resolve, 500));
         }
 
         this.isExecutingCommand = true;
 
-        this.lockDuringStartup = true;
-        const shell = await this.retrieveOrInitActiveShell(startLine);
-        this.lockDuringStartup = false;
+        let shell: Terminal;
+        if (errorOnNoActiveShell) {
+            shell = this.activeShell as Terminal;
+        } else {
+            this.lockDuringStartup = true;
+            shell = await this.retrieveOrInitActiveShell(startLine!);
+            this.lockDuringStartup = false;
+        }
 
-        const dataListener = (data: string) => {
-            if (onData) {
-                onData(data);
-            }
-        };
-
+        const dataListener = (data: string) => { handler?.onData?.(data); };
         this.eventEmitter.on(ManimShellEvent.DATA, dataListener);
 
         this.exec(shell, command);
-        if (onCommandIssued) {
-            onCommandIssued();
-        }
+        handler?.onCommandIssued?.();
 
         if (waitUntilFinished) {
             await this.waitUntilCommandFinished();
@@ -173,47 +262,6 @@ export class ManimShell {
             this.isExecutingCommand = false;
             this.eventEmitter.off(ManimShellEvent.DATA, dataListener);
         });
-    }
-
-    /**
-     * Executes the given command, but only if an active ManimGL shell exists.
-     * 
-     * @param command The command to execute in the VSCode terminal.
-     * @param [waitUntilFinished=false] Whether to wait until the actual command
-     * has finished executing, e.g. when the whole animation has been previewed.
-     * @param [forceExecute=false] Whether to force the execution of the command
-     * even if another command is currently running. This is only necessary when
-     * the `shouldLockDuringCommandExecution` is set to true.
-     * @returns A boolean indicating whether an active shell was found or not.
-     * If no active shell was found, the command was also not executed.
-     */
-    public async executeCommandEnsureActiveSession(
-        command: string, waitUntilFinished = false, forceExecute = false): Promise<boolean> {
-        if (!this.hasActiveShell()) {
-            return Promise.resolve(false);
-        }
-        if (this.isExecutingCommand) {
-            if (this.shouldLockDuringCommandExecution && !forceExecute) {
-                vscode.window.showWarningMessage(MAC_OS_MULTIPLE_COMMANDS_ERROR);
-                return Promise.resolve(true);
-            }
-            this.sendKeyboardInterrupt();
-            await new Promise(resolve => setTimeout(resolve, 650));
-        }
-
-
-        this.isExecutingCommand = true;
-
-        this.exec(this.activeShell as Terminal, command);
-
-        if (waitUntilFinished) {
-            await this.waitUntilCommandFinished();
-        }
-        this.waitUntilCommandFinished(() => {
-            this.isExecutingCommand = false;
-        });
-
-        return Promise.resolve(true);
     }
 
     /**
