@@ -53,12 +53,7 @@ export interface CommandExecutionEventHandler {
  * Error thrown when no active shell is found, but an active shell is required
  * for the command execution.
  */
-export class NoActiveShellError extends Error {
-    constructor() {
-        super();
-        this.name = "NoActiveShellError";
-    }
-}
+export class NoActiveShellError extends Error { }
 
 /**
  * Wrapper around the IPython terminal that ManimGL uses. Ensures that commands
