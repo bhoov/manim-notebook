@@ -408,6 +408,19 @@ export class ManimShell {
         return this.activeShell as Terminal;
     }
 
+    /**
+     * Waits until the current command has finished executing by waiting for
+     * the start of the next IPython cell. This is used to ensure that the
+     * command has actually finished executing, e.g. when the whole animation
+     * has been previewed.
+     * 
+     * @param currentExecutionCount The current IPython cell count when the
+     * command was issued. This is used to detect when the next cell has started.
+     * @param callback An optional callback that is invoked when the command
+     * has finished executing. This is useful when the caller does not want to
+     * await the async function, but still wants to execute some code after the
+     * command has finished.
+     */
     private async waitUntilCommandFinished(
         currentExecutionCount: number, callback?: () => void) {
         await new Promise<void>(resolve => {
