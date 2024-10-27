@@ -98,6 +98,11 @@ export class ManimShell {
     private activeShell: Terminal | null = null;
     private eventEmitter = new EventEmitter();
 
+    /**
+     * The current IPython cell count. Updated whenever a cell indicator is
+     * detected in the terminal output. This is used to determine when a new cell
+     * has started, i.e. when the command has finished executing.
+     */
     private iPythonCellCount: number = 0;
 
     /**
