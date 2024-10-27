@@ -98,6 +98,8 @@ export class ManimShell {
     private activeShell: Terminal | null = null;
     private eventEmitter = new EventEmitter();
 
+    private iPythonCellCount: number = 0;
+
     /**
      * Whether the execution of a new command is locked. This is used to prevent
      * multiple new scenes from being started at the same time, e.g. when users
@@ -256,16 +258,19 @@ export class ManimShell {
         const dataListener = (data: string) => { handler?.onData?.(data); };
         this.eventEmitter.on(ManimShellEvent.DATA, dataListener);
 
+        let currentExecutionCount = this.iPythonCellCount;
+        console.log(`💨: ${currentExecutionCount}`);
+
         this.exec(shell, command);
         handler?.onCommandIssued?.();
 
-        if (waitUntilFinished) {
-            await this.waitUntilCommandFinished();
-        }
-        this.waitUntilCommandFinished(() => {
+        this.waitUntilCommandFinished(currentExecutionCount, () => {
             this.isExecutingCommand = false;
             this.eventEmitter.off(ManimShellEvent.DATA, dataListener);
         });
+        if (waitUntilFinished) {
+            await this.waitUntilCommandFinished(currentExecutionCount);
+        }
     }
 
     /**
@@ -319,7 +324,9 @@ export class ManimShell {
     * command execution.
     */
     public resetActiveShell() {
+        this.iPythonCellCount = 0;
         this.activeShell = null;
+        this.eventEmitter.removeAllListeners();
     }
 
     /**
@@ -376,6 +383,7 @@ export class ManimShell {
      * @param command The command to execute in the shell.
      */
     private exec(shell: Terminal, command: string) {
+        console.log(`🌟: ${command}`);
         this.detectShellExecutionEnd = false;
         if (shell.shellIntegration) {
             shell.shellIntegration.executeCommand(command);
@@ -402,16 +410,19 @@ export class ManimShell {
         return this.activeShell as Terminal;
     }
 
-    private async waitUntilCommandFinished(callback?: () => void) {
-        await new Promise(resolve => {
+    private async waitUntilCommandFinished(
+        currentExecutionCount: number, callback?: () => void) {
+        await new Promise<void>(resolve => {
             this.eventEmitter.once(ManimShellEvent.KEYBOARD_INTERRUPT, resolve);
 
-            // The first IPython cell is actually printing the issued command,
-            // which we want to just ignore, and then we wait for the actual
-            // command to finish.
-            this.eventEmitter.once(ManimShellEvent.IPYTHON_CELL_FINISHED, () => {
-                this.eventEmitter.once(ManimShellEvent.IPYTHON_CELL_FINISHED, resolve);
-            });
+            const listener = () => {
+                console.log(`🎵: ${this.iPythonCellCount} vs. ${currentExecutionCount}`);
+                if (this.iPythonCellCount > currentExecutionCount) {
+                    this.eventEmitter.off(ManimShellEvent.IPYTHON_CELL_FINISHED, listener);
+                    resolve();
+                }
+            };
+            this.eventEmitter.on(ManimShellEvent.IPYTHON_CELL_FINISHED, listener);
         });
         if (callback) {
             callback();
@@ -439,6 +450,8 @@ export class ManimShell {
             async (event: vscode.TerminalShellExecutionStartEvent) => {
                 const stream = event.execution.read();
                 for await (const data of withoutAnsiCodes(stream)) {
+                    console.log(`🎯: ${data}`);
+
                     this.eventEmitter.emit(ManimShellEvent.DATA, data);
 
                     if (data.match(MANIM_WELCOME_REGEX)) {
@@ -449,7 +462,11 @@ export class ManimShell {
                         this.eventEmitter.emit(ManimShellEvent.KEYBOARD_INTERRUPT);
                     }
 
-                    if (data.match(IPYTHON_CELL_START_REGEX)) {
+                    let ipythonMatch = data.match(IPYTHON_CELL_START_REGEX);
+                    if (ipythonMatch) {
+                        const cellNumber = parseInt(ipythonMatch[0].match(/\d+/)![0]);
+                        this.iPythonCellCount = cellNumber;
+                        console.log(`🎧: ${cellNumber}`);
                         this.eventEmitter.emit(ManimShellEvent.IPYTHON_CELL_FINISHED);
                     }
 
