@@ -245,7 +245,7 @@ export class ManimShell {
                 return;
             }
 
-            this.sendKeyboardInterrupt(); // TODO: explain why we send this manually
+            this.sendKeyboardInterrupt();
             await new Promise(resolve => setTimeout(resolve, 500));
         }
 
