@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
+import { ManimShell } from './manimShell';
 import { window } from 'vscode';
-import { executeTerminalCommand } from './executeTerminalCommand';
 
 const PREVIEW_COMMAND = `\x0C checkpoint_paste()\x1b`;
 // \x0C: is Ctrl + L
@@ -36,7 +36,7 @@ let isExecuting = false;
  *
  * @param code The code to preview (e.g. from a Manim cell or from a custom selection).
  */
-export async function previewCode(code: string): Promise<void> {
+export async function previewCode(code: string, startLine: number): Promise<void> {
     if (isExecuting) {
         vscode.window.showInformationMessage('Please wait a few seconds, then try again.');
         return;
@@ -47,7 +47,7 @@ export async function previewCode(code: string): Promise<void> {
         const clipboardBuffer = await vscode.env.clipboard.readText();
         await vscode.env.clipboard.writeText(code);
 
-        executeTerminalCommand(PREVIEW_COMMAND);
+        await ManimShell.instance.executeCommand(PREVIEW_COMMAND, startLine);
 
         // Restore original clipboard content
         const timeout = vscode.workspace.getConfiguration("manim-notebook").clipboardTimeout;
