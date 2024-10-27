@@ -27,9 +27,6 @@ export async function previewCode(code: string, startLine: number): Promise<void
         const clipboardBuffer = await vscode.env.clipboard.readText();
         await vscode.env.clipboard.writeText(code);
 
-        let currentSceneName: string | undefined = undefined;
-        let currentProgress: number = 0;
-
         let progress: PreviewProgress | undefined;
 
         await ManimShell.instance.executeCommand(
