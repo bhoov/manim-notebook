@@ -58,7 +58,12 @@ enum ManimShellEvent {
      * execution has ended before we have detected the start of the ManimGL
      * session.
      */
-    MANIM_NOT_STARTED = 'manimglNotStarted'
+    MANIM_NOT_STARTED = 'manimglNotStarted',
+
+    /**
+     * Event emitted when the active shell is reset.
+     */
+    RESET = 'reset'
 }
 
 /**
@@ -80,6 +85,12 @@ export interface CommandExecutionEventHandler {
      * of ANSI control codes.
      */
     onData?: (data: string) => void;
+
+    /**
+     * Callback that is invoked when the manim shell is reset. This indicates
+     * that the event handler should clean up any resources.
+     */
+    onReset?: () => void;
 }
 
 /**
@@ -87,6 +98,8 @@ export interface CommandExecutionEventHandler {
  * for the command execution.
  */
 export class NoActiveShellError extends Error { }
+
+export class SceneKilled extends Error { }
 
 /**
  * Wrapper around the IPython terminal that ManimGL uses. Ensures that commands
@@ -258,6 +271,8 @@ export class ManimShell {
         }
 
         this.isExecutingCommand = true;
+        const resetListener = () => { handler?.onReset?.(); };
+        this.eventEmitter.on(ManimShellEvent.RESET, resetListener);
 
         let shell: Terminal;
         if (errorOnNoActiveShell) {
@@ -280,6 +295,7 @@ export class ManimShell {
         this.waitUntilCommandFinished(currentExecutionCount, () => {
             this.isExecutingCommand = false;
             this.eventEmitter.off(ManimShellEvent.DATA, dataListener);
+            this.eventEmitter.off(ManimShellEvent.RESET, resetListener);
         });
         if (waitUntilFinished) {
             await this.waitUntilCommandFinished(currentExecutionCount);
@@ -313,8 +329,7 @@ export class ManimShell {
                         return;
                     }
                 }
-                exitScene();
-                this.resetActiveShell();
+                await this.handleExit();
             }
             this.activeShell = window.createTerminal();
         }
@@ -347,6 +362,7 @@ export class ManimShell {
         this.iPythonCellCount = 0;
         this.activeShell = null;
         this.shellWeTryToSpawnIn = null;
+        this.eventEmitter.emit(ManimShellEvent.RESET);
         this.eventEmitter.removeAllListeners();
     }
 
@@ -464,7 +480,13 @@ export class ManimShell {
     }
 
     private async sendKeyboardInterrupt() {
-        this.activeShell?.sendText('\x03'); // send `Ctrl+C`
+        await this.activeShell?.sendText('\x03'); // send `Ctrl+C`
+    }
+
+    private async handleExit() {
+        await this.sendKeyboardInterrupt();
+        await exitScene();
+        this.resetActiveShell();
     }
 
     /**
@@ -487,9 +509,9 @@ export class ManimShell {
                     console.log(`🎯: ${data}`);
 
                     if (data.match(MANIM_WELCOME_REGEX)) {
+                        // Manim detected in new terminal
                         if (this.activeShell && this.activeShell !== event.terminal) {
-                            exitScene(); // Manim detected in new terminal
-                            this.resetActiveShell();
+                            await this.handleExit();
                         }
                         this.activeShell = event.terminal;
                     }
