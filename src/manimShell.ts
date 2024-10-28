@@ -314,6 +314,7 @@ export class ManimShell {
                     }
                 }
                 exitScene();
+                this.resetActiveShell();
             }
             this.activeShell = window.createTerminal();
         }
@@ -485,14 +486,19 @@ export class ManimShell {
                 for await (const data of withoutAnsiCodes(stream)) {
                     console.log(`🎯: ${data}`);
 
-                    this.eventEmitter.emit(ManimShellEvent.DATA, data);
-
                     if (data.match(MANIM_WELCOME_REGEX)) {
                         if (this.activeShell && this.activeShell !== event.terminal) {
                             exitScene(); // Manim detected in new terminal
+                            this.resetActiveShell();
                         }
                         this.activeShell = event.terminal;
                     }
+
+                    if (this.activeShell !== event.terminal) {
+                        return;
+                    }
+
+                    this.eventEmitter.emit(ManimShellEvent.DATA, data);
 
                     if (data.match(KEYBOARD_INTERRUPT_REGEX)) {
                         this.eventEmitter.emit(ManimShellEvent.KEYBOARD_INTERRUPT);
