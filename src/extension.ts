@@ -57,7 +57,7 @@ export function deactivate() { }
  * (when accessed via the command pallette) or the code of the cell where
  * the codelens was clicked.
  */
-function previewManimCell(cellCode?: string, startLine?: number) {
+async function previewManimCell(cellCode?: string, startLine?: number) {
 	let startLineFinal: number | undefined = startLine;
 
 	// User has executed the command via command pallette
@@ -86,13 +86,13 @@ function previewManimCell(cellCode?: string, startLine?: number) {
 		return;
 	}
 
-	previewCode(cellCode, startLineFinal);
+	await previewCode(cellCode, startLineFinal);
 }
 
 /**
  * Previews the Manim code of the selected text.
  */
-function previewSelection() {
+async function previewSelection() {
 	const editor = window.activeTextEditor;
 	if (!editor) {
 		window.showErrorMessage('Select some code to preview.');
@@ -119,7 +119,7 @@ function previewSelection() {
 		return;
 	}
 
-	previewCode(selectedText, selection.start.line);
+	await previewCode(selectedText, selection.start.line);
 }
 
 /**

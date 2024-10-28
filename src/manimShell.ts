@@ -17,6 +17,11 @@ const ANSI_CONTROL_SEQUENCE_REGEX = /(?:\x1B[@-Z\\-_]|[\x80-\x9A\x9C-\x9F]|(?:\x
 const IPYTHON_CELL_START_REGEX = /^\s*In \[\d+\]:/m;
 
 /**
+ * Regular expression to match a KeyboardInterrupt.
+ */
+const KEYBOARD_INTERRUPT_REGEX = /^\s*KeyboardInterrupt/m;
+
+/**
  * Regular expression to match an error message in the terminal. For any error
  * message, IPython prints "Cell In[<number>], line <number>" to a new line.
  */
@@ -35,6 +40,18 @@ enum ManimShellEvent {
      * IPYTHON_CELL_START_REGEX is matched.
      */
     IPYTHON_CELL_FINISHED = 'ipythonCellFinished',
+
+    /**
+     * Event emitted when a keyboard interrupt is detected in the terminal, e.g.
+     * when `Ctrl+C` is pressed to stop the current command execution.
+     */
+    KEYBOARD_INTERRUPT = 'keyboardInterrupt',
+
+    /**
+     * Event emitted when data is received from the terminal, but stripped of
+     * ANSI control codes.
+     */
+    DATA = 'ansiStrippedData'
 }
 
 /**
@@ -47,6 +64,15 @@ export interface CommandExecutionEventHandler {
      * executing.
      */
     onCommandIssued?: () => void;
+
+    /**
+     * Callback that is invoked when data is received from the active Manim
+     * session (IPython shell).
+     * 
+     * @param data The data that was received from the terminal, but stripped
+     * of ANSI control codes.
+     */
+    onData?: (data: string) => void;
 }
 
 /**
@@ -71,6 +97,13 @@ export class ManimShell {
 
     private activeShell: Terminal | null = null;
     private eventEmitter = new EventEmitter();
+
+    /**
+     * The current IPython cell count. Updated whenever a cell indicator is
+     * detected in the terminal output. This is used to determine when a new cell
+     * has started, i.e. when the command has finished executing.
+     */
+    private iPythonCellCount: number = 0;
 
     /**
      * Whether the execution of a new command is locked. This is used to prevent
@@ -202,12 +235,18 @@ export class ManimShell {
             throw new NoActiveShellError();
         }
 
-        if (this.shouldLockDuringCommandExecution && !forceExecute && this.isExecutingCommand) {
-            window.showWarningMessage(
-                `Simultaneous Manim commands are not currently supported on MacOS. `
-                + `Please wait for the current operations to finish before initiating `
-                + `a new command.`);
-            return;
+        if (this.isExecutingCommand) {
+            // MacOS specific behavior
+            if (this.shouldLockDuringCommandExecution && !forceExecute) {
+                window.showWarningMessage(
+                    `Simultaneous Manim commands are not currently supported on MacOS. `
+                    + `Please wait for the current operations to finish before initiating `
+                    + `a new command.`);
+                return;
+            }
+
+            this.sendKeyboardInterrupt();
+            await new Promise(resolve => setTimeout(resolve, 500));
         }
 
         this.isExecutingCommand = true;
@@ -221,18 +260,22 @@ export class ManimShell {
             this.lockDuringStartup = false;
         }
 
+        const dataListener = (data: string) => { handler?.onData?.(data); };
+        this.eventEmitter.on(ManimShellEvent.DATA, dataListener);
+
+        let currentExecutionCount = this.iPythonCellCount;
+        console.log(`💨: ${currentExecutionCount}`);
+
         this.exec(shell, command);
         handler?.onCommandIssued?.();
 
-        if (waitUntilFinished) {
-            await new Promise(resolve => {
-                this.eventEmitter.once(ManimShellEvent.IPYTHON_CELL_FINISHED, resolve);
-            });
-        }
-
-        this.eventEmitter.once(ManimShellEvent.IPYTHON_CELL_FINISHED, () => {
+        this.waitUntilCommandFinished(currentExecutionCount, () => {
             this.isExecutingCommand = false;
+            this.eventEmitter.off(ManimShellEvent.DATA, dataListener);
         });
+        if (waitUntilFinished) {
+            await this.waitUntilCommandFinished(currentExecutionCount);
+        }
     }
 
     /**
@@ -266,11 +309,16 @@ export class ManimShell {
             }
             this.activeShell = window.createTerminal();
         }
-        // We are sure that the active shell is set since it is invoked
-        // in `retrieveOrInitActiveShell()` or in the line above.
-        this.exec(this.activeShell as Terminal, command);
-        await new Promise(resolve => {
-            this.eventEmitter.once(ManimShellEvent.IPYTHON_CELL_FINISHED, resolve);
+
+        await window.withProgress({
+            location: vscode.ProgressLocation.Notification,
+            title: "Starting Manim...",
+            cancellable: false
+        }, async (progress, token) => {
+            // We are sure that the active shell is set since it is invoked
+            // in `retrieveOrInitActiveShell()` or in the line above.
+            this.exec(this.activeShell as Terminal, command);
+            await this.waitUntilCommandFinished(this.iPythonCellCount);
         });
     }
 
@@ -279,7 +327,9 @@ export class ManimShell {
     * command execution.
     */
     public resetActiveShell() {
+        this.iPythonCellCount = 0;
         this.activeShell = null;
+        this.eventEmitter.removeAllListeners();
     }
 
     /**
@@ -336,6 +386,7 @@ export class ManimShell {
      * @param command The command to execute in the shell.
      */
     private exec(shell: Terminal, command: string) {
+        console.log(`🌟: ${command}`);
         this.detectShellExecutionEnd = false;
         if (shell.shellIntegration) {
             shell.shellIntegration.executeCommand(command);
@@ -363,6 +414,42 @@ export class ManimShell {
     }
 
     /**
+     * Waits until the current command has finished executing by waiting for
+     * the start of the next IPython cell. This is used to ensure that the
+     * command has actually finished executing, e.g. when the whole animation
+     * has been previewed.
+     * 
+     * @param currentExecutionCount The current IPython cell count when the
+     * command was issued. This is used to detect when the next cell has started.
+     * @param callback An optional callback that is invoked when the command
+     * has finished executing. This is useful when the caller does not want to
+     * await the async function, but still wants to execute some code after the
+     * command has finished.
+     */
+    private async waitUntilCommandFinished(
+        currentExecutionCount: number, callback?: () => void) {
+        await new Promise<void>(resolve => {
+            this.eventEmitter.once(ManimShellEvent.KEYBOARD_INTERRUPT, resolve);
+
+            const listener = () => {
+                console.log(`🎵: ${this.iPythonCellCount} vs. ${currentExecutionCount}`);
+                if (this.iPythonCellCount > currentExecutionCount) {
+                    this.eventEmitter.off(ManimShellEvent.IPYTHON_CELL_FINISHED, listener);
+                    resolve();
+                }
+            };
+            this.eventEmitter.on(ManimShellEvent.IPYTHON_CELL_FINISHED, listener);
+        });
+        if (callback) {
+            callback();
+        }
+    }
+
+    private async sendKeyboardInterrupt() {
+        this.activeShell?.sendText('\x03'); // send `Ctrl+C`
+    }
+
+    /**
      * Inits the reading of data from the terminal and issues actions/events
      * based on the data received:
      * 
@@ -379,12 +466,26 @@ export class ManimShell {
             async (event: vscode.TerminalShellExecutionStartEvent) => {
                 const stream = event.execution.read();
                 for await (const data of withoutAnsiCodes(stream)) {
+                    console.log(`🎯: ${data}`);
+
+                    this.eventEmitter.emit(ManimShellEvent.DATA, data);
 
                     if (data.match(MANIM_WELCOME_REGEX)) {
+                        if (this.activeShell && this.activeShell !== event.terminal) {
+                            exitScene(); // Manim detected in new terminal
+                        }
                         this.activeShell = event.terminal;
                     }
 
-                    if (data.match(IPYTHON_CELL_START_REGEX)) {
+                    if (data.match(KEYBOARD_INTERRUPT_REGEX)) {
+                        this.eventEmitter.emit(ManimShellEvent.KEYBOARD_INTERRUPT);
+                    }
+
+                    let ipythonMatch = data.match(IPYTHON_CELL_START_REGEX);
+                    if (ipythonMatch) {
+                        const cellNumber = parseInt(ipythonMatch[0].match(/\d+/)![0]);
+                        this.iPythonCellCount = cellNumber;
+                        console.log(`🎧: ${cellNumber}`);
                         this.eventEmitter.emit(ManimShellEvent.IPYTHON_CELL_FINISHED);
                     }
 
