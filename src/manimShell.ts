@@ -51,7 +51,14 @@ enum ManimShellEvent {
      * Event emitted when data is received from the terminal, but stripped of
      * ANSI control codes.
      */
-    DATA = 'ansiStrippedData'
+    DATA = 'ansiStrippedData',
+
+    /**
+     * Event emitted when ManimGL could not be started, i.e. the terminal
+     * execution has ended before we have detected the start of the ManimGL
+     * session.
+     */
+    MANIM_NOT_STARTED = 'manimglNotStarted'
 }
 
 /**
@@ -96,6 +103,7 @@ export class ManimShell {
     static #instance: ManimShell;
 
     private activeShell: Terminal | null = null;
+    private shellWeTryToSpawnIn: Terminal | null = null;
     private eventEmitter = new EventEmitter();
 
     /**
@@ -317,8 +325,16 @@ export class ManimShell {
         }, async (progress, token) => {
             // We are sure that the active shell is set since it is invoked
             // in `retrieveOrInitActiveShell()` or in the line above.
+            this.shellWeTryToSpawnIn = this.activeShell;
             this.exec(this.activeShell as Terminal, command);
-            await this.waitUntilCommandFinished(this.iPythonCellCount);
+
+            const commandFinishedPromise = this.waitUntilCommandFinished(this.iPythonCellCount);
+            const manimNotStartedPromise = new Promise<void>(resolve => {
+                this.eventEmitter.once(ManimShellEvent.MANIM_NOT_STARTED, resolve);
+            });
+            await Promise.race([commandFinishedPromise, manimNotStartedPromise]);
+
+            this.shellWeTryToSpawnIn = null;
         });
     }
 
@@ -329,6 +345,7 @@ export class ManimShell {
     public resetActiveShell() {
         this.iPythonCellCount = 0;
         this.activeShell = null;
+        this.shellWeTryToSpawnIn = null;
         this.eventEmitter.removeAllListeners();
     }
 
@@ -497,6 +514,15 @@ export class ManimShell {
 
         window.onDidEndTerminalShellExecution(
             async (event: vscode.TerminalShellExecutionEndEvent) => {
+                if (this.shellWeTryToSpawnIn === event.terminal) {
+                    this.eventEmitter.emit(ManimShellEvent.MANIM_NOT_STARTED);
+                    this.resetActiveShell();
+                    window.showErrorMessage(
+                        "Manim session could not be started."
+                        + " Have you verified that `manimgl` is installed?");
+                    event.terminal.show();
+                    return;
+                }
 
                 if (!this.detectShellExecutionEnd) {
                     return;
