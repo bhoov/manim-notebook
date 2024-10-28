@@ -99,8 +99,6 @@ export interface CommandExecutionEventHandler {
  */
 export class NoActiveShellError extends Error { }
 
-export class SceneKilled extends Error { }
-
 /**
  * Wrapper around the IPython terminal that ManimGL uses. Ensures that commands
  * are executed at the right place and spans a new Manim session if necessary.
