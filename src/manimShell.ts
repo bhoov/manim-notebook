@@ -264,7 +264,6 @@ export class ManimShell {
         this.eventEmitter.on(ManimShellEvent.DATA, dataListener);
 
         let currentExecutionCount = this.iPythonCellCount;
-        console.log(`💨: ${currentExecutionCount}`);
 
         this.exec(shell, command);
         handler?.onCommandIssued?.();
@@ -386,7 +385,6 @@ export class ManimShell {
      * @param command The command to execute in the shell.
      */
     private exec(shell: Terminal, command: string) {
-        console.log(`🌟: ${command}`);
         this.detectShellExecutionEnd = false;
         if (shell.shellIntegration) {
             shell.shellIntegration.executeCommand(command);
@@ -432,7 +430,6 @@ export class ManimShell {
             this.eventEmitter.once(ManimShellEvent.KEYBOARD_INTERRUPT, resolve);
 
             const listener = () => {
-                console.log(`🎵: ${this.iPythonCellCount} vs. ${currentExecutionCount}`);
                 if (this.iPythonCellCount > currentExecutionCount) {
                     this.eventEmitter.off(ManimShellEvent.IPYTHON_CELL_FINISHED, listener);
                     resolve();
@@ -466,8 +463,6 @@ export class ManimShell {
             async (event: vscode.TerminalShellExecutionStartEvent) => {
                 const stream = event.execution.read();
                 for await (const data of withoutAnsiCodes(stream)) {
-                    console.log(`🎯: ${data}`);
-
                     this.eventEmitter.emit(ManimShellEvent.DATA, data);
 
                     if (data.match(MANIM_WELCOME_REGEX)) {
@@ -485,7 +480,6 @@ export class ManimShell {
                     if (ipythonMatch) {
                         const cellNumber = parseInt(ipythonMatch[0].match(/\d+/)![0]);
                         this.iPythonCellCount = cellNumber;
-                        console.log(`🎧: ${cellNumber}`);
                         this.eventEmitter.emit(ManimShellEvent.IPYTHON_CELL_FINISHED);
                     }
 
