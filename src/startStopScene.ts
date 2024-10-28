@@ -109,7 +109,7 @@ export async function startScene(lineStart?: number) {
  */
 export async function exitScene() {
     try {
-        await ManimShell.instance.executeExitCommand("exit()");
+        await ManimShell.instance.executeCommandErrorOnNoActiveSession("exit()", false, true);
     } catch(NoActiveSessionError) {
         window.showErrorMessage('No active Manim session found to exit.');
     }

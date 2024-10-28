@@ -58,13 +58,7 @@ enum ManimShellEvent {
      * execution has ended before we have detected the start of the ManimGL
      * session.
      */
-    MANIM_NOT_STARTED = 'manimglNotStarted',
-
-    /**
-     * Event only emitted when requested by the exit command. This is used to
-     * wait until the Manim session has exited.
-     */
-    EXIT = 'exit'
+    MANIM_NOT_STARTED = 'manimglNotStarted'
 }
 
 /**
@@ -150,8 +144,6 @@ export class ManimShell {
      */
     private detectShellExecutionEnd = true;
 
-    private shouldSignalExit = false;
-
     private constructor() {
         this.initiateTerminalDataReading();
 
@@ -198,17 +190,6 @@ export class ManimShell {
     ) {
         await this.execCommand(
             command, waitUntilFinished, forceExecute, true, undefined, undefined);
-    }
-
-    public async executeExitCommand(command: string) {
-        await this.execCommand(
-            command, false, true, true, undefined, undefined);
-
-        // wait until the Manim session has exited
-        this.shouldSignalExit = true;
-        await new Promise(resolve => this.eventEmitter.once(ManimShellEvent.EXIT, resolve));
-
-        this.resetActiveShell();
     }
 
     /**
@@ -332,7 +313,7 @@ export class ManimShell {
                         return;
                     }
                 }
-                await exitScene();
+                exitScene();
             }
             this.activeShell = window.createTerminal();
         }
@@ -365,7 +346,6 @@ export class ManimShell {
         this.iPythonCellCount = 0;
         this.activeShell = null;
         this.shellWeTryToSpawnIn = null;
-        this.shouldSignalExit = false;
         this.eventEmitter.removeAllListeners();
     }
 
@@ -541,12 +521,6 @@ export class ManimShell {
                         "Manim session could not be started."
                         + " Have you verified that `manimgl` is installed?");
                     event.terminal.show();
-                    return;
-                }
-
-                if (this.shouldSignalExit && event.terminal === this.activeShell) {
-                    this.eventEmitter.emit(ManimShellEvent.EXIT);
-                    this.shouldSignalExit = false;
                     return;
                 }
 
