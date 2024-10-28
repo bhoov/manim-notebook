@@ -514,6 +514,10 @@ export class ManimShell {
                         this.activeShell = event.terminal;
                     }
 
+                    // Subsequent data handling should only occur for the
+                    // currently active shell. This is important during
+                    // overlapping commands, e.g. when one shell is exited
+                    // and another one started.
                     if (this.activeShell !== event.terminal) {
                         return;
                     }
