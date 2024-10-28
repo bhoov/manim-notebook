@@ -40,6 +40,25 @@ enum ManimShellEvent {
      * IPYTHON_CELL_START_REGEX is matched.
      */
     IPYTHON_CELL_FINISHED = 'ipythonCellFinished',
+
+    /**
+     * Event emitted when a keyboard interrupt is detected in the terminal, e.g.
+     * when `Ctrl+C` is pressed to stop the current command execution.
+     */
+    KEYBOARD_INTERRUPT = 'keyboardInterrupt',
+
+    /**
+     * Event emitted when data is received from the terminal, but stripped of
+     * ANSI control codes.
+     */
+    DATA = 'ansiStrippedData',
+
+    /**
+    * Event emitted when ManimGL could not be started, i.e. the terminal
+    * execution has ended before we have detected the start of the ManimGL
+    * session.
+    */
+    MANIM_NOT_STARTED = 'manimglNotStarted'
 }
 
 /**
