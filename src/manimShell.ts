@@ -519,7 +519,7 @@ export class ManimShell {
                     // overlapping commands, e.g. when one shell is exited
                     // and another one started.
                     if (this.activeShell !== event.terminal) {
-                        return;
+                        continue;
                     }
 
                     this.eventEmitter.emit(ManimShellEvent.DATA, data);
