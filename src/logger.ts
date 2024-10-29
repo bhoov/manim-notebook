@@ -95,17 +95,17 @@ export class Logger {
 export class Window {
 
     public static showInformationMessage(message: string) {
-        Logger.info(message);
+        Logger.info(`💡 ${message}`);
         window.showInformationMessage(message);
     }
 
     public static showWarningMessage(message: string, ...items: string[]) {
-        Logger.warn(message);
+        Logger.warn(`💡 ${message}`);
         window.showWarningMessage(message, ...items);
     }
 
     public static showErrorMessage(message: string) {
-        Logger.error(message);
+        Logger.error(`💡 ${message}`);
         window.showErrorMessage(message);
     }
 }
