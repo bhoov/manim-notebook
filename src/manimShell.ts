@@ -511,7 +511,7 @@ export class ManimShell {
             async (event: vscode.TerminalShellExecutionStartEvent) => {
                 const stream = event.execution.read();
                 for await (const data of withoutAnsiCodes(stream)) {
-                    Logger.trace(`🧾: ${data}`);
+                    Logger.trace(`🧾 Terminal data:\n${data}`);
 
                     this.eventEmitter.emit(ManimShellEvent.DATA, data);
 
