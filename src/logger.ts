@@ -39,8 +39,7 @@ export class Logger {
         try {
             const packageJsonPath = path.join(__dirname, '..', 'package.json');
             const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8'));
-            const version = packageJson.version;
-            Logger.info(`Manim notebook version: ${version}`);
+            Logger.info(`Manim notebook version: ${packageJson.version}`);
         } catch (error: Error | unknown) {
             Logger.error("Could not determine Manim notebook version used");
             try {
