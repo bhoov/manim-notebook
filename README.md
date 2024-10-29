@@ -83,3 +83,4 @@ If you encounter an issue, search for some related keywords first in the [issues
 - Now reproduce the issue, e.g. by running a command that causes the problem.
 - Open the command palette again and use the command `Manim Notebook: Open Log File`.
 - Attach the log file to your GitHub issue. To do so, right-click on the opened log file header (the tab pane that shows the filename at the top of the editor) and select `Reveal In File Explorer` (or `Reveal in Finder`). Then drag and drop the file into the GitHub issue text field.
+- Last, but not least, don't forget to set the log level back to `Info` to avoid performance issues. `Developer: Set Log Level...` -> `Manim Notebook` -> `Info`.
