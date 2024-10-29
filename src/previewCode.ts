@@ -34,6 +34,7 @@ export async function previewCode(code: string, startLine: number): Promise<void
         await ManimShell.instance.executeCommand(
             PREVIEW_COMMAND, startLine, true, {
             onCommandIssued: () => {
+                Logger.debug(`📊 Command issued: ${PREVIEW_COMMAND}. Will restore clipboard`);
                 restoreClipboard(clipboardBuffer);
                 progress = new PreviewProgress();
             },
@@ -122,6 +123,8 @@ class PreviewProgress {
             this.animationName = newAnimName;
         }
 
+        Logger.debug(`📊 Progress: ${this.progress} -> ${newProgress} (${progressIncrement})`);
+
         this.eventEmitter.emit(this.REPORT_EVENT, {
             increment: progressIncrement,
             message: newAnimName
@@ -132,6 +135,7 @@ class PreviewProgress {
      * Finishes the progress notification, i.e. closes the progress bar.
      */
     public finish() {
+        Logger.debug("📊 Finishing progress notification");
         this.eventEmitter.emit(this.FINISH_EVENT);
     }
 
