@@ -5,6 +5,8 @@ import { ManimCell } from './manimCell';
 import { ManimCellRanges } from './manimCellRanges';
 import { previewCode } from './previewCode';
 import { startScene, exitScene } from './startStopScene';
+import { loggerName } from './logger';
+import Logger from './logger';
 
 export function activate(context: vscode.ExtensionContext) {
 
@@ -40,14 +42,22 @@ export function activate(context: vscode.ExtensionContext) {
 		}
 	);
 
+	const openLogFileCommand = vscode.commands.registerCommand(
+		'manim-notebook.openLogFile', async () => {
+			openLogFile(context);
+		});
+
 	context.subscriptions.push(
 		previewManimCellCommand,
 		previewSelectionCommand,
 		startSceneCommand,
 		exitSceneCommand,
-		clearSceneCommand
+		clearSceneCommand,
+		openLogFileCommand
 	);
 	registerManimCellProviders(context);
+
+	Logger.info("Manim Notebook activated");
 }
 
 export function deactivate() { }
@@ -166,4 +176,35 @@ function registerManimCellProviders(context: vscode.ExtensionContext) {
 	if (window.activeTextEditor) {
 		manimCell.applyCellDecorations(window.activeTextEditor);
 	}
+}
+
+/**
+ * Opens the Manim Notebook log file in a new editor.
+ * 
+ * @param context The extension context.
+ */
+function openLogFile(context: vscode.ExtensionContext) {
+	const logFilePath = vscode.Uri.joinPath(context.logUri, `${loggerName}.log`);
+	vscode.window.withProgress({
+		location: vscode.ProgressLocation.Notification,
+		title: "Opening Manim Notebook log file...",
+		cancellable: false
+	}, async (progressIndicator, token) => {
+		await new Promise<void>(async (resolve) => {
+			try {
+				const doc = await vscode.workspace.openTextDocument(logFilePath);
+				await vscode.window.showTextDocument(doc);
+			} catch {
+				vscode.window.showErrorMessage("Could not open Manim Notebook log file");
+			} finally {
+				resolve();
+			}
+
+			// I've also tried to open the log file in the OS browser,
+			// but didn't get it to work via:
+			// commands.executeCommand("revealFileInOS", logFilePath);
+			// For a sample usage, see this:
+			// https://github.com/microsoft/vscode/blob/9de080f7cbcec77de4ef3e0d27fbf9fd335d3fba/extensions/typescript-language-features/src/typescriptServiceClient.ts#L580-L586
+		});
+	});
 }

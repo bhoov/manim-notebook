@@ -45,6 +45,11 @@
         "command": "manim-notebook.clearScene",
         "title": "Remove all objects from scene",
         "category": "Manim Notebook"
+      },
+      {
+        "command": "manim-notebook.openLogFile",
+        "title": "Open Log File",
+        "category": "Manim Notebook"
       }
     ],
     "keybindings": [
