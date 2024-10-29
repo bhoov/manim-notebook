@@ -38,11 +38,11 @@ export class ManimCell implements vscode.CodeLensProvider, vscode.FoldingRangePr
     }
 
     public resolveCodeLens(codeLens: vscode.CodeLens, token: vscode.CancellationToken): vscode.CodeLens {
-        if (!vscode.window.activeTextEditor) {
+        if (!window.activeTextEditor) {
             return codeLens;
         }
 
-        const document = vscode.window.activeTextEditor?.document;
+        const document = window.activeTextEditor?.document;
         const range = new vscode.Range(codeLens.range.start, codeLens.range.end);
         const cellCode = document.getText(range);
 

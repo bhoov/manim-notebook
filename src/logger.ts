@@ -4,7 +4,7 @@ import * as path from 'path';
 export const loggerName = 'Manim Notebook';
 const logger = window.createOutputChannel(loggerName, { log: true });
 
-export default class Logger {
+export class Logger {
 
     public static trace(message: string) {
         logger.trace(`${Logger.getFormattedCallerInformation()} ${message}`);
@@ -85,5 +85,27 @@ export default class Logger {
         }
 
         return `[${fileName}] [${methodName}]`;
+    }
+}
+
+/**
+ * Class that wraps some VSCode window methods to log the messages before
+ * displaying them to the user as a notification.
+ */
+export class Window {
+
+    public static showInformationMessage(message: string) {
+        Logger.info(`💡 ${message}`);
+        window.showInformationMessage(message);
+    }
+
+    public static showWarningMessage(message: string, ...items: string[]) {
+        Logger.warn(`💡 ${message}`);
+        window.showWarningMessage(message, ...items);
+    }
+
+    public static showErrorMessage(message: string) {
+        Logger.error(`💡 ${message}`);
+        window.showErrorMessage(message);
     }
 }

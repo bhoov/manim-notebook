@@ -5,8 +5,7 @@ import { ManimCell } from './manimCell';
 import { ManimCellRanges } from './manimCellRanges';
 import { previewCode } from './previewCode';
 import { startScene, exitScene } from './startStopScene';
-import { loggerName } from './logger';
-import Logger from './logger';
+import { Logger, Window, loggerName } from './logger';
 
 export function activate(context: vscode.ExtensionContext) {
 
@@ -15,35 +14,41 @@ export function activate(context: vscode.ExtensionContext) {
 
 	const previewManimCellCommand = vscode.commands.registerCommand(
 		'manim-notebook.previewManimCell', (cellCode?: string, startLine?: number) => {
+			Logger.info(`💠 Command requested: Preview Manim Cell, startLine=${startLine}`);
 			previewManimCell(cellCode, startLine);
 		});
 
 	const previewSelectionCommand = vscode.commands.registerCommand(
 		'manim-notebook.previewSelection', () => {
+			Logger.info("💠 Command requested: Preview Selection");
 			previewSelection();
 		}
 	);
 
 	const startSceneCommand = vscode.commands.registerCommand(
 		'manim-notebook.startScene', () => {
+			Logger.info("💠 Command requested: Start Scene");
 			startScene();
 		}
 	);
 
 	const exitSceneCommand = vscode.commands.registerCommand(
 		'manim-notebook.exitScene', () => {
+			Logger.info("💠 Command requested: Exit Scene");
 			exitScene();
 		}
 	);
 
 	const clearSceneCommand = vscode.commands.registerCommand(
 		'manim-notebook.clearScene', () => {
+			Logger.info("💠 Command requested: Clear Scene");
 			clearScene();
 		}
 	);
 
 	const openLogFileCommand = vscode.commands.registerCommand(
 		'manim-notebook.openLogFile', async () => {
+			Logger.info("💠 Command requested: Open Log File");
 			openLogFile(context);
 		});
 
@@ -60,7 +65,9 @@ export function activate(context: vscode.ExtensionContext) {
 	Logger.info("Manim Notebook activated");
 }
 
-export function deactivate() { }
+export function deactivate() {
+	Logger.info("💠 Manim Notebook extension deactivated");
+}
 
 /**
  * Previews the Manim code of the cell where the cursor is placed
@@ -74,7 +81,7 @@ async function previewManimCell(cellCode?: string, startLine?: number) {
 	if (cellCode === undefined) {
 		const editor = window.activeTextEditor;
 		if (!editor) {
-			window.showErrorMessage(
+			Window.showErrorMessage(
 				'No opened file found. Place your cursor in a Manim cell.');
 			return;
 		}
@@ -84,7 +91,7 @@ async function previewManimCell(cellCode?: string, startLine?: number) {
 		const cursorLine = editor.selection.active.line;
 		const range = ManimCellRanges.getCellRangeAtLine(document, cursorLine);
 		if (!range) {
-			window.showErrorMessage('Place your cursor in a Manim cell.');
+			Window.showErrorMessage('Place your cursor in a Manim cell.');
 			return;
 		}
 		cellCode = document.getText(range);
@@ -92,7 +99,7 @@ async function previewManimCell(cellCode?: string, startLine?: number) {
 	}
 
 	if (startLineFinal === undefined) {
-		window.showErrorMessage('Internal error: Line number not found in `previewManimCell()`.');
+		Window.showErrorMessage('Internal error: Line number not found in `previewManimCell()`.');
 		return;
 	}
 
@@ -105,7 +112,7 @@ async function previewManimCell(cellCode?: string, startLine?: number) {
 async function previewSelection() {
 	const editor = window.activeTextEditor;
 	if (!editor) {
-		window.showErrorMessage('Select some code to preview.');
+		Window.showErrorMessage('Select some code to preview.');
 		return;
 	}
 
@@ -125,7 +132,7 @@ async function previewSelection() {
 	}
 
 	if (!selectedText) {
-		window.showErrorMessage('Select some code to preview.');
+		Window.showErrorMessage('Select some code to preview.');
 		return;
 	}
 
@@ -140,7 +147,7 @@ async function clearScene() {
 	try {
 		await ManimShell.instance.executeCommandErrorOnNoActiveSession("clear()");
 	} catch (NoActiveSessionError) {
-		window.showErrorMessage('No active Manim session found to remove objects from.');
+		Window.showErrorMessage('No active Manim session found to remove objects from.');
 	}
 }
 
@@ -185,7 +192,7 @@ function registerManimCellProviders(context: vscode.ExtensionContext) {
  */
 function openLogFile(context: vscode.ExtensionContext) {
 	const logFilePath = vscode.Uri.joinPath(context.logUri, `${loggerName}.log`);
-	vscode.window.withProgress({
+	window.withProgress({
 		location: vscode.ProgressLocation.Notification,
 		title: "Opening Manim Notebook log file...",
 		cancellable: false
@@ -193,9 +200,9 @@ function openLogFile(context: vscode.ExtensionContext) {
 		await new Promise<void>(async (resolve) => {
 			try {
 				const doc = await vscode.workspace.openTextDocument(logFilePath);
-				await vscode.window.showTextDocument(doc);
+				await window.showTextDocument(doc);
 			} catch {
-				vscode.window.showErrorMessage("Could not open Manim Notebook log file");
+				Window.showErrorMessage("Could not open Manim Notebook log file");
 			} finally {
 				resolve();
 			}
