@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 import { window } from 'vscode';
 import { ManimShell } from './manimShell';
 import { EventEmitter } from 'events';
+import { Logger } from './logger';
 
 const PREVIEW_COMMAND = `\x0C checkpoint_paste()\x1b`;
 // \x0C: is Ctrl + L
