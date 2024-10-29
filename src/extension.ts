@@ -5,7 +5,8 @@ import { ManimCell } from './manimCell';
 import { ManimCellRanges } from './manimCellRanges';
 import { previewCode } from './previewCode';
 import { startScene, exitScene } from './startStopScene';
-import { logger, loggerName } from './logger';
+import { loggerName } from './logger';
+import Logger from './logger';
 
 export function activate(context: vscode.ExtensionContext) {
 
@@ -55,6 +56,8 @@ export function activate(context: vscode.ExtensionContext) {
 		openLogFileCommand
 	);
 	registerManimCellProviders(context);
+
+	Logger.info("Manim Notebook activated");
 }
 
 export function deactivate() { }
