@@ -472,7 +472,11 @@ export class ManimShell {
             this.eventEmitter.once(ManimShellEvent.KEYBOARD_INTERRUPT, resolve);
 
             const listener = () => {
+                Logger.debug("🕒 While waiting for command to finish"
+                    + `, iPythonCellCount=${this.iPythonCellCount}`
+                    + `, currentExecutionCount=${currentExecutionCount}`);
                 if (this.iPythonCellCount > currentExecutionCount) {
+                    Logger.debug("🕒 Command has finished");
                     this.eventEmitter.off(ManimShellEvent.IPYTHON_CELL_FINISHED, listener);
                     resolve();
                 }
@@ -480,6 +484,7 @@ export class ManimShell {
             this.eventEmitter.on(ManimShellEvent.IPYTHON_CELL_FINISHED, listener);
         });
         if (callback) {
+            Logger.debug("🕒 Calling callback after command has finished");
             callback();
         }
     }
