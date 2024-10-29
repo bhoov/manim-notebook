@@ -1,5 +1,7 @@
 import { window } from 'vscode';
 import * as path from 'path';
+import * as fs from 'fs';
+import * as os from 'os';
 
 export const loggerName = 'Manim Notebook';
 const logger = window.createOutputChannel(loggerName, { log: true });
@@ -24,6 +26,31 @@ export class Logger {
 
     public static error(message: string) {
         logger.error(`${Logger.getFormattedCallerInformation()} ${message}`);
+    }
+
+    public static deactivate() {
+        logger.dispose();
+    }
+
+    public static logSystemInformation() {
+        Logger.info(`Operating system: ${os.type()} ${os.release()} ${os.arch()}`);
+        Logger.info(`Process versions: ${JSON.stringify(process.versions)}`);
+
+        try {
+            const packageJsonPath = path.join(__dirname, '..', 'package.json');
+            const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8'));
+            const version = packageJson.version;
+            Logger.info(`Manim notebook version: ${version}`);
+        } catch (error: Error | unknown) {
+            Logger.info("Could not determine Manim notebook version used");
+            try {
+                Logger.error(String(error));
+            } catch {
+                Logger.error("(Unable not stringify the error message)");
+            }
+        }
+
+        Logger.info("--------------------------");
     }
 
     /**

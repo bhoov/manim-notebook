@@ -63,9 +63,11 @@ export function activate(context: vscode.ExtensionContext) {
 	registerManimCellProviders(context);
 
 	Logger.info("Manim Notebook activated");
+	Logger.logSystemInformation();
 }
 
 export function deactivate() {
+	Logger.deactivate();
 	Logger.info("💠 Manim Notebook extension deactivated");
 }
 
