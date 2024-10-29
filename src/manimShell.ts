@@ -321,6 +321,7 @@ export class ManimShell {
                         return;
                     }
                 }
+                Logger.debug("🔆 User confirmed to kill active scene");
                 exitScene();
             }
             this.activeShell = window.createTerminal();
@@ -355,7 +356,7 @@ export class ManimShell {
     * command execution.
     */
     public resetActiveShell() {
-        Logger.debug("Reset active shell");
+        Logger.debug("💫 Reset active shell");
         this.iPythonCellCount = 0;
         this.activeShell = null;
         this.shellWeTryToSpawnIn = null;
@@ -417,6 +418,8 @@ export class ManimShell {
      */
     private exec(shell: Terminal, command: string) {
         this.detectShellExecutionEnd = false;
+        Logger.debug("🔒 Shell execution end detection disabled");
+
         if (shell.shellIntegration) {
             Logger.debug(`💨 Sending command to terminal (with shell integration): ${command}`);
             shell.shellIntegration.executeCommand(command);
@@ -424,7 +427,9 @@ export class ManimShell {
             Logger.debug(`💨 Sending command to terminal (without shell integration): ${command}`);
             shell.sendText(command);
         }
+
         this.detectShellExecutionEnd = true;
+        Logger.debug("🔓 Shell execution end detection re-enabled");
     }
 
     /**
@@ -548,7 +553,7 @@ export class ManimShell {
                 }
 
                 if (!this.detectShellExecutionEnd) {
-                    Logger.debug("🔒 Shell execution end detection disabled");
+                    Logger.debug("🔒 Shell execution end detection disabled while end event fired");
                     return;
                 }
 
