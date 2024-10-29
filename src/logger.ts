@@ -1,35 +1,37 @@
 import { window } from 'vscode';
+import { LogOutputChannel } from 'vscode';
 import * as path from 'path';
 import * as fs from 'fs';
 import * as os from 'os';
 
 export const loggerName = 'Manim Notebook';
-const logger = window.createOutputChannel(loggerName, { log: true });
 
 export class Logger {
 
+    private static logger: LogOutputChannel = window.createOutputChannel(loggerName, { log: true });
+
     public static trace(message: string) {
-        logger.trace(`${Logger.getFormattedCallerInformation()} ${message}`);
+        this.logger.trace(`${Logger.getFormattedCallerInformation()} ${message}`);
     }
 
     public static debug(message: string) {
-        logger.debug(`${Logger.getFormattedCallerInformation()} ${message}`);
+        this.logger.debug(`${Logger.getFormattedCallerInformation()} ${message}`);
     }
 
     public static info(message: string) {
-        logger.info(`${Logger.getFormattedCallerInformation()} ${message}`);
+        this.logger.info(`${Logger.getFormattedCallerInformation()} ${message}`);
     }
 
     public static warn(message: string) {
-        logger.warn(`${Logger.getFormattedCallerInformation()} ${message}`);
+        this.logger.warn(`${Logger.getFormattedCallerInformation()} ${message}`);
     }
 
     public static error(message: string) {
-        logger.error(`${Logger.getFormattedCallerInformation()} ${message}`);
+        this.logger.error(`${Logger.getFormattedCallerInformation()} ${message}`);
     }
 
     public static deactivate() {
-        logger.dispose();
+        this.logger.dispose();
     }
 
     public static logSystemInformation() {
