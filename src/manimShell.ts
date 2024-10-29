@@ -517,8 +517,8 @@ export class ManimShell {
 
                     if (data.match(MANIM_WELCOME_REGEX)) {
                         if (this.activeShell && this.activeShell !== event.terminal) {
-                            Logger.debug("Manim detected in new terminal, exiting old scene");
-                            exitScene(); // Manim detected in new terminal
+                            Logger.debug("👋 Manim detected in new terminal, exiting old scene");
+                            exitScene();
                         }
                         Logger.debug("👋 Manim welcome string detected");
                         this.activeShell = event.terminal;
