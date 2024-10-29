@@ -229,6 +229,9 @@ export class ManimShell {
         startLine?: number,
         handler?: CommandExecutionEventHandler
     ) {
+        Logger.debug(`🚀 Exec command: ${command}, waitUntilFinished=${waitUntilFinished}`
+            + `, forceExecute=${forceExecute}, errorOnNoActiveShell=${errorOnNoActiveShell}`);
+
         if (!errorOnNoActiveShell && startLine === undefined) {
             // should never happen if method is called correctly
             Window.showErrorMessage("Start line not set. Internal extension error.");
@@ -259,6 +262,7 @@ export class ManimShell {
         }
 
         this.isExecutingCommand = true;
+        Logger.debug("🔒 Command execution locked");
 
         let shell: Terminal;
         if (errorOnNoActiveShell) {
@@ -278,11 +282,14 @@ export class ManimShell {
         handler?.onCommandIssued?.();
 
         this.waitUntilCommandFinished(currentExecutionCount, () => {
+            Logger.debug("🔓 Command execution unlocked");
             this.isExecutingCommand = false;
             this.eventEmitter.off(ManimShellEvent.DATA, dataListener);
         });
         if (waitUntilFinished) {
+            Logger.debug(`🕒 Waiting until command has finished: ${command}`);
             await this.waitUntilCommandFinished(currentExecutionCount);
+            Logger.debug(`🕒 Command has finished: ${command}`);
         }
     }
 
@@ -305,6 +312,7 @@ export class ManimShell {
      */
     public async executeStartCommand(command: string, isRequestedForAnotherCommand: boolean) {
         if (!isRequestedForAnotherCommand) {
+            Logger.debug("🔆 Executing start command that is requested for its own");
             if (this.hasActiveShell()) {
                 const shouldAsk = await vscode.workspace.getConfiguration("manim-notebook")
                     .get("confirmKillingActiveSceneToStartNewOne");
@@ -316,6 +324,8 @@ export class ManimShell {
                 exitScene();
             }
             this.activeShell = window.createTerminal();
+        } else {
+            Logger.debug("🔆 Executing start command that is requested for another command");
         }
 
         await window.withProgress({
@@ -336,6 +346,8 @@ export class ManimShell {
 
             this.shellWeTryToSpawnIn = null;
         });
+
+        Logger.debug("🔆 Execute Start command finished");
     }
 
     /**
@@ -406,10 +418,10 @@ export class ManimShell {
     private exec(shell: Terminal, command: string) {
         this.detectShellExecutionEnd = false;
         if (shell.shellIntegration) {
-            Logger.debug(`Sending command to terminal (with shell integration): ${command}`);
+            Logger.debug(`💨 Sending command to terminal (with shell integration): ${command}`);
             shell.shellIntegration.executeCommand(command);
         } else {
-            Logger.debug(`Sending command to terminal (without shell integration): ${command}`);
+            Logger.debug(`💨 Sending command to terminal (without shell integration): ${command}`);
             shell.sendText(command);
         }
         this.detectShellExecutionEnd = true;
@@ -426,8 +438,12 @@ export class ManimShell {
      */
     private async retrieveOrInitActiveShell(startLine: number): Promise<Terminal> {
         if (!this.hasActiveShell()) {
+            Logger.debug("🔍 No active shell found, requesting startScene");
             this.activeShell = window.createTerminal();
             await startScene(startLine);
+            Logger.debug("🔍 Started new scene to retrieve new shell");
+        } else {
+            Logger.debug("🔍 Active shell already there");
         }
         return this.activeShell as Terminal;
     }
@@ -464,6 +480,7 @@ export class ManimShell {
     }
 
     private async sendKeyboardInterrupt() {
+        Logger.debug("💨 Sending keyboard interrupt to terminal");
         this.activeShell?.sendText('\x03'); // send `Ctrl+C`
     }
 
@@ -484,16 +501,21 @@ export class ManimShell {
             async (event: vscode.TerminalShellExecutionStartEvent) => {
                 const stream = event.execution.read();
                 for await (const data of withoutAnsiCodes(stream)) {
+                    Logger.trace(`🧾: ${data}`);
+
                     this.eventEmitter.emit(ManimShellEvent.DATA, data);
 
                     if (data.match(MANIM_WELCOME_REGEX)) {
                         if (this.activeShell && this.activeShell !== event.terminal) {
+                            Logger.debug("Manim detected in new terminal, exiting old scene");
                             exitScene(); // Manim detected in new terminal
                         }
+                        Logger.debug("👋 Manim welcome string detected");
                         this.activeShell = event.terminal;
                     }
 
                     if (data.match(KEYBOARD_INTERRUPT_REGEX)) {
+                        Logger.debug("🛑 Keyboard interrupt detected");
                         this.eventEmitter.emit(ManimShellEvent.KEYBOARD_INTERRUPT);
                     }
 
@@ -501,10 +523,12 @@ export class ManimShell {
                     if (ipythonMatch) {
                         const cellNumber = parseInt(ipythonMatch[0].match(/\d+/)![0]);
                         this.iPythonCellCount = cellNumber;
+                        Logger.debug(`📦 IPython cell ${cellNumber} detected`);
                         this.eventEmitter.emit(ManimShellEvent.IPYTHON_CELL_FINISHED);
                     }
 
                     if (data.match(ERROR_REGEX)) {
+                        Logger.debug("🚨 Error in IPython cell detected");
                         this.activeShell?.show();
                     }
                 }
@@ -513,6 +537,7 @@ export class ManimShell {
         window.onDidEndTerminalShellExecution(
             async (event: vscode.TerminalShellExecutionEndEvent) => {
                 if (this.shellWeTryToSpawnIn === event.terminal) {
+                    Logger.debug("❌ Tried to spawn a new Manim session, but it failed");
                     this.eventEmitter.emit(ManimShellEvent.MANIM_NOT_STARTED);
                     this.resetActiveShell();
                     Window.showErrorMessage(
@@ -523,10 +548,12 @@ export class ManimShell {
                 }
 
                 if (!this.detectShellExecutionEnd) {
+                    Logger.debug("🔒 Shell execution end detection disabled");
                     return;
                 }
 
                 if (event.terminal === this.activeShell) {
+                    Logger.debug("🔚 Active shell execution ended, will reset");
                     this.resetActiveShell();
                 }
             });

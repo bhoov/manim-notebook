@@ -14,35 +14,41 @@ export function activate(context: vscode.ExtensionContext) {
 
 	const previewManimCellCommand = vscode.commands.registerCommand(
 		'manim-notebook.previewManimCell', (cellCode?: string, startLine?: number) => {
+			Logger.info(`💠 Command requested: Preview Manim Cell, startLine=${startLine}`);
 			previewManimCell(cellCode, startLine);
 		});
 
 	const previewSelectionCommand = vscode.commands.registerCommand(
 		'manim-notebook.previewSelection', () => {
+			Logger.info("💠 Command requested: Preview Selection");
 			previewSelection();
 		}
 	);
 
 	const startSceneCommand = vscode.commands.registerCommand(
 		'manim-notebook.startScene', () => {
+			Logger.info("💠 Command requested: Start Scene");
 			startScene();
 		}
 	);
 
 	const exitSceneCommand = vscode.commands.registerCommand(
 		'manim-notebook.exitScene', () => {
+			Logger.info("💠 Command requested: Exit Scene");
 			exitScene();
 		}
 	);
 
 	const clearSceneCommand = vscode.commands.registerCommand(
 		'manim-notebook.clearScene', () => {
+			Logger.info("💠 Command requested: Clear Scene");
 			clearScene();
 		}
 	);
 
 	const openLogFileCommand = vscode.commands.registerCommand(
 		'manim-notebook.openLogFile', async () => {
+			Logger.info("💠 Command requested: Open Log File");
 			openLogFile(context);
 		});
 
@@ -59,7 +65,9 @@ export function activate(context: vscode.ExtensionContext) {
 	Logger.info("Manim Notebook activated");
 }
 
-export function deactivate() { }
+export function deactivate() {
+	Logger.info("💠 Manim Notebook extension deactivated");
+}
 
 /**
  * Previews the Manim code of the cell where the cursor is placed
