@@ -3,6 +3,7 @@ import { window } from 'vscode';
 import { Terminal } from 'vscode';
 import { startScene, exitScene } from './startStopScene';
 import { EventEmitter } from 'events';
+import { Logger, Window } from './logger';
 
 /**
  * Regular expression to match ANSI control sequences. Even though we might miss
@@ -230,12 +231,12 @@ export class ManimShell {
     ) {
         if (!errorOnNoActiveShell && startLine === undefined) {
             // should never happen if method is called correctly
-            window.showErrorMessage("Start line not set. Internal extension error.");
+            Window.showErrorMessage("Start line not set. Internal extension error.");
             return;
         }
 
         if (this.lockDuringStartup) {
-            window.showWarningMessage("Manim is currently starting. Please wait a moment.");
+            Window.showWarningMessage("Manim is currently starting. Please wait a moment.");
             return;
         }
 
@@ -246,7 +247,7 @@ export class ManimShell {
         if (this.isExecutingCommand) {
             // MacOS specific behavior
             if (this.shouldLockDuringCommandExecution && !forceExecute) {
-                window.showWarningMessage(
+                Window.showWarningMessage(
                     `Simultaneous Manim commands are not currently supported on MacOS. `
                     + `Please wait for the current operations to finish before initiating `
                     + `a new command.`);
@@ -342,6 +343,7 @@ export class ManimShell {
     * command execution.
     */
     public resetActiveShell() {
+        Logger.debug("Reset active shell");
         this.iPythonCellCount = 0;
         this.activeShell = null;
         this.shellWeTryToSpawnIn = null;
@@ -358,7 +360,7 @@ export class ManimShell {
         const CANCEL_OPTION = "Cancel";
         const KILL_IT_ALWAYS_OPTION = "Kill it (don't ask the next time)";
 
-        const selection = await window.showWarningMessage(
+        const selection = await Window.showWarningMessage(
             "We need to kill your Manim session to spawn a new one.",
             "Kill it", KILL_IT_ALWAYS_OPTION, CANCEL_OPTION);
         if (selection === undefined || selection === CANCEL_OPTION) {
@@ -368,7 +370,7 @@ export class ManimShell {
         if (selection === KILL_IT_ALWAYS_OPTION) {
             await vscode.workspace.getConfiguration("manim-notebook")
                 .update("confirmKillingActiveSceneToStartNewOne", false);
-            window.showInformationMessage(
+            Window.showInformationMessage(
                 "You can re-enable the confirmation in the settings.");
         }
         return true;
@@ -404,8 +406,10 @@ export class ManimShell {
     private exec(shell: Terminal, command: string) {
         this.detectShellExecutionEnd = false;
         if (shell.shellIntegration) {
+            Logger.debug(`Sending command to terminal (with shell integration): ${command}`);
             shell.shellIntegration.executeCommand(command);
         } else {
+            Logger.debug(`Sending command to terminal (without shell integration): ${command}`);
             shell.sendText(command);
         }
         this.detectShellExecutionEnd = true;
@@ -511,7 +515,7 @@ export class ManimShell {
                 if (this.shellWeTryToSpawnIn === event.terminal) {
                     this.eventEmitter.emit(ManimShellEvent.MANIM_NOT_STARTED);
                     this.resetActiveShell();
-                    window.showErrorMessage(
+                    Window.showErrorMessage(
                         "Manim session could not be started."
                         + " Have you verified that `manimgl` is installed?");
                     event.terminal.show();

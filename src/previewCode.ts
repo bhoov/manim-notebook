@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
-import { ManimShell } from './manimShell';
 import { window } from 'vscode';
+import { ManimShell } from './manimShell';
 import { EventEmitter } from 'events';
 
 const PREVIEW_COMMAND = `\x0C checkpoint_paste()\x1b`;
@@ -77,7 +77,7 @@ class PreviewProgress {
     private animationName: string | undefined;
 
     constructor() {
-        vscode.window.withProgress({
+        window.withProgress({
             location: vscode.ProgressLocation.Notification,
             title: "Previewing Manim",
             cancellable: false
