@@ -72,7 +72,7 @@ export default class Logger {
             return unknownString;
         }
 
-        const fileMatch = callerLine.match(/(?:[^\(\s][\S])*:\d+:\d+/);
+        const fileMatch = callerLine.match(/(?:[^\(\s])*?:\d+:\d+/);
         let fileName = 'unknown';
         if (fileMatch && fileMatch[0]) {
             fileName = path.basename(fileMatch[0]);
