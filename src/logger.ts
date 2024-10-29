@@ -39,8 +39,18 @@ export default class Logger {
      *      at activate (manim-notebook/out/extension.js:37:21)
      * ...
      * 
-     * where "extension.js" is the file that called the logger method
+     * where "extension.js:37:21" is the file that called the logger method
      * and "activate" is the respective method.
+     * 
+     * Another example where the Logger is called in a Promise might be:
+     * 
+     * Error:
+     *     at Function.getFormattedCallerInformation (manim-notebook/src/logger.ts:46:23)
+     *     at Function.info (manim-notebook/src/logger.ts:18:31)
+     *     at manim-notebook/src/extension.ts:199:12
+     * 
+     * where "extension.ts:199:12" is the file that called the logger method
+     * and the method is unknown.
      */
     private static getFormattedCallerInformation(): string {
         const error = new Error();
@@ -62,16 +72,16 @@ export default class Logger {
             return unknownString;
         }
 
+        const fileMatch = callerLine.match(/(?:[^\(\s][\S])*:\d+:\d+/);
+        let fileName = 'unknown';
+        if (fileMatch && fileMatch[0]) {
+            fileName = path.basename(fileMatch[0]);
+        }
+
         const methodMatch = callerLine.match(/at (\w+) \(/);
         let methodName = 'unknown';
         if (methodMatch && methodMatch[1]) {
             methodName = methodMatch[1];
-        }
-
-        const fileMatch = callerLine.match(/\((.*):\d+:\d+\)/);
-        let fileName = 'unknown';
-        if (fileMatch && fileMatch[1]) {
-            fileName = path.basename(fileMatch[1]);
         }
 
         return `[${fileName}] [${methodName}]`;
