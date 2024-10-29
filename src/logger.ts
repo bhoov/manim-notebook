@@ -42,7 +42,7 @@ export class Logger {
             const version = packageJson.version;
             Logger.info(`Manim notebook version: ${version}`);
         } catch (error: Error | unknown) {
-            Logger.info("Could not determine Manim notebook version used");
+            Logger.error("Could not determine Manim notebook version used");
             try {
                 Logger.error(String(error));
             } catch {
