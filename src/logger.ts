@@ -46,7 +46,7 @@ export class Logger {
             try {
                 Logger.error(String(error));
             } catch {
-                Logger.error("(Unable not stringify the error message)");
+                Logger.error("(Unable to stringify the error message)");
             }
         }
 
