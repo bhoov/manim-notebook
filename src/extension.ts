@@ -5,7 +5,7 @@ import { ManimCell } from './manimCell';
 import { ManimCellRanges } from './manimCellRanges';
 import { previewCode } from './previewCode';
 import { startScene, exitScene } from './startStopScene';
-import { Logger, Window, recordLogFile, finishRecordingLogFile } from './logger';
+import { Logger, Window, LogRecorder } from './logger';
 
 export function activate(context: vscode.ExtensionContext) {
 	// Trigger the Manim shell to start listening to the terminal
@@ -48,14 +48,14 @@ export function activate(context: vscode.ExtensionContext) {
 	const recordLogFileCommand = vscode.commands.registerCommand(
 		'manim-notebook.recordLogFile', async () => {
 			Logger.info("💠 Command requested: Record Log File");
-			await recordLogFile(context);
+			await LogRecorder.recordLogFile(context);
 		});
 
 	// internal command
 	const finishRecordingLogFileCommand = vscode.commands.registerCommand(
 		'manim-notebook.finishRecordingLogFile', async () => {
 			Logger.info("💠 Command requested: Finish Recording Log File");
-			await finishRecordingLogFile(context);
+			await LogRecorder.finishRecordingLogFile(context);
 		});
 
 	context.subscriptions.push(

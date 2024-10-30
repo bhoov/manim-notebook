@@ -1,3 +1,4 @@
+import * as vscode from 'vscode';
 import * as fs from 'fs';
 import * as path from 'path';
 
@@ -34,4 +35,17 @@ export async function waitUntilFileExists(filePath: string, timeout: number): Pr
             }
         });
     });
+}
+
+/**
+ * Opens a file in the OS file explorer.
+ * 
+ * @param uri The URI of the file to reveal.
+ */
+export async function revealFileInOS(uri: vscode.Uri) {
+    if (vscode.env.remoteName === 'wsl') {
+        await vscode.commands.executeCommand('remote-wsl.revealInExplorer', uri);
+    } else {
+        await vscode.commands.executeCommand('revealFileInOS', uri);
+    }
 }

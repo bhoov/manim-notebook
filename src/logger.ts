@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import { window } from 'vscode';
 import { LogOutputChannel } from 'vscode';
-import { waitUntilFileExists } from './fileUtil';
+import { waitUntilFileExists, revealFileInOS } from './fileUtil';
 import * as path from 'path';
 import * as fs from 'fs';
 import * as os from 'os';
@@ -166,84 +166,93 @@ export class Window {
     }
 }
 
-let logFileRecordingStatusBar: vscode.StatusBarItem;
-
 /**
- * Starts recording a log file.
+ * Class to manage the recording of a log file. Users can start and stop the
+ * recording of a log file. The log file is then opened in the file explorer
+ * afterwards such that they can just drag-and-drop it into a new GitHub issue.
  */
-export async function recordLogFile(context: vscode.ExtensionContext) {
-    if (Logger.isRecording) {
-        window.showWarningMessage("A log file is already being recorded.");
-        return;
-    }
+export class LogRecorder {
 
-    Logger.isRecording = true;
+    private static recorderStatusBar: vscode.StatusBarItem;
 
-    logFileRecordingStatusBar = window.createStatusBarItem(vscode.StatusBarAlignment.Right, 100);
-    logFileRecordingStatusBar.text = `$(stop-circle) Click to finish recording log file`;
-    logFileRecordingStatusBar.command = "manim-notebook.finishRecordingLogFile";
-    logFileRecordingStatusBar.backgroundColor = new vscode.ThemeColor(
-        'statusBarItem.errorBackground');
+    /**
+     * Starts recording a log file.
+     * 
+     * @param context The extension context.
+     */
+    public static async recordLogFile(context: vscode.ExtensionContext) {
+        if (Logger.isRecording) {
+            window.showWarningMessage("A log file is already being recorded.");
+            return;
+        }
 
-    await window.withProgress({
-        location: vscode.ProgressLocation.Notification,
-        title: "Starting recording...",
-        cancellable: false
-    }, async (progressIndicator, token) => {
-        await Logger.clear(getLogFilePath(context));
-    });
+        Logger.isRecording = true;
 
-    Logger.info("📜 Logfile recording started");
-    Logger.logSystemInformation();
-    logFileRecordingStatusBar.show();
-}
+        this.recorderStatusBar = window.createStatusBarItem(vscode.StatusBarAlignment.Right, 100);
+        this.recorderStatusBar.text = `$(stop-circle) Click to finish recording log file`;
+        this.recorderStatusBar.command = "manim-notebook.finishRecordingLogFile";
+        this.recorderStatusBar.backgroundColor = new vscode.ThemeColor(
+            'statusBarItem.errorBackground');
 
-export async function finishRecordingLogFile(context: vscode.ExtensionContext) {
-    Logger.isRecording = false;
-    logFileRecordingStatusBar.dispose();
-
-    await openLogFile(getLogFilePath(context));
-}
-
-function getLogFilePath(context: vscode.ExtensionContext): vscode.Uri {
-    return vscode.Uri.joinPath(context.logUri, `${LOGGER_NAME}.log`);
-}
-
-/**
- * Tries to open the log file in an editor and reveal it in the OS file explorer.
- * 
- * @param logFilePath The URI of the log file.
- */
-async function openLogFile(logFilePath: vscode.Uri) {
-    await window.withProgress({
-        location: vscode.ProgressLocation.Notification,
-        title: "Opening Manim Notebook log file...",
-        cancellable: false
-    }, async (progressIndicator, token) => {
-        await new Promise<void>(async (resolve) => {
-            try {
-                const doc = await vscode.workspace.openTextDocument(logFilePath);
-                await window.showTextDocument(doc);
-                await revealFileInOS(logFilePath);
-            } catch (error: any) {
-                window.showErrorMessage(`Could not open Manim Notebook log file:`
-                    + ` ${error?.message}`);
-            } finally {
-                resolve();
-            }
+        await window.withProgress({
+            location: vscode.ProgressLocation.Notification,
+            title: "Starting recording...",
+            cancellable: false
+        }, async (progressIndicator, token) => {
+            await Logger.clear(this.getLogFilePath(context));
         });
-    });
-}
 
-/**
- * Opens a file in the OS file explorer.
- * 
- * @param uri The URI of the file to reveal.
- */
-async function revealFileInOS(uri: vscode.Uri) {
-    if (vscode.env.remoteName === 'wsl') {
-        await vscode.commands.executeCommand('remote-wsl.revealInExplorer', uri);
-    } else {
-        await vscode.commands.executeCommand('revealFileInOS', uri);
+        Logger.info("📜 Logfile recording started");
+        Logger.logSystemInformation();
+        this.recorderStatusBar.show();
     }
+
+    /**
+     * Finished the active recording of a log file. Called when the user
+     * clicks on the status bar item.
+     * 
+     * @param context The extension context.
+     */
+    public static async finishRecordingLogFile(context: vscode.ExtensionContext) {
+        Logger.isRecording = false;
+        this.recorderStatusBar.dispose();
+
+        await this.openLogFile(this.getLogFilePath(context));
+    }
+
+    /**
+     * Returns the URI of the log file that VSCode initializes for us.
+     * 
+     * @param context The extension context.
+     */
+    private static getLogFilePath(context: vscode.ExtensionContext): vscode.Uri {
+        return vscode.Uri.joinPath(context.logUri, `${LOGGER_NAME}.log`);
+    }
+
+    /**
+     * Tries to open the log file in an editor and reveal it in the OS file explorer.
+     * 
+     * @param logFilePath The URI of the log file.
+     */
+    private static async openLogFile(logFilePath: vscode.Uri) {
+        await window.withProgress({
+            location: vscode.ProgressLocation.Notification,
+            title: "Opening Manim Notebook log file...",
+            cancellable: false
+        }, async (progressIndicator, token) => {
+            await new Promise<void>(async (resolve) => {
+                try {
+                    const doc = await vscode.workspace.openTextDocument(logFilePath);
+                    await window.showTextDocument(doc);
+                    await revealFileInOS(logFilePath);
+                } catch (error: any) {
+                    window.showErrorMessage(`Could not open Manim Notebook log file:`
+                        + ` ${error?.message}`);
+                } finally {
+                    resolve();
+                }
+            });
+        });
+    }
+
 }
