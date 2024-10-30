@@ -203,15 +203,17 @@ export class LogRecorder {
 
         await window.withProgress({
             location: vscode.ProgressLocation.Notification,
-            title: "Setting everything up for Log recording...",
+            title: "Setting up Manim Notebook Log recording...",
             cancellable: false
         }, async (progressIndicator, token) => {
             try {
                 await Logger.clear(this.getLogFilePath(context));
                 isClearSuccessful = true;
             } catch (error: any) {
-                window.showErrorMessage(`Try to reload your VSCode window, then try again.`
-                    + ` We were not able to set up a log file: ${error?.message}`);
+                window.showErrorMessage(
+                    `Please reload your VSCode window to set up the log file: ` +
+                    `Command palette -> "Developer: Reload Window". ` +
+                    `Then try logging again. Current error: ${error?.message}`);
             }
         });
 

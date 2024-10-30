@@ -82,4 +82,4 @@ If you encounter an issue, search for some related keywords first in the [issues
 - Then set the log level by searching for `Manim Notebook` and selecting `Trace`.
 - Now reproduce the issue, e.g. by running a command that causes the problem or previewing a certain Manim cell etc.
 - Once you're done, click on the button in the status bar (bottom right) to finish recording. The log file will be opened afterwards.
-- Drag-and-drop the log file into the GitHub issue text field (as a _file_, please don't paste the _file content_ as this makes the issues hard to read).
+- Drag-and-drop the log file into the GitHub issue text field (as a _file_, i.e. please don't copy-paste its _content_ because this would make it hard to read).
