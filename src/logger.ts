@@ -163,3 +163,48 @@ export class Window {
         window.showErrorMessage(message);
     }
 }
+
+/**
+ * Opens the Manim Notebook log file in a new editor.
+ * 
+ * @param context The extension context.
+ */
+export function recordLogFile(context: vscode.ExtensionContext) {
+    const logFilePath = vscode.Uri.joinPath(context.logUri, `${loggerName}.log`);
+    window.withProgress({
+        location: vscode.ProgressLocation.Notification,
+        title: "Opening Manim Notebook log file...",
+        cancellable: false
+    }, async (progressIndicator, token) => {
+        await new Promise<void>(async (resolve) => {
+            try {
+                const doc = await vscode.workspace.openTextDocument(logFilePath);
+                await window.showTextDocument(doc);
+            } catch {
+                Window.showErrorMessage("Could not open Manim Notebook log file");
+            } finally {
+                resolve();
+            }
+
+            try {
+                await revealFileInOS(logFilePath);
+            } catch (error: any) {
+                window.showErrorMessage(`Could not open Manim Notebook log file in the`
+                    + ` OS file explorer: ${error?.message}`);
+            }
+        });
+    });
+}
+
+/**
+ * Opens a file in the OS file explorer.
+ * 
+ * @param uri The URI of the file to reveal.
+ */
+async function revealFileInOS(uri: vscode.Uri) {
+    if (vscode.env.remoteName === 'wsl') {
+        await vscode.commands.executeCommand('remote-wsl.revealInExplorer', uri);
+    } else {
+        await vscode.commands.executeCommand('revealFileInOS', uri);
+    }
+}
