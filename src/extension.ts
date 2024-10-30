@@ -5,7 +5,7 @@ import { ManimCell } from './manimCell';
 import { ManimCellRanges } from './manimCellRanges';
 import { previewCode } from './previewCode';
 import { startScene, exitScene } from './startStopScene';
-import { Logger, Window, loggerName, recordLogFile } from './logger';
+import { Logger, Window, recordLogFile, finishRecordingLogFile } from './logger';
 
 export function activate(context: vscode.ExtensionContext) {
 	// Trigger the Manim shell to start listening to the terminal
@@ -48,7 +48,14 @@ export function activate(context: vscode.ExtensionContext) {
 	const recordLogFileCommand = vscode.commands.registerCommand(
 		'manim-notebook.recordLogFile', async () => {
 			Logger.info("💠 Command requested: Record Log File");
-			recordLogFile(context);
+			await recordLogFile(context);
+		});
+
+	// internal command
+	const finishRecordingLogFileCommand = vscode.commands.registerCommand(
+		'manim-notebook.finishRecordingLogFile', async () => {
+			Logger.info("💠 Command requested: Finish Recording Log File");
+			await finishRecordingLogFile(context);
 		});
 
 	context.subscriptions.push(
@@ -57,11 +64,11 @@ export function activate(context: vscode.ExtensionContext) {
 		startSceneCommand,
 		exitSceneCommand,
 		clearSceneCommand,
-		recordLogFileCommand
+		recordLogFileCommand,
+		finishRecordingLogFileCommand
 	);
 	registerManimCellProviders(context);
 
-	Logger.clear(context); // until #58 is fixed
 	Logger.info("Manim Notebook activated");
 	Logger.logSystemInformation();
 }

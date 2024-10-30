@@ -6,11 +6,14 @@ import * as path from 'path';
 import * as fs from 'fs';
 import * as os from 'os';
 
-export const loggerName = 'Manim Notebook';
+const LOGGER_NAME = 'Manim Notebook';
 
 export class Logger {
 
-    private static logger: LogOutputChannel = window.createOutputChannel(loggerName, { log: true });
+    public static isRecording = false;
+
+    private static logger: LogOutputChannel = window.createOutputChannel(
+        LOGGER_NAME, { log: true });
 
     public static trace(message: string) {
         this.logger.trace(`${Logger.getFormattedCallerInformation()} ${message}`);
@@ -40,20 +43,18 @@ export class Logger {
      * Clears the output panel and the log file. This is necessary since clearing
      * is not performed automatically on MacOS. See issue #58.
      * 
-     * @param context The extension context.
-     * @param callback An optional callback function to be executed after clearing
-     * the log file.
+     * @param logFilePath The URI of the log file.
      */
-    public static async clear(context: vscode.ExtensionContext, callback?: () => void) {
+    public static async clear(logFilePath: vscode.Uri) {
         // This logging statement here is important to ensure that something
         // is written to the log file, such that the file is created on disk.
         Logger.info("📜 Trying to clear logfile...");
 
         this.logger.clear();
 
-        const logFilePath = vscode.Uri.joinPath(context.logUri, `${loggerName}.log`);
         try {
             await waitUntilFileExists(logFilePath.fsPath, 3000);
+            await fs.writeFileSync(logFilePath.fsPath, '');
             Logger.info(`📜 Logfile found and cleared at ${new Date().toISOString()}`);
         } catch (error: any) {
             Logger.error(`Could not clear logfile: ${error?.message}`);
@@ -74,6 +75,7 @@ export class Logger {
                 Logger.error(String(error));
             } catch {
                 Logger.error("(Unable to stringify the error message)");
+                // in this case we will still record the log session
             }
         }
 
@@ -164,14 +166,46 @@ export class Window {
     }
 }
 
+let logFileRecordingStatusBar: vscode.StatusBarItem;
+
 /**
- * Opens the Manim Notebook log file in a new editor.
- * 
- * @param context The extension context.
+ * Starts recording a log file.
  */
-export function recordLogFile(context: vscode.ExtensionContext) {
-    const logFilePath = vscode.Uri.joinPath(context.logUri, `${loggerName}.log`);
-    openLogFile(logFilePath);
+export async function recordLogFile(context: vscode.ExtensionContext) {
+    if (Logger.isRecording) {
+        window.showWarningMessage("A log file is already being recorded.");
+        return;
+    }
+
+    Logger.isRecording = true;
+
+    logFileRecordingStatusBar = window.createStatusBarItem(vscode.StatusBarAlignment.Right, 100);
+    logFileRecordingStatusBar.text = `$(stop-circle) Click to finish recording log file`;
+    logFileRecordingStatusBar.command = "manim-notebook.finishRecordingLogFile";
+    logFileRecordingStatusBar.backgroundColor = new vscode.ThemeColor(
+        'statusBarItem.errorBackground');
+
+    await window.withProgress({
+        location: vscode.ProgressLocation.Notification,
+        title: "Starting recording...",
+        cancellable: false
+    }, async (progressIndicator, token) => {
+        await Logger.clear(getLogFilePath(context));
+    });
+
+    Logger.info("📜 Logfile recording started");
+    logFileRecordingStatusBar.show();
+}
+
+export async function finishRecordingLogFile(context: vscode.ExtensionContext) {
+    Logger.isRecording = false;
+    logFileRecordingStatusBar.dispose();
+
+    await openLogFile(getLogFilePath(context));
+}
+
+function getLogFilePath(context: vscode.ExtensionContext): vscode.Uri {
+    return vscode.Uri.joinPath(context.logUri, `${LOGGER_NAME}.log`);
 }
 
 /**
