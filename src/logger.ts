@@ -67,13 +67,9 @@ export class Logger {
 
         this.logger.clear();
 
-        try {
-            await waitUntilFileExists(logFilePath.fsPath, 3000);
-            await fs.writeFileSync(logFilePath.fsPath, '');
-            Logger.info(`📜 Logfile found and cleared at ${new Date().toISOString()}`);
-        } catch (error: any) {
-            Logger.error(`Could not clear logfile: ${error?.message}`);
-        }
+        await waitUntilFileExists(logFilePath.fsPath, 3000);
+        await fs.writeFileSync(logFilePath.fsPath, '');
+        Logger.info(`📜 Logfile found and cleared at ${new Date().toISOString()}`);
     }
 
     public static logSystemInformation() {
@@ -201,7 +197,25 @@ export class LogRecorder {
             return;
         }
 
-        Logger.isRecording = true;
+        let isClearSuccessful = false;
+
+        await window.withProgress({
+            location: vscode.ProgressLocation.Notification,
+            title: "Setting everything up for Log recording...",
+            cancellable: false
+        }, async (progressIndicator, token) => {
+            try {
+                await Logger.clear(this.getLogFilePath(context));
+                isClearSuccessful = true;
+            } catch (error: any) {
+                window.showErrorMessage(`Try to reload your VSCode window, then try again.`
+                    + ` We were not able to set up a log file: ${error?.message}`);
+            }
+        });
+
+        if (!isClearSuccessful) {
+            return;
+        }
 
         this.recorderStatusBar = window.createStatusBarItem(vscode.StatusBarAlignment.Right, 100);
         this.recorderStatusBar.text = `$(stop-circle) Click to finish recording log file`;
@@ -209,14 +223,7 @@ export class LogRecorder {
         this.recorderStatusBar.backgroundColor = new vscode.ThemeColor(
             'statusBarItem.errorBackground');
 
-        await window.withProgress({
-            location: vscode.ProgressLocation.Notification,
-            title: "Starting recording...",
-            cancellable: false
-        }, async (progressIndicator, token) => {
-            await Logger.clear(this.getLogFilePath(context));
-        });
-
+        Logger.isRecording = true;
         Logger.info("📜 Logfile recording started");
         Logger.logSystemInformation();
         this.recorderStatusBar.show();
