@@ -55,7 +55,7 @@ export class Logger {
         try {
             await waitUntilFileExists(logFilePath.fsPath, 3000);
             Logger.info(`📜 Logfile found and cleared at ${new Date().toISOString()}`);
-        } catch (error: any){
+        } catch (error: any) {
             Logger.error(`Could not clear logfile: ${error?.message}`);
         }
     }
@@ -171,7 +171,16 @@ export class Window {
  */
 export function recordLogFile(context: vscode.ExtensionContext) {
     const logFilePath = vscode.Uri.joinPath(context.logUri, `${loggerName}.log`);
-    window.withProgress({
+    openLogFile(logFilePath);
+}
+
+/**
+ * Tries to open the log file in an editor and reveal it in the OS file explorer.
+ * 
+ * @param logFilePath The URI of the log file.
+ */
+async function openLogFile(logFilePath: vscode.Uri) {
+    await window.withProgress({
         location: vscode.ProgressLocation.Notification,
         title: "Opening Manim Notebook log file...",
         cancellable: false
@@ -180,17 +189,12 @@ export function recordLogFile(context: vscode.ExtensionContext) {
             try {
                 const doc = await vscode.workspace.openTextDocument(logFilePath);
                 await window.showTextDocument(doc);
-            } catch {
-                Window.showErrorMessage("Could not open Manim Notebook log file");
-            } finally {
-                resolve();
-            }
-
-            try {
                 await revealFileInOS(logFilePath);
             } catch (error: any) {
-                window.showErrorMessage(`Could not open Manim Notebook log file in the`
-                    + ` OS file explorer: ${error?.message}`);
+                window.showErrorMessage(`Could not open Manim Notebook log file:`
+                    + ` ${error?.message}`);
+            } finally {
+                resolve();
             }
         });
     });
