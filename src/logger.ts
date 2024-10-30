@@ -197,6 +197,7 @@ export class LogRecorder {
             window.showInformationMessage("A log file is already being recorded.");
             return;
         }
+        Logger.isRecording = true;
 
         let isClearSuccessful = false;
 
@@ -215,6 +216,7 @@ export class LogRecorder {
         });
 
         if (!isClearSuccessful) {
+            Logger.isRecording = false;
             return;
         }
 
@@ -223,8 +225,6 @@ export class LogRecorder {
         this.recorderStatusBar.command = "manim-notebook.finishRecordingLogFile";
         this.recorderStatusBar.backgroundColor = new vscode.ThemeColor(
             'statusBarItem.errorBackground');
-
-        Logger.isRecording = true;
 
         // Right now, there is no way to set the log level programatically.
         // We can just show the pop-up to do so to users.
