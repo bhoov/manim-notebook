@@ -187,7 +187,8 @@ export class LogRecorder {
     private static recorderStatusBar: vscode.StatusBarItem;
 
     /**
-     * Starts recording a log file.
+     * Starts recording a log file. Initializes a new status bar item that
+     * allows the user to stop the recording.
      * 
      * @param context The extension context.
      */
@@ -236,8 +237,8 @@ export class LogRecorder {
     }
 
     /**
-     * Finished the active recording of a log file. Called when the user
-     * clicks on the status bar item.
+     * Finishes the active recording of a log file. Called when the user
+     * clicks on the status bar item initialized in `recordLogFile()`.
      * 
      * @param context The extension context.
      */
