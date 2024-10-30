@@ -8,7 +8,6 @@ import { startScene, exitScene } from './startStopScene';
 import { Logger, Window, loggerName } from './logger';
 
 export function activate(context: vscode.ExtensionContext) {
-
 	// Trigger the Manim shell to start listening to the terminal
 	ManimShell.instance;
 
@@ -62,6 +61,7 @@ export function activate(context: vscode.ExtensionContext) {
 	);
 	registerManimCellProviders(context);
 
+	Logger.clear(context); // until #58 is fixed
 	Logger.info("Manim Notebook activated");
 	Logger.logSystemInformation();
 }

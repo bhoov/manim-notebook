@@ -1,5 +1,7 @@
+import * as vscode from 'vscode';
 import { window } from 'vscode';
 import { LogOutputChannel } from 'vscode';
+import { waitUntilFileExists } from './fileUtil';
 import * as path from 'path';
 import * as fs from 'fs';
 import * as os from 'os';
@@ -32,6 +34,30 @@ export class Logger {
 
     public static deactivate() {
         this.logger.dispose();
+    }
+
+    /**
+     * Clears the output panel and the log file. This is necessary since clearing
+     * is not performed automatically on MacOS. See issue #58.
+     * 
+     * @param context The extension context.
+     * @param callback An optional callback function to be executed after clearing
+     * the log file.
+     */
+    public static async clear(context: vscode.ExtensionContext, callback?: () => void) {
+        // This logging statement here is important to ensure that something
+        // is written to the log file, such that the file is created on disk.
+        Logger.info("📜 Trying to clear logfile...");
+
+        this.logger.clear();
+
+        const logFilePath = vscode.Uri.joinPath(context.logUri, `${loggerName}.log`);
+        try {
+            await waitUntilFileExists(logFilePath.fsPath, 3000);
+            Logger.info(`📜 Logfile found and cleared at ${new Date().toISOString()}`);
+        } catch (error: any){
+            Logger.error(`Could not clear logfile: ${error?.message}`);
+        }
     }
 
     public static logSystemInformation() {
