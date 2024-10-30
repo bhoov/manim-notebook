@@ -209,11 +209,25 @@ function openLogFile(context: vscode.ExtensionContext) {
 				resolve();
 			}
 
-			// I've also tried to open the log file in the OS browser,
-			// but didn't get it to work via:
-			// commands.executeCommand("revealFileInOS", logFilePath);
-			// For a sample usage, see this:
-			// https://github.com/microsoft/vscode/blob/9de080f7cbcec77de4ef3e0d27fbf9fd335d3fba/extensions/typescript-language-features/src/typescriptServiceClient.ts#L580-L586
+			try {
+				await revealFileInOS(logFilePath);
+			} catch (error: any) {
+				window.showErrorMessage(`Could not open Manim Notebook log file in the`
+					+ ` OS file explorer: ${error?.message}`);
+			}
 		});
 	});
+}
+
+/**
+ * Opens a file in the OS file explorer.
+ * 
+ * @param uri The URI of the file to reveal.
+ */
+async function revealFileInOS(uri: vscode.Uri) {
+	if (vscode.env.remoteName === 'wsl') {
+		await vscode.commands.executeCommand('remote-wsl.revealInExplorer', uri);
+	} else {
+		await vscode.commands.executeCommand('revealFileInOS', uri);
+	}
 }
