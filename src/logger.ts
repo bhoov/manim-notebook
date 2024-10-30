@@ -16,22 +16,37 @@ export class Logger {
         LOGGER_NAME, { log: true });
 
     public static trace(message: string) {
+        if (!this.isRecording) {
+            return;
+        }
         this.logger.trace(`${Logger.getFormattedCallerInformation()} ${message}`);
     }
 
     public static debug(message: string) {
+        if (!this.isRecording) {
+            return;
+        }
         this.logger.debug(`${Logger.getFormattedCallerInformation()} ${message}`);
     }
 
     public static info(message: string) {
+        if (!this.isRecording) {
+            return;
+        }
         this.logger.info(`${Logger.getFormattedCallerInformation()} ${message}`);
     }
 
     public static warn(message: string) {
+        if (!this.isRecording) {
+            return;
+        }
         this.logger.warn(`${Logger.getFormattedCallerInformation()} ${message}`);
     }
 
     public static error(message: string) {
+        if (!this.isRecording) {
+            return;
+        }
         this.logger.error(`${Logger.getFormattedCallerInformation()} ${message}`);
     }
 
