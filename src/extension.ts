@@ -68,9 +68,6 @@ export function activate(context: vscode.ExtensionContext) {
 		finishRecordingLogFileCommand
 	);
 	registerManimCellProviders(context);
-
-	Logger.info("Manim Notebook activated");
-	Logger.logSystemInformation();
 }
 
 export function deactivate() {

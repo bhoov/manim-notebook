@@ -194,6 +194,7 @@ export async function recordLogFile(context: vscode.ExtensionContext) {
     });
 
     Logger.info("📜 Logfile recording started");
+    Logger.logSystemInformation();
     logFileRecordingStatusBar.show();
 }
 
