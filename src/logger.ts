@@ -224,6 +224,12 @@ export class LogRecorder {
             'statusBarItem.errorBackground');
 
         Logger.isRecording = true;
+
+        // Right now, there is no way to set the log level programatically.
+        // We can just show the pop-up to do so to users.
+        // see https://github.com/microsoft/vscode/issues/223536
+        await vscode.commands.executeCommand('workbench.action.setLogLevel');
+
         Logger.info("📜 Logfile recording started");
         Logger.logSystemInformation();
         this.recorderStatusBar.show();
