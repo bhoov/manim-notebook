@@ -78,9 +78,8 @@ The resulting workflow can look like Grant's 🥳
 
 If you encounter an issue, search for some related keywords first in the [issues](https://github.com/bhoov/manim-notebook/issues). If you can't find anything, feel free to open a new issue. To analyze the problem, we need a **log file** from you:
 
-- Reload the VSCode window. This is important for us such that only important log messages are included in the log file and not unrelated ones.
-- Open the command palette `Ctrl+Shift+P` (or `Cmd+Shift+P`). Use the command `Developer: Set Log Level...`, click on `Manim Notebook` and set the log level to `Trace`.
-- Now reproduce the issue, e.g. by running a command that causes the problem.
-- Open the command palette again and use the command `Manim Notebook: Open Log File`.
-- Attach the log file to your GitHub issue. To do so, right-click on the opened log file header (the tab pane that shows the filename at the top of the editor) and select `Reveal In File Explorer` (or `Reveal in Finder`). Then drag and drop the file into the GitHub issue text field.
-- Last, but not least, don't forget to set the log level back to `Info` to avoid performance issues. `Developer: Set Log Level...` -> `Manim Notebook` -> `Info`.
+- Open the command palette `Ctrl+Shift+P` (or `Cmd+Shift+P`)<br>and use the command `Manim Notebook: Record Log File`.
+- Then set the log level by searching for `Manim Notebook` and selecting `Trace`.
+- Now reproduce the issue, e.g. by running a command that causes the problem or previewing a certain Manim cell etc.
+- Once you're done, click on the button in the status bar (bottom right) to finish recording. The log file will be opened afterwards.
+- Drag-and-drop the log file into the GitHub issue text field (as a _file_, please don't paste the _file content_ as this makes the issues hard to read).
