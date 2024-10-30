@@ -182,7 +182,7 @@ export class LogRecorder {
      */
     public static async recordLogFile(context: vscode.ExtensionContext) {
         if (Logger.isRecording) {
-            window.showWarningMessage("A log file is already being recorded.");
+            window.showInformationMessage("A log file is already being recorded.");
             return;
         }
 
