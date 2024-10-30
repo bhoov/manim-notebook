@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import { ManimShell } from './manimShell';
 import { window } from 'vscode';
+import { Logger, Window } from './logger';
 
 /**
  * Runs the `manimgl` command in the terminal, with the current cursor's line number:
@@ -24,7 +25,7 @@ import { window } from 'vscode';
 export async function startScene(lineStart?: number) {
     const editor = window.activeTextEditor;
     if (!editor) {
-        window.showErrorMessage(
+        Window.showErrorMessage(
             'No opened file found. Please place your cursor at a line of code.'
         );
         return;
@@ -35,7 +36,7 @@ export async function startScene(lineStart?: number) {
 
     const languageId = editor.document.languageId;
     if (languageId !== 'python') {
-        window.showErrorMessage("You don't have a Python file open.");
+        Window.showErrorMessage("You don't have a Python file open.");
         return;
     }
 
@@ -55,7 +56,7 @@ export async function startScene(lineStart?: number) {
         .reverse()
         .find(({ index }) => index <= cursorLine);
     if (!matchingClass) {
-        window.showErrorMessage('Place your cursor in Manim code inside a class.');
+        Window.showErrorMessage('Place your cursor in Manim code inside a class.');
         return;
     }
     // E.g. here, sceneName = "SelectedScene"
@@ -110,7 +111,7 @@ export async function startScene(lineStart?: number) {
 export async function exitScene() {
     try {
         await ManimShell.instance.executeCommandErrorOnNoActiveSession("exit()", false, true);
-    } catch(NoActiveSessionError) {
-        window.showErrorMessage('No active Manim session found to exit.');
+    } catch (NoActiveSessionError) {
+        Window.showErrorMessage('No active Manim session found to exit.');
     }
 }

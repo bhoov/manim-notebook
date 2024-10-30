@@ -5,52 +5,75 @@ import { ManimCell } from './manimCell';
 import { ManimCellRanges } from './manimCellRanges';
 import { previewCode } from './previewCode';
 import { startScene, exitScene } from './startStopScene';
+import { Logger, Window, LogRecorder } from './logger';
 
 export function activate(context: vscode.ExtensionContext) {
-
 	// Trigger the Manim shell to start listening to the terminal
 	ManimShell.instance;
 
 	const previewManimCellCommand = vscode.commands.registerCommand(
 		'manim-notebook.previewManimCell', (cellCode?: string, startLine?: number) => {
+			Logger.info(`💠 Command requested: Preview Manim Cell, startLine=${startLine}`);
 			previewManimCell(cellCode, startLine);
 		});
 
 	const previewSelectionCommand = vscode.commands.registerCommand(
 		'manim-notebook.previewSelection', () => {
+			Logger.info("💠 Command requested: Preview Selection");
 			previewSelection();
 		}
 	);
 
 	const startSceneCommand = vscode.commands.registerCommand(
 		'manim-notebook.startScene', () => {
+			Logger.info("💠 Command requested: Start Scene");
 			startScene();
 		}
 	);
 
 	const exitSceneCommand = vscode.commands.registerCommand(
 		'manim-notebook.exitScene', () => {
+			Logger.info("💠 Command requested: Exit Scene");
 			exitScene();
 		}
 	);
 
 	const clearSceneCommand = vscode.commands.registerCommand(
 		'manim-notebook.clearScene', () => {
+			Logger.info("💠 Command requested: Clear Scene");
 			clearScene();
 		}
 	);
+
+	const recordLogFileCommand = vscode.commands.registerCommand(
+		'manim-notebook.recordLogFile', async () => {
+			Logger.info("💠 Command requested: Record Log File");
+			await LogRecorder.recordLogFile(context);
+		});
+
+	// internal command
+	const finishRecordingLogFileCommand = vscode.commands.registerCommand(
+		'manim-notebook.finishRecordingLogFile', async () => {
+			Logger.info("💠 Command requested: Finish Recording Log File");
+			await LogRecorder.finishRecordingLogFile(context);
+		});
 
 	context.subscriptions.push(
 		previewManimCellCommand,
 		previewSelectionCommand,
 		startSceneCommand,
 		exitSceneCommand,
-		clearSceneCommand
+		clearSceneCommand,
+		recordLogFileCommand,
+		finishRecordingLogFileCommand
 	);
 	registerManimCellProviders(context);
 }
 
-export function deactivate() { }
+export function deactivate() {
+	Logger.deactivate();
+	Logger.info("💠 Manim Notebook extension deactivated");
+}
 
 /**
  * Previews the Manim code of the cell where the cursor is placed
@@ -64,7 +87,7 @@ async function previewManimCell(cellCode?: string, startLine?: number) {
 	if (cellCode === undefined) {
 		const editor = window.activeTextEditor;
 		if (!editor) {
-			window.showErrorMessage(
+			Window.showErrorMessage(
 				'No opened file found. Place your cursor in a Manim cell.');
 			return;
 		}
@@ -74,7 +97,7 @@ async function previewManimCell(cellCode?: string, startLine?: number) {
 		const cursorLine = editor.selection.active.line;
 		const range = ManimCellRanges.getCellRangeAtLine(document, cursorLine);
 		if (!range) {
-			window.showErrorMessage('Place your cursor in a Manim cell.');
+			Window.showErrorMessage('Place your cursor in a Manim cell.');
 			return;
 		}
 		cellCode = document.getText(range);
@@ -82,7 +105,7 @@ async function previewManimCell(cellCode?: string, startLine?: number) {
 	}
 
 	if (startLineFinal === undefined) {
-		window.showErrorMessage('Internal error: Line number not found in `previewManimCell()`.');
+		Window.showErrorMessage('Internal error: Line number not found in `previewManimCell()`.');
 		return;
 	}
 
@@ -95,7 +118,7 @@ async function previewManimCell(cellCode?: string, startLine?: number) {
 async function previewSelection() {
 	const editor = window.activeTextEditor;
 	if (!editor) {
-		window.showErrorMessage('Select some code to preview.');
+		Window.showErrorMessage('Select some code to preview.');
 		return;
 	}
 
@@ -115,7 +138,7 @@ async function previewSelection() {
 	}
 
 	if (!selectedText) {
-		window.showErrorMessage('Select some code to preview.');
+		Window.showErrorMessage('Select some code to preview.');
 		return;
 	}
 
@@ -130,7 +153,7 @@ async function clearScene() {
 	try {
 		await ManimShell.instance.executeCommandErrorOnNoActiveSession("clear()");
 	} catch (NoActiveSessionError) {
-		window.showErrorMessage('No active Manim session found to remove objects from.');
+		Window.showErrorMessage('No active Manim session found to remove objects from.');
 	}
 }
 

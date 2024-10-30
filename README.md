@@ -71,3 +71,15 @@ The resulting workflow can look like Grant's 🥳
 - [contributing](https://github.com/bhoov/manim-notebook/blob/main/CONTRIBUTING.md)
 
 - [wiki](https://github.com/bhoov/manim-notebook/wiki)
+
+<br /><br />
+
+## Troubleshooting
+
+If you encounter an issue, search for some related keywords first in the [issues](https://github.com/bhoov/manim-notebook/issues). If you can't find anything, feel free to open a new issue. To analyze the problem, we need a **log file** from you:
+
+- Open the command palette `Ctrl+Shift+P` (or `Cmd+Shift+P`)<br>and use the command `Manim Notebook: Record Log File`.
+- Then set the log level by searching for `Manim Notebook` and selecting `Trace`.
+- Now reproduce the issue, e.g. by running a command that causes the problem or previewing a certain Manim cell etc.
+- Once you're done, click on the button in the status bar (bottom right) to finish recording. The log file will be opened afterwards.
+- Drag-and-drop the log file into the GitHub issue text field (as a _file_, i.e. please don't copy-paste its _content_ because this would make it hard to read).
