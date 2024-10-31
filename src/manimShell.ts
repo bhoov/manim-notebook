@@ -370,6 +370,9 @@ export class ManimShell {
     /**
     * Resets the active shell such that a new terminal is created on the next
     * command execution.
+    * 
+    * This will also remove all event listeners! Having called this method
+    * you should NOT emit any events anymore, as they will not be caught.
     */
     public resetActiveShell() {
         Logger.debug("💫 Reset active shell");
@@ -649,11 +652,10 @@ export class ManimShell {
                 return;
             }
             Logger.debug("🔚 Active shell closed");
-            await this.forceQuitActiveShell();
-            this.resetActiveShell();
-            Logger.debug("🔚 Emitting last clean-up events");
             this.eventEmitter.emit(ManimShellEvent.MANIM_NOT_STARTED);
             this.eventEmitter.emit(ManimShellEvent.KEYBOARD_INTERRUPT);
+            await this.forceQuitActiveShell();
+            this.resetActiveShell();
         });
     }
 }
