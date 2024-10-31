@@ -383,7 +383,7 @@ export class ManimShell {
 
     /**
      * Ask the user if they want to kill the active scene. Might modify the
-     * setting that control if the user should be asked in the future.
+     * setting that controls if the user should be asked in the future.
      * 
      * @returns true if the user wants to kill the active scene, false otherwise.
      */
@@ -394,6 +394,9 @@ export class ManimShell {
         const selection = await Window.showWarningMessage(
             "We need to kill your Manim session to spawn a new one.",
             "Kill it", KILL_IT_ALWAYS_OPTION, CANCEL_OPTION);
+        if (selection === undefined) {
+            Logger.warn("❌ User selection undefined, but shouldn't be");
+        }
         if (selection === undefined || selection === CANCEL_OPTION) {
             return false;
         }
