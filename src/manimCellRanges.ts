@@ -40,12 +40,12 @@ export class ManimCellRanges {
 
             if (ManimCellRanges.MARKER.test(line.text)) {
                 if (start !== null) {
-                    ranges.push(this.constructNewRange(start, i - 1, document));
+                    ranges.push(this.getRangeDiscardEmpty(document, start, i - 1));
                 }
                 start = i;
                 startIndent = currentIndent;
             } else if (start !== null && startIndent !== null && startIndent > currentIndent) {
-                ranges.push(this.constructNewRange(start, i - 1, document));
+                ranges.push(this.getRangeDiscardEmpty(document, start, i - 1));
                 start = null;
                 startIndent = null;
             }
@@ -53,7 +53,7 @@ export class ManimCellRanges {
 
         // Range for the last cell when the document ends
         if (start !== null) {
-            ranges.push(this.constructNewRange(start, document.lineCount - 1, document));
+            ranges.push(this.getRangeDiscardEmpty(document, start, document.lineCount - 1));
         }
 
         return ranges;
@@ -77,16 +77,16 @@ export class ManimCellRanges {
 
     /**
      * Constructs a new cell range from the given start and end line numbers.
-     * Discards a possible empty line at the end of the range.
+     * Discards all trailing empty lines at the end of the range.
      */
-    private static constructNewRange(start: number, end: number,
-        document: vscode.TextDocument): vscode.Range {
-        let endLine = document.lineAt(end);
-        const endNew = endLine.isEmptyOrWhitespace ? end - 1 : end;
-        if (endNew !== end) {
-            endLine = document.lineAt(endNew);
+    private static getRangeDiscardEmpty(
+        document: vscode.TextDocument, start: number, end: number
+    ): vscode.Range {
+        let endNew = end;
+        while (endNew > start && document.lineAt(endNew).isEmptyOrWhitespace) {
+            endNew--;
         }
-        return new vscode.Range(start, 0, endNew, endLine.text.length);
+        return new vscode.Range(start, 0, endNew, document.lineAt(endNew).text.length);
     }
 
 }
