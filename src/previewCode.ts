@@ -34,10 +34,15 @@ export async function previewCode(code: string, startLine: number): Promise<void
 
         await ManimShell.instance.executeCommand(
             PREVIEW_COMMAND, startLine, true, {
-            onCommandIssued: () => {
+            onCommandIssued: (shellStillExists) => {
                 Logger.debug(`📊 Command issued: ${PREVIEW_COMMAND}. Will restore clipboard`);
                 restoreClipboard(clipboardBuffer);
-                progress = new PreviewProgress();
+                if (shellStillExists) {
+                    Logger.debug("📊 Initializing preview progress");
+                    progress = new PreviewProgress();
+                } else {
+                    Logger.debug("📊 Shell was closed in the meantime, not showing progress");
+                }
             },
             onData: (data) => {
                 progress?.reportOnData(data);

@@ -75,8 +75,13 @@ export interface CommandExecutionEventHandler {
      * Callback that is invoked when the command is issued, i.e. sent to the
      * terminal. At this point, the command is probably not yet finished
      * executing.
+     * 
+     * @param shellStillExists Whether the shell still exists after the command
+     * was issued. In certain scenarios (e.g. user manually exits the shell
+     * during Manim startup), the shell might not exist anymore after the
+     * command was issued.
      */
-    onCommandIssued?: () => void;
+    onCommandIssued?: (shellStillExists) => void;
 
     /**
      * Callback that is invoked when data is received from the active Manim
@@ -292,7 +297,7 @@ export class ManimShell {
         let currentExecutionCount = this.iPythonCellCount;
 
         this.exec(shell, command);
-        handler?.onCommandIssued?.();
+        handler?.onCommandIssued?.(this.activeShell !== null);
 
         this.waitUntilCommandFinished(currentExecutionCount, () => {
             Logger.debug("🔓 Command execution unlocked");
@@ -654,7 +659,7 @@ export class ManimShell {
             Logger.debug("🔚 Active shell closed");
             this.eventEmitter.emit(ManimShellEvent.MANIM_NOT_STARTED);
             this.eventEmitter.emit(ManimShellEvent.KEYBOARD_INTERRUPT);
-            await this.forceQuitActiveShell();
+            this.forceQuitActiveShell(); // don't await here on purpose
             this.resetActiveShell();
         });
     }
