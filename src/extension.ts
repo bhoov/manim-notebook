@@ -76,9 +76,17 @@ export function deactivate() {
 }
 
 /**
- * Previews the Manim code of the cell where the cursor is placed
- * (when accessed via the command pallette) or the code of the cell where
- * the codelens was clicked.
+ * Previews all code inside of a Manim cell.
+ * 
+ * A Manim cell starts with ##
+ * 
+ * This can be invoked by either:
+ * - clicking the code lens (the button above the cell) -> this cell is previewed
+ * - command pallette -> the 1 cell where the cursor is is previewed
+ * 
+ * If Manim isn't running, it will be automatically started
+ * (at the start of the cell which will be previewed: on its starting ## line),
+ * and then this cell is previewed.
  */
 async function previewManimCell(cellCode?: string, startLine?: number) {
 	let startLineFinal: number | undefined = startLine;
@@ -113,7 +121,16 @@ async function previewManimCell(cellCode?: string, startLine?: number) {
 }
 
 /**
- * Previews the Manim code of the selected text.
+ * Previews the selected code.
+ * 
+ * - both ends of the selection automatically extend to the start and end of lines
+ *   (for convenience)
+ * - if Multi-Cursor selection:
+ *   only the first selection is considered
+ *   (TODO: make all selections be considered - expand at each selection)
+ * 
+ * If Manim isn't running, it will be automatically started
+ * (before the first selected line).
  */
 async function previewSelection() {
 	const editor = window.activeTextEditor;
@@ -146,8 +163,8 @@ async function previewSelection() {
 }
 
 /**
- * Runs the `clear()` command in the terminal to remove all objects from
- * the scene.
+ * Runs the `clear()` command in the terminal -
+ * removes all objects from the scene.
  */
 async function clearScene() {
 	try {
