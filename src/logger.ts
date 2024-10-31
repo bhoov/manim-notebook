@@ -161,19 +161,19 @@ export class Logger {
  */
 export class Window {
 
-    public static showInformationMessage(message: string) {
+    public static async showInformationMessage(message: string) {
         Logger.info(`💡 ${message}`);
-        window.showInformationMessage(message);
+        await window.showInformationMessage(message);
     }
 
-    public static showWarningMessage(message: string, ...items: string[]) {
+    public static async showWarningMessage(message: string, ...items: string[]) {
         Logger.warn(`💡 ${message}`);
-        window.showWarningMessage(message, ...items);
+        await window.showWarningMessage(message, ...items);
     }
 
-    public static showErrorMessage(message: string) {
+    public static async showErrorMessage(message: string) {
         Logger.error(`💡 ${message}`);
-        window.showErrorMessage(message);
+        await window.showErrorMessage(message);
     }
 }
 
