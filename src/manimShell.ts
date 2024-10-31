@@ -529,7 +529,7 @@ export class ManimShell {
                         this.eventEmitter.emit(ManimShellEvent.KEYBOARD_INTERRUPT);
                     }
 
-                    let ipythonMatches = lol.match(IPYTHON_CELL_START_REGEX);
+                    let ipythonMatches = data.match(IPYTHON_CELL_START_REGEX);
                     if (ipythonMatches) {
                         // Terminal data might include multiple IPython statements,
                         // so take the highest cell number found.
