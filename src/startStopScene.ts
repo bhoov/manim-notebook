@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { ManimShell } from './manimShell';
+import { ManimShell, NoActiveShellError } from './manimShell';
 import { window } from 'vscode';
 import { Logger, Window } from './logger';
 
@@ -111,7 +111,12 @@ export async function startScene(lineStart?: number) {
 export async function exitScene() {
     try {
         await ManimShell.instance.executeCommandErrorOnNoActiveSession("exit()", false, true);
-    } catch (NoActiveSessionError) {
-        Window.showErrorMessage('No active Manim session found to exit.');
+    } catch (error) {
+        if (error instanceof NoActiveShellError) {
+            Window.showErrorMessage('No active Manim session found to exit.');
+        } else {
+            Logger.error(`💥 Error while trying to exit scene: ${error}`);
+            throw error;
+        }
     }
 }

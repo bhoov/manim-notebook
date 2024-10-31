@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import { window } from 'vscode';
-import { ManimShell } from './manimShell';
+import { ManimShell, NoActiveShellError } from './manimShell';
 import { ManimCell } from './manimCell';
 import { ManimCellRanges } from './manimCellRanges';
 import { previewCode } from './previewCode';
@@ -152,8 +152,13 @@ async function previewSelection() {
 async function clearScene() {
 	try {
 		await ManimShell.instance.executeCommandErrorOnNoActiveSession("clear()");
-	} catch (NoActiveSessionError) {
-		Window.showErrorMessage('No active Manim session found to remove objects from.');
+	} catch (error) {
+		if (error instanceof NoActiveShellError) {
+			Window.showErrorMessage('No active Manim session found to remove objects from.');
+		} else {
+			Logger.error(`💥 Error while trying to remove objects from scene: ${error}`);
+			throw error;
+		}
 	}
 }
 
