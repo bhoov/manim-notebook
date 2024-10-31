@@ -171,8 +171,7 @@ async function clearScene() {
 		await ManimShell.instance.executeCommandErrorOnNoActiveSession("clear()");
 	} catch (error) {
 		if (error instanceof NoActiveShellError) {
-			Window.showInformationMessage(
-				'No active Manim session found to remove objects from.');
+			Window.showWarningMessage('No active Manim session found to remove objects from.');
 			return;
 		}
 		Logger.error(`💥 Error while trying to remove objects from scene: ${error}`);

@@ -116,7 +116,7 @@ export async function exitScene() {
         await ManimShell.instance.forceQuitActiveShell();
     } catch (error) {
         if (error instanceof NoActiveShellError) {
-            Window.showInformationMessage("No active Manim session found to quit.");
+            Window.showWarningMessage("No active Manim session found to quit.");
             return;
         }
         Logger.error(`💥 Error while trying to exit the scene: ${error}`);
