@@ -633,10 +633,16 @@ export class ManimShell {
             });
 
         /**
-         * This even is fired when a terminal is closed manually by the user.
+         * This event is fired when a terminal is closed manually by the user.
          * In this case, we can only do our best to clean up since the terminal
          * is probably not able to receive commands anymore. It's mostly for us
-         * to reset all states that we're ready for the next command.
+         * to reset all states such that we're ready for the next command.
+         * 
+         * When closing while previewing a scene, the terminal is closed, however
+         * we are not able to send a keyboard interrupt anymore. Therefore,
+         * ManimGL will take a few seconds to actually close its window. When
+         * the user employs our "Quit preview" command instead, the preview will
+         * be closed immediately, so that one is preferred.
          */
         window.onDidCloseTerminal(async (terminal: Terminal) => {
             if (terminal !== this.activeShell) {
