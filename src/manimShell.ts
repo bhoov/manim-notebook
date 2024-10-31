@@ -376,8 +376,9 @@ export class ManimShell {
     * Resets the active shell such that a new terminal is created on the next
     * command execution.
     * 
-    * This will also remove all event listeners! Having called this method
-    * you should NOT emit any events anymore, as they will not be caught.
+    * This will also remove all event listeners! Having called this method,
+    * you should NOT emit any events anymore before a new Manim shell is
+    * detected, as those events would not be caught by any listeners.
     */
     public resetActiveShell() {
         Logger.debug("💫 Reset active shell");
