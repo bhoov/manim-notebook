@@ -395,6 +395,10 @@ export class ManimShell {
         if (this.activeShell) {
             Logger.debug("🔚 Force-quitting active shell");
             this.activeShell.dispose();
+            // This is also taken care of when we detect that the shell has ended
+            // in the `onDidEndTerminalShellExecution` event handler. However,
+            // it doesn't harm to reset the active shell here as well just to
+            // be sure.
             this.resetActiveShell();
         } else {
             Logger.debug("🔚 No active shell found to force quit");
