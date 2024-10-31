@@ -15,7 +15,7 @@ const ANSI_CONTROL_SEQUENCE_REGEX = /(?:\x1B[@-Z\\-_]|[\x80-\x9A\x9C-\x9F]|(?:\x
 /**
  * Regular expression to match the start of an IPython cell, e.g. "In [5]:"
  */
-const IPYTHON_CELL_START_REGEX = /^\s*In \[\d+\]:/m;
+const IPYTHON_CELL_START_REGEX = /^\s*In \[\d+\]:/gm;
 
 /**
  * Regular expression to match a KeyboardInterrupt.
@@ -529,11 +529,15 @@ export class ManimShell {
                         this.eventEmitter.emit(ManimShellEvent.KEYBOARD_INTERRUPT);
                     }
 
-                    let ipythonMatch = data.match(IPYTHON_CELL_START_REGEX);
-                    if (ipythonMatch) {
-                        const cellNumber = parseInt(ipythonMatch[0].match(/\d+/)![0]);
-                        this.iPythonCellCount = cellNumber;
-                        Logger.debug(`📦 IPython cell ${cellNumber} detected`);
+                    let ipythonMatches = data.match(IPYTHON_CELL_START_REGEX);
+                    if (ipythonMatches) {
+                        // Terminal data might include multiple IPython statements,
+                        // so take the highest cell number found.
+                        const cellNumbers = ipythonMatches.map(
+                            match => parseInt(match.match(/\d+/)![0]));
+                        const maxCellNumber = Math.max(...cellNumbers);
+                        this.iPythonCellCount = maxCellNumber;
+                        Logger.debug(`📦 IPython cell ${maxCellNumber} detected`);
                         this.eventEmitter.emit(ManimShellEvent.IPYTHON_CELL_FINISHED);
                     }
 
