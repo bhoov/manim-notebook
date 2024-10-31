@@ -163,17 +163,17 @@ export class Window {
 
     public static async showInformationMessage(message: string) {
         Logger.info(`💡 ${message}`);
-        await window.showInformationMessage(message);
+        return await window.showInformationMessage(message);
     }
 
     public static async showWarningMessage(message: string, ...items: string[]) {
         Logger.warn(`💡 ${message}`);
-        await window.showWarningMessage(message, ...items);
+        return await window.showWarningMessage(message, ...items);
     }
 
     public static async showErrorMessage(message: string) {
         Logger.error(`💡 ${message}`);
-        await window.showErrorMessage(message);
+        return await window.showErrorMessage(message);
     }
 }
 
