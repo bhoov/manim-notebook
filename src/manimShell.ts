@@ -75,8 +75,13 @@ export interface CommandExecutionEventHandler {
      * Callback that is invoked when the command is issued, i.e. sent to the
      * terminal. At this point, the command is probably not yet finished
      * executing.
+     * 
+     * @param shellStillExists Whether the shell still exists after the command
+     * was issued. In certain scenarios (e.g. user manually exits the shell
+     * during Manim startup), the shell might not exist anymore after the
+     * command was issued.
      */
-    onCommandIssued?: () => void;
+    onCommandIssued?: (shellStillExists: boolean) => void;
 
     /**
      * Callback that is invoked when data is received from the active Manim
@@ -292,7 +297,7 @@ export class ManimShell {
         let currentExecutionCount = this.iPythonCellCount;
 
         this.exec(shell, command);
-        handler?.onCommandIssued?.();
+        handler?.onCommandIssued?.(this.activeShell !== null);
 
         this.waitUntilCommandFinished(currentExecutionCount, () => {
             Logger.debug("🔓 Command execution unlocked");
@@ -370,6 +375,10 @@ export class ManimShell {
     /**
     * Resets the active shell such that a new terminal is created on the next
     * command execution.
+    * 
+    * This will also remove all event listeners! Having called this method,
+    * you should NOT emit any events anymore before a new Manim shell is
+    * detected, as those events would not be caught by any listeners.
     */
     public resetActiveShell() {
         Logger.debug("💫 Reset active shell");
@@ -631,6 +640,29 @@ export class ManimShell {
                     this.resetActiveShell();
                 }
             });
+
+        /**
+         * This event is fired when a terminal is closed manually by the user.
+         * In this case, we can only do our best to clean up since the terminal
+         * is probably not able to receive commands anymore. It's mostly for us
+         * to reset all states such that we're ready for the next command.
+         * 
+         * When closing while previewing a scene, the terminal is closed, however
+         * we are not able to send a keyboard interrupt anymore. Therefore,
+         * ManimGL will take a few seconds to actually close its window. When
+         * the user employs our "Quit preview" command instead, the preview will
+         * be closed immediately.
+         */
+        window.onDidCloseTerminal(async (terminal: Terminal) => {
+            if (terminal !== this.activeShell) {
+                return;
+            }
+            Logger.debug("🔚 Active shell closed");
+            this.eventEmitter.emit(ManimShellEvent.MANIM_NOT_STARTED);
+            this.eventEmitter.emit(ManimShellEvent.KEYBOARD_INTERRUPT);
+            this.forceQuitActiveShell(); // don't await here on purpose
+            this.resetActiveShell();
+        });
     }
 }
 
