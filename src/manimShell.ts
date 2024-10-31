@@ -418,7 +418,10 @@ export class ManimShell {
      * Manim session (IPython environment), is considered inactive.
      */
     private hasActiveShell(): boolean {
-        return this.activeShell !== null && this.activeShell.exitStatus === undefined;
+        const hasActiveShell =
+            this.activeShell !== null && this.activeShell.exitStatus === undefined;
+        Logger.debug(`👩‍💻 Has active shell?: ${hasActiveShell}`);
+        return hasActiveShell;
     }
 
     /**
