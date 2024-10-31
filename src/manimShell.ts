@@ -259,8 +259,8 @@ export class ManimShell {
             return;
         }
 
-        if (errorOnNoActiveShell && !this.hasActiveShell()) {
-            throw new NoActiveShellError();
+        if (errorOnNoActiveShell) {
+            this.errorOnNoActiveShell();
         }
 
         if (this.isExecutingCommand) {
@@ -309,6 +309,15 @@ export class ManimShell {
             Logger.debug(`🕒 Waiting until command has finished: ${command}`);
             await this.waitUntilCommandFinished(currentExecutionCount);
             Logger.debug(`🕒 Command has finished: ${command}`);
+        }
+    }
+
+    /**
+     * Errors if no active shell is found.
+     */
+    public errorOnNoActiveShell() {
+        if (!this.hasActiveShell()) {
+            throw new NoActiveShellError();
         }
     }
 

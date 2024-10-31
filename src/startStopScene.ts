@@ -111,5 +111,15 @@ export async function startScene(lineStart?: number) {
  * See `forceQuitActiveShell()` for more details.
  */
 export async function exitScene() {
-    await ManimShell.instance.forceQuitActiveShell();
+    try {
+        ManimShell.instance.errorOnNoActiveShell();
+        await ManimShell.instance.forceQuitActiveShell();
+    } catch (error) {
+        if (error instanceof NoActiveShellError) {
+            Window.showInformationMessage("No active Manim session found to quit.");
+            return;
+        }
+        Logger.error(`💥 Error while trying to exit the scene: ${error}`);
+        throw error;
+    }
 }
