@@ -331,7 +331,9 @@ export class ManimShell {
                 const shouldAsk = await vscode.workspace.getConfiguration("manim-notebook")
                     .get("confirmKillingActiveSceneToStartNewOne");
                 if (shouldAsk) {
+                    Logger.debug("🔆 Active shell found, asking user to kill active scene");
                     if (!await this.doesUserWantToKillActiveScene()) {
+                        Logger.debug("🔆 User didn't want to kill active scene");
                         return;
                     }
                 }
