@@ -357,6 +357,7 @@ export class ManimShell {
     */
     public resetActiveShell() {
         Logger.debug("💫 Reset active shell");
+        this.isExecutingCommand = false;
         this.iPythonCellCount = 0;
         this.activeShell = null;
         this.shellWeTryToSpawnIn = null;
