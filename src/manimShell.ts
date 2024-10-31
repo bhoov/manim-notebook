@@ -81,7 +81,7 @@ export interface CommandExecutionEventHandler {
      * during Manim startup), the shell might not exist anymore after the
      * command was issued.
      */
-    onCommandIssued?: (shellStillExists) => void;
+    onCommandIssued?: (shellStillExists: any) => void;
 
     /**
      * Callback that is invoked when data is received from the active Manim
