@@ -1,11 +1,59 @@
-// Place your settings in this file to overwrite default and user settings.
 {
-	"files.exclude": {
-		"out": false // set this to true to hide the "out" folder with the compiled JS files
-	},
-	"search.exclude": {
-		"out": true // set this to false to include "out" folder in search results
-	},
-	// Turn off tsc task auto detection since we have the necessary tasks as npm scripts
-	"typescript.tsc.autoDetect": "off"
+    //////////////////////////////////////
+    // TypeScript
+    //////////////////////////////////////
+    // Turn off tsc task auto detection since we have the necessary tasks as npm scripts
+    "typescript.tsc.autoDetect": "off",
+    //////////////////////////////////////
+    // Files & Folders
+    //////////////////////////////////////
+    "files.exclude": {
+        "out": false // set this to true to hide the "out" folder with the compiled JS files
+    },
+    "search.exclude": {
+        "out": true // set this to false to include "out" folder in search results
+    },
+    //////////////////////////////////////
+    // Editor
+    //////////////////////////////////////
+    "editor.tabSize": 4,
+    "editor.insertSpaces": true,
+    "editor.detectIndentation": false,
+    "editor.wordWrap": "wordWrapColumn",
+    "editor.wordWrapColumn": 100, // toggle via Alt + Z shortcut
+    "editor.mouseWheelZoom": true,
+    "editor.rulers": [
+        {
+            "column": 80, // soft limit
+            "color": "#e5e5e5"
+        },
+        {
+            "column": 100, // hard limit
+            "color": "#c9c9c9"
+        }
+    ],
+    //////////////////////////////////////
+    // Git
+    //////////////////////////////////////
+    "git.inputValidation": true,
+    "git.inputValidationSubjectLength": 50,
+    "git.inputValidationLength": 72,
+    //////////////////////////////////////
+    // Spell Checker
+    //////////////////////////////////////
+    "cSpell.words": [
+        "ansi",
+        "Ansi",
+        "autoplay",
+        "github",
+        "ipython",
+        "Keybord",
+        "Logfile",
+        "manim",
+        "Manim",
+        "MANIM",
+        "manimgl",
+        "Sanderson's",
+        "youtube"
+    ]
 }
