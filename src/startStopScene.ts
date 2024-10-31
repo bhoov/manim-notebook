@@ -111,5 +111,5 @@ export async function startScene(lineStart?: number) {
  * See `forceQuitActiveShell()` for more details.
  */
 export async function exitScene() {
-    ManimShell.instance.forceQuitActiveShell();
+    await ManimShell.instance.forceQuitActiveShell();
 }

@@ -338,7 +338,7 @@ export class ManimShell {
                     }
                 }
                 Logger.debug("🔆 User confirmed to kill active scene");
-                this.forceQuitActiveShell();
+                await this.forceQuitActiveShell();
             }
             this.activeShell = window.createTerminal();
         } else {
@@ -391,9 +391,10 @@ export class ManimShell {
      * running command (inside IPython) as would be expected.
      * See https://github.com/3b1b/manim/discussions/2236
      */
-    public forceQuitActiveShell() {
+    public async forceQuitActiveShell() {
         if (this.activeShell) {
             Logger.debug("🔚 Force-quitting active shell");
+            await this.sendKeyboardInterrupt();
             this.activeShell.dispose();
             // This is also taken care of when we detect that the shell has ended
             // in the `onDidEndTerminalShellExecution` event handler. However,
@@ -540,6 +541,7 @@ export class ManimShell {
     private async sendKeyboardInterrupt() {
         Logger.debug("💨 Sending keyboard interrupt to terminal");
         await this.activeShell?.sendText('\x03'); // send `Ctrl+C`
+        await new Promise(resolve => setTimeout(resolve, 250));
     }
 
     /**
@@ -565,7 +567,7 @@ export class ManimShell {
                         // Manim detected in new terminal
                         if (this.activeShell && this.activeShell !== event.terminal) {
                             Logger.debug("👋 Manim detected in new terminal, exiting old scene");
-                            this.forceQuitActiveShell();
+                            await this.forceQuitActiveShell();
                         }
                         Logger.debug("👋 Manim welcome string detected");
                         this.activeShell = event.terminal;
