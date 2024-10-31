@@ -394,8 +394,9 @@ export class ManimShell {
     public async forceQuitActiveShell() {
         if (this.activeShell) {
             Logger.debug("🔚 Force-quitting active shell");
+            let lastActiveShell = this.activeShell;
             await this.sendKeyboardInterrupt();
-            this.activeShell.dispose();
+            lastActiveShell?.dispose();
             // This is also taken care of when we detect that the shell has ended
             // in the `onDidEndTerminalShellExecution` event handler. However,
             // it doesn't harm to reset the active shell here as well just to
