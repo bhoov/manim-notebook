@@ -651,7 +651,7 @@ export class ManimShell {
          * we are not able to send a keyboard interrupt anymore. Therefore,
          * ManimGL will take a few seconds to actually close its window. When
          * the user employs our "Quit preview" command instead, the preview will
-         * be closed immediately, so that one is preferred.
+         * be closed immediately.
          */
         window.onDidCloseTerminal(async (terminal: Terminal) => {
             if (terminal !== this.activeShell) {
