@@ -338,7 +338,7 @@ export class ManimShell {
                     }
                 }
                 Logger.debug("🔆 User confirmed to kill active scene");
-                await this.handleExit();
+                this.forceQuitActiveShell();
             }
             this.activeShell = window.createTerminal();
         } else {
@@ -379,6 +379,26 @@ export class ManimShell {
         this.shellWeTryToSpawnIn = null;
         this.eventEmitter.emit(ManimShellEvent.RESET);
         this.eventEmitter.removeAllListeners();
+    }
+
+    /**
+     * Forces the terminal to quit and thus the ManimGL session to end.
+     * 
+     * Beforehand, this was implemented more gracefully by sending a keyboard
+     * interrupt (`Ctrl+C`), followed by the `exit()` command in the IPython
+     * session. However, on MacOS, the keyboard interrupt itself already exits
+     * from the entire IPython session and does not just interrupt the current
+     * running command (inside IPython) as would be expected.
+     * See https://github.com/3b1b/manim/discussions/2236
+     */
+    public forceQuitActiveShell() {
+        if (this.activeShell) {
+            Logger.debug("🔚 Force-quitting active shell");
+            this.activeShell.dispose();
+            this.resetActiveShell();
+        } else {
+            Logger.debug("🔚 No active shell found to force quit");
+        }
     }
 
     /**
@@ -518,12 +538,6 @@ export class ManimShell {
         await this.activeShell?.sendText('\x03'); // send `Ctrl+C`
     }
 
-    private async handleExit() {
-        await this.sendKeyboardInterrupt();
-        await exitScene();
-        this.resetActiveShell();
-    }
-
     /**
      * Inits the reading of data from the terminal and issues actions/events
      * based on the data received:
@@ -547,7 +561,7 @@ export class ManimShell {
                         // Manim detected in new terminal
                         if (this.activeShell && this.activeShell !== event.terminal) {
                             Logger.debug("👋 Manim detected in new terminal, exiting old scene");
-                            await this.handleExit();
+                            this.forceQuitActiveShell();
                         }
                         Logger.debug("👋 Manim welcome string detected");
                         this.activeShell = event.terminal;

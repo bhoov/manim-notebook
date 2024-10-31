@@ -105,18 +105,11 @@ export async function startScene(lineStart?: number) {
 }
 
 /**
- * Runs the `exit()` command in the terminal to close the animation window
- * and the IPython terminal.
+ * Force-quits the active Manim session by disposing the respective VSCode
+ * terminal that is currently hosting the session.
+ * 
+ * See `forceQuitActiveShell()` for more details.
  */
 export async function exitScene() {
-    try {
-        await ManimShell.instance.executeCommandErrorOnNoActiveSession("exit()", false, true);
-    } catch (error) {
-        if (error instanceof NoActiveShellError) {
-            Window.showErrorMessage('No active Manim session found to exit.');
-        } else {
-            Logger.error(`💥 Error while trying to exit scene: ${error}`);
-            throw error;
-        }
-    }
+    ManimShell.instance.forceQuitActiveShell();
 }
