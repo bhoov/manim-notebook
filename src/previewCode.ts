@@ -41,6 +41,9 @@ export async function previewCode(code: string, startLine: number): Promise<void
             },
             onData: (data) => {
                 progress?.reportOnData(data);
+            },
+            onReset: () => {
+                progress?.finish();
             }
         });
     } finally {

@@ -59,7 +59,12 @@ enum ManimShellEvent {
      * execution has ended before we have detected the start of the ManimGL
      * session.
      */
-    MANIM_NOT_STARTED = 'manimglNotStarted'
+    MANIM_NOT_STARTED = 'manimglNotStarted',
+
+    /**
+     * Event emitted when the active shell is reset.
+     */
+    RESET = 'reset'
 }
 
 /**
@@ -81,6 +86,12 @@ export interface CommandExecutionEventHandler {
      * of ANSI control codes.
      */
     onData?: (data: string) => void;
+
+    /**
+     * Callback that is invoked when the manim shell is reset. This indicates
+     * that the event handler should clean up any resources.
+     */
+    onReset?: () => void;
 }
 
 /**
@@ -263,6 +274,8 @@ export class ManimShell {
 
         this.isExecutingCommand = true;
         Logger.debug("🔒 Command execution locked");
+        const resetListener = () => { handler?.onReset?.(); };
+        this.eventEmitter.on(ManimShellEvent.RESET, resetListener);
 
         let shell: Terminal;
         if (errorOnNoActiveShell) {
@@ -285,6 +298,7 @@ export class ManimShell {
             Logger.debug("🔓 Command execution unlocked");
             this.isExecutingCommand = false;
             this.eventEmitter.off(ManimShellEvent.DATA, dataListener);
+            this.eventEmitter.off(ManimShellEvent.RESET, resetListener);
         });
         if (waitUntilFinished) {
             Logger.debug(`🕒 Waiting until command has finished: ${command}`);
@@ -317,12 +331,14 @@ export class ManimShell {
                 const shouldAsk = await vscode.workspace.getConfiguration("manim-notebook")
                     .get("confirmKillingActiveSceneToStartNewOne");
                 if (shouldAsk) {
+                    Logger.debug("🔆 Active shell found, asking user to kill active scene");
                     if (!await this.doesUserWantToKillActiveScene()) {
+                        Logger.debug("🔆 User didn't want to kill active scene");
                         return;
                     }
                 }
                 Logger.debug("🔆 User confirmed to kill active scene");
-                exitScene();
+                await this.forceQuitActiveShell();
             }
             this.activeShell = window.createTerminal();
         } else {
@@ -361,12 +377,39 @@ export class ManimShell {
         this.iPythonCellCount = 0;
         this.activeShell = null;
         this.shellWeTryToSpawnIn = null;
+        this.eventEmitter.emit(ManimShellEvent.RESET);
         this.eventEmitter.removeAllListeners();
     }
 
     /**
+     * Forces the terminal to quit and thus the ManimGL session to end.
+     * 
+     * Beforehand, this was implemented more gracefully by sending a keyboard
+     * interrupt (`Ctrl+C`), followed by the `exit()` command in the IPython
+     * session. However, on MacOS, the keyboard interrupt itself already exits
+     * from the entire IPython session and does not just interrupt the current
+     * running command (inside IPython) as would be expected.
+     * See https://github.com/3b1b/manim/discussions/2236
+     */
+    public async forceQuitActiveShell() {
+        if (this.activeShell) {
+            Logger.debug("🔚 Force-quitting active shell");
+            let lastActiveShell = this.activeShell;
+            await this.sendKeyboardInterrupt();
+            lastActiveShell?.dispose();
+            // This is also taken care of when we detect that the shell has ended
+            // in the `onDidEndTerminalShellExecution` event handler. However,
+            // it doesn't harm to reset the active shell here as well just to
+            // be sure.
+            this.resetActiveShell();
+        } else {
+            Logger.debug("🔚 No active shell found to force quit");
+        }
+    }
+
+    /**
      * Ask the user if they want to kill the active scene. Might modify the
-     * setting that control if the user should be asked in the future.
+     * setting that controls if the user should be asked in the future.
      * 
      * @returns true if the user wants to kill the active scene, false otherwise.
      */
@@ -377,6 +420,9 @@ export class ManimShell {
         const selection = await Window.showWarningMessage(
             "We need to kill your Manim session to spawn a new one.",
             "Kill it", KILL_IT_ALWAYS_OPTION, CANCEL_OPTION);
+        if (selection === undefined) {
+            Logger.warn("❌ User selection undefined, but shouldn't be");
+        }
         if (selection === undefined || selection === CANCEL_OPTION) {
             return false;
         }
@@ -398,7 +444,10 @@ export class ManimShell {
      * Manim session (IPython environment), is considered inactive.
      */
     private hasActiveShell(): boolean {
-        return this.activeShell !== null && this.activeShell.exitStatus === undefined;
+        const hasActiveShell =
+            this.activeShell !== null && this.activeShell.exitStatus === undefined;
+        Logger.debug(`👩‍💻 Has active shell?: ${hasActiveShell}`);
+        return hasActiveShell;
     }
 
     /**
@@ -492,7 +541,8 @@ export class ManimShell {
 
     private async sendKeyboardInterrupt() {
         Logger.debug("💨 Sending keyboard interrupt to terminal");
-        this.activeShell?.sendText('\x03'); // send `Ctrl+C`
+        await this.activeShell?.sendText('\x03'); // send `Ctrl+C`
+        await new Promise(resolve => setTimeout(resolve, 250));
     }
 
     /**
@@ -514,16 +564,25 @@ export class ManimShell {
                 for await (const data of withoutAnsiCodes(stream)) {
                     Logger.trace(`🧾 Terminal data:\n${data}`);
 
-                    this.eventEmitter.emit(ManimShellEvent.DATA, data);
-
                     if (data.match(MANIM_WELCOME_REGEX)) {
+                        // Manim detected in new terminal
                         if (this.activeShell && this.activeShell !== event.terminal) {
                             Logger.debug("👋 Manim detected in new terminal, exiting old scene");
-                            exitScene();
+                            await this.forceQuitActiveShell();
                         }
                         Logger.debug("👋 Manim welcome string detected");
                         this.activeShell = event.terminal;
                     }
+
+                    // Subsequent data handling should only occur for the
+                    // currently active shell. This is important during
+                    // overlapping commands, e.g. when one shell is exited
+                    // and another one started.
+                    if (this.activeShell !== event.terminal) {
+                        continue;
+                    }
+
+                    this.eventEmitter.emit(ManimShellEvent.DATA, data);
 
                     if (data.match(KEYBOARD_INTERRUPT_REGEX)) {
                         Logger.debug("🛑 Keyboard interrupt detected");
