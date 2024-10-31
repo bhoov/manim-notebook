@@ -631,6 +631,24 @@ export class ManimShell {
                     this.resetActiveShell();
                 }
             });
+
+        /**
+         * This even is fired when a terminal is closed manually by the user.
+         * In this case, we can only do our best to clean up since the terminal
+         * is probably not able to receive commands anymore. It's mostly for us
+         * to reset all states that we're ready for the next command.
+         */
+        window.onDidCloseTerminal(async (terminal: Terminal) => {
+            if (terminal !== this.activeShell) {
+                return;
+            }
+            Logger.debug("🔚 Active shell closed");
+            await this.forceQuitActiveShell();
+            this.resetActiveShell();
+            Logger.debug("🔚 Emitting last clean-up events");
+            this.eventEmitter.emit(ManimShellEvent.MANIM_NOT_STARTED);
+            this.eventEmitter.emit(ManimShellEvent.KEYBOARD_INTERRUPT);
+        });
     }
 }
 
