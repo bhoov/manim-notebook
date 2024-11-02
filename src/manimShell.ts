@@ -579,9 +579,8 @@ export class ManimShell {
         window.onDidStartTerminalShellExecution(
             async (event: vscode.TerminalShellExecutionStartEvent) => {
                 const stream = event.execution.read();
-                for await (let data of stream) {
+                for await (const data of withoutAnsiCodes(stream)) {
                     Logger.trace(`🧾 Terminal data:\n${data}`);
-                    data = data.replace(ANSI_CONTROL_SEQUENCE_REGEX, '');
 
                     if (data.match(MANIM_WELCOME_REGEX)) {
                         // Manim detected in new terminal
