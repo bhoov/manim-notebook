@@ -71,7 +71,7 @@ export async function startScene(lineStart?: number) {
 
     // Create the command
     const filePath = editor.document.fileName;  // absolute path
-    const cmds = ["manimgl", filePath, sceneName];
+    const cmds = ["manimgl", `\"${filePath}\"`, sceneName];
     let enter = false;
     if (cursorLine !== matchingClass.index) {
         cmds.push(`-se ${lineNumber + 1}`);
