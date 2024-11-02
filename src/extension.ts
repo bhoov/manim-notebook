@@ -8,8 +8,6 @@ import { startScene, exitScene } from './startStopScene';
 import { Logger, Window, LogRecorder } from './logger';
 
 export function activate(context: vscode.ExtensionContext) {
-    Logger.initialize(context);
-
 	// Trigger the Manim shell to start listening to the terminal
 	ManimShell.instance;
 
