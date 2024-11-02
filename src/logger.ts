@@ -7,19 +7,32 @@ import * as fs from 'fs';
 import * as os from 'os';
 
 const LOGGER_NAME = 'Manim Notebook';
+const LOGGER_NAME_WITH_ANSI = 'Manim Notebook with ANSI';
 
 export class Logger {
+
+    private static logFilePath: string;
 
     public static isRecording = false;
 
     private static logger: LogOutputChannel = window.createOutputChannel(
         LOGGER_NAME, { log: true });
 
+    public static initialize(context: vscode.ExtensionContext) {
+        this.logFilePath = path.join(context.logPath, `${LOGGER_NAME_WITH_ANSI}.log`);
+        fs.writeFile(this.logFilePath, "Trace with ANSI control sequences", (err) => {
+            if (err) {
+                console.error(err);
+            }
+        });
+    }
+
     public static trace(message: string) {
         if (!this.isRecording) {
             return;
         }
         this.logger.trace(`${Logger.getFormattedCallerInformation()} ${message}`);
+        this.writeMessageToFile(message);
     }
 
     public static debug(message: string) {
@@ -27,6 +40,7 @@ export class Logger {
             return;
         }
         this.logger.debug(`${Logger.getFormattedCallerInformation()} ${message}`);
+        this.writeMessageToFile(message);
     }
 
     public static info(message: string) {
@@ -34,6 +48,7 @@ export class Logger {
             return;
         }
         this.logger.info(`${Logger.getFormattedCallerInformation()} ${message}`);
+        this.writeMessageToFile(message);
     }
 
     public static warn(message: string) {
@@ -41,6 +56,7 @@ export class Logger {
             return;
         }
         this.logger.warn(`${Logger.getFormattedCallerInformation()} ${message}`);
+        this.writeMessageToFile(message);
     }
 
     public static error(message: string) {
@@ -48,6 +64,7 @@ export class Logger {
             return;
         }
         this.logger.error(`${Logger.getFormattedCallerInformation()} ${message}`);
+        this.writeMessageToFile(message);
     }
 
     public static deactivate() {
@@ -152,6 +169,13 @@ export class Logger {
         }
 
         return `[${fileName}] [${methodName}]`;
+    }
+
+    private static writeMessageToFile(message: string) {
+        if (!this.logFilePath) {
+            return;
+        }
+        fs.appendFileSync(this.logFilePath, `${Logger.getFormattedCallerInformation()} ${message}\n`);
     }
 }
 
