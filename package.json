@@ -119,7 +119,7 @@
         "defaults": {
           "dark": "#804953",
           "light": "#FFBFCC",
-          "highContrast": "#8A4551",
+          "highContrast": "#8C5660",
           "highContrastLight": "#FFA3B6"
         }
       }
