@@ -354,7 +354,7 @@ export class ManimShell {
                 Logger.debug("🔆 User confirmed to kill active scene");
                 await this.forceQuitActiveShell();
             }
-            this.activeShell = window.createTerminal();
+            await this.openNewTerminal();
         } else {
             Logger.debug("🔆 Executing start command that is requested for another command");
         }
@@ -512,13 +512,21 @@ export class ManimShell {
     private async retrieveOrInitActiveShell(startLine: number): Promise<Terminal> {
         if (!this.hasActiveShell()) {
             Logger.debug("🔍 No active shell found, requesting startScene");
-            this.activeShell = window.createTerminal();
+            await this.openNewTerminal();
             await startScene(startLine);
             Logger.debug("🔍 Started new scene to retrieve new shell");
         } else {
             Logger.debug("🔍 Active shell already there");
         }
         return this.activeShell as Terminal;
+    }
+
+    private async openNewTerminal() {
+        this.detectShellExecutionEnd = false;
+        this.activeShell = window.createTerminal();
+        // TODO: make time-out user-configurable
+        await new Promise(resolve => setTimeout(resolve, 2500));
+        this.detectShellExecutionEnd = true;
     }
 
     /**
