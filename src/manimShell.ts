@@ -540,7 +540,7 @@ export class ManimShell {
         if (delay > 600) {
             await window.withProgress({
                 location: vscode.ProgressLocation.Notification,
-                title: "Waiting user-defined delay for new terminal...",
+                title: "Waiting a user-defined delay for the new terminal...",
                 cancellable: false
             }, async (progress, token) => {
                 progress.report({ increment: 0 });
