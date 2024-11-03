@@ -105,7 +105,7 @@
     "colors": [
       {
         "id": "manimNotebookColors.baseColor",
-        "description": "Base color used for the cell border and the start comment.",
+        "description": "Base color used for the Manim cell border and the start comment.",
         "defaults": {
             "dark": "#FF708A",
             "light": "#FF708A",
@@ -115,7 +115,7 @@
       },
       {
         "id": "manimNotebookColors.unfocused",
-        "description": "Color used for the cell border when the cell is not focused.",
+        "description": "Color used for the Manim cell border when the cell is not focused.",
         "defaults": {
           "dark": "#804953",
           "light": "#FFBFCC",
