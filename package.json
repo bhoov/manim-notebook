@@ -91,9 +91,14 @@
           "markdownDescription": "Configures the number of milliseconds (ms) to wait before your clipboard is restored. (Your clipboard is used to temporarily copy the selected code to be accessible by Manim)."
         },
         "manim-notebook.confirmKillingActiveSceneToStartNewOne": {
-        "type": "boolean",
+          "type": "boolean",
           "default": true,
           "markdownDescription": "If enabled, you will be prompted to confirm killing an old session when you want to start a new scene at the cursor while an active scene is running."
+        },
+        "manim-notebook.delayNewTerminal": {
+          "type": "number",
+          "default": 0,
+          "markdownDescription": "Number of milliseconds (ms) to wait before executing any command in a newly opened terminal. This is useful when you have custom terminal startup commands that need to be executed before running Manim, e.g. a virtual environment activation (Python venv)."
         }
       }
     }

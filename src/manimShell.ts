@@ -354,7 +354,7 @@ export class ManimShell {
                 Logger.debug("🔆 User confirmed to kill active scene");
                 await this.forceQuitActiveShell();
             }
-            this.activeShell = window.createTerminal();
+            await this.openNewTerminal();
         } else {
             Logger.debug("🔆 Executing start command that is requested for another command");
         }
@@ -512,13 +512,51 @@ export class ManimShell {
     private async retrieveOrInitActiveShell(startLine: number): Promise<Terminal> {
         if (!this.hasActiveShell()) {
             Logger.debug("🔍 No active shell found, requesting startScene");
-            this.activeShell = window.createTerminal();
+            await this.openNewTerminal();
             await startScene(startLine);
             Logger.debug("🔍 Started new scene to retrieve new shell");
         } else {
             Logger.debug("🔍 Active shell already there");
         }
         return this.activeShell as Terminal;
+    }
+
+    /**
+     * Opens a new terminal and sets it as the active shell. Afterwards, waits
+     * for a user-defined delay before allowing the terminal to be used, which
+     * might be useful for some activation scripts to load like virtualenvs etc.
+     */
+    private async openNewTerminal() {
+        const delay: number = await vscode.workspace
+            .getConfiguration("manim-notebook").get("delayNewTerminal")!;
+
+        // We don't want to detect shell execution ends here, since commands like
+        // `source venv/bin/activate` might on their own trigger a terminal
+        // execution end.
+        this.detectShellExecutionEnd = false;
+
+        this.activeShell = window.createTerminal();
+
+        if (delay > 600) {
+            await window.withProgress({
+                location: vscode.ProgressLocation.Notification,
+                title: "Waiting a user-defined delay for the new terminal...",
+                cancellable: false
+            }, async (progress, token) => {
+                progress.report({ increment: 0 });
+
+                // split user-defined timeout into 500ms chunks and show progress
+                const numChunks = Math.ceil(delay / 500);
+                for (let i = 0; i < numChunks; i++) {
+                    await new Promise(resolve => setTimeout(resolve, 500));
+                    progress.report({ increment: 100 / numChunks });
+                }
+            });
+        } else {
+            await new Promise(resolve => setTimeout(resolve, delay));
+        }
+
+        this.detectShellExecutionEnd = true;
     }
 
     /**
