@@ -98,7 +98,7 @@
         "manim-notebook.delayNewTerminal": {
           "type": "number",
           "default": 0,
-          "markdownDescription": "Number of milliseconds (ms) to wait before executing any command in a newly opened terminal. This is useful when you have custom terminal startup commands that need to be executed before running Manim, e.g. a virtual environment activation (venv)."
+          "markdownDescription": "Number of milliseconds (ms) to wait before executing any command in a newly opened terminal. This is useful when you have custom terminal startup commands that need to be executed before running Manim, e.g. a virtual environment activation (Python venv)."
         }
       }
     }
