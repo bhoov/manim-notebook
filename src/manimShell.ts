@@ -521,10 +521,19 @@ export class ManimShell {
         return this.activeShell as Terminal;
     }
 
+    /**
+     * Opens a new terminal and sets it as the active shell. Afterwards, waits
+     * for a user-defined delay before allowing the terminal to be used, which
+     * might be useful for some activation scripts to load like virtualenvs etc.
+     */
     private async openNewTerminal() {
-        this.detectShellExecutionEnd = false;
         const delay: number = await vscode.workspace
             .getConfiguration("manim-notebook").get("delayNewTerminal")!;
+
+        // We don't want to detect shell execution ends here, since commands like
+        // `source venv/bin/activate` might on their own trigger a terminal
+        // execution end.
+        this.detectShellExecutionEnd = false;
 
         this.activeShell = window.createTerminal();
 
