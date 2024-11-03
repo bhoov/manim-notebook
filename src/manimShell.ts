@@ -634,7 +634,7 @@ export class ManimShell {
                     this.resetActiveShell();
                     Window.showErrorMessage(
                         "Manim session could not be started."
-                        + " Have you verified that `manimgl` is installed?");
+                        + " There was a problem running the `manimgl` command.");
                     event.terminal.show();
                     return;
                 }
