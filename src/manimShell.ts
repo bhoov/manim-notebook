@@ -18,6 +18,11 @@ const ANSI_CONTROL_SEQUENCE_REGEX = /(?:\x1B[@-Z\\-_]|[\x80-\x9A\x9C-\x9F]|(?:\x
 const IPYTHON_CELL_START_REGEX = /^\s*In \[\d+\]:/gm;
 
 /**
+ * Regular expression to match IPython multiline input "...:"
+ */
+const IPYTHON_MULTILINE_START_REGEX = /^\s*\.{3}:\s$/m;
+
+/**
  * Regular expression to match a KeyboardInterrupt.
  */
 const KEYBOARD_INTERRUPT_REGEX = /^\s*KeyboardInterrupt/m;
@@ -655,6 +660,14 @@ export class ManimShell {
                         this.iPythonCellCount = maxCellNumber;
                         Logger.debug(`📦 IPython cell ${maxCellNumber} detected`);
                         this.eventEmitter.emit(ManimShellEvent.IPYTHON_CELL_FINISHED);
+                    }
+
+                    if (this.isExecutingCommand && data.match(IPYTHON_MULTILINE_START_REGEX)) {
+                        Logger.debug(`💨 IPython multiline detected, sending extra newline`);
+                        // use sendText instead of ManimShell.exec as
+                        // shell integration does not work here
+                        // \x7F deletes the extra line ("...:") from IPython
+                        this.activeShell.sendText("\x7F");
                     }
 
                     if (data.match(ERROR_REGEX)) {
