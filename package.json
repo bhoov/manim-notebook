@@ -107,11 +107,11 @@
         "id": "manimNotebookColors.baseColor",
         "description": "Base color used for the Manim cell border and the start comment.",
         "defaults": {
-            "dark": "#FF708A",
-            "light": "#FF708A",
-            "highContrast": "#FF5473",
-            "highContrastLight": "#FF5473"
-        }  
+          "dark": "#FF708A",
+          "light": "#FF708A",
+          "highContrast": "#FF5473",
+          "highContrastLight": "#FF5473"
+        }
       },
       {
         "id": "manimNotebookColors.unfocused",
