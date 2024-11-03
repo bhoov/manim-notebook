@@ -523,9 +523,30 @@ export class ManimShell {
 
     private async openNewTerminal() {
         this.detectShellExecutionEnd = false;
+        const delay: number = await vscode.workspace
+            .getConfiguration("manim-notebook").get("delayNewTerminal")!;
+
         this.activeShell = window.createTerminal();
-        // TODO: make time-out user-configurable
-        await new Promise(resolve => setTimeout(resolve, 2500));
+
+        if (delay > 600) {
+            await window.withProgress({
+                location: vscode.ProgressLocation.Notification,
+                title: "Waiting user-defined delay for new terminal...",
+                cancellable: false
+            }, async (progress, token) => {
+                progress.report({ increment: 0 });
+
+                // split user-defined timeout into 500ms chunks and show progress
+                const numChunks = Math.ceil(delay / 500);
+                for (let i = 0; i < numChunks; i++) {
+                    await new Promise(resolve => setTimeout(resolve, 500));
+                    progress.report({ increment: 100 / numChunks });
+                }
+            });
+        } else {
+            await new Promise(resolve => setTimeout(resolve, delay));
+        }
+
         this.detectShellExecutionEnd = true;
     }
 
