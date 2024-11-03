@@ -11,6 +11,12 @@ export function activate(context: vscode.ExtensionContext) {
 	// Trigger the Manim shell to start listening to the terminal
 	ManimShell.instance;
 
+	const reloadExtensionCommand = vscode.commands.registerCommand(
+		"manim-notebook.reloadExtension", async () => {
+			Logger.info("💠 Command requested: Reload Extension");
+			await reloadExtension(context);
+		});
+
 	const previewManimCellCommand = vscode.commands.registerCommand(
 		'manim-notebook.previewManimCell', (cellCode?: string, startLine?: number) => {
 			Logger.info(`💠 Command requested: Preview Manim Cell, startLine=${startLine}`);
@@ -59,6 +65,7 @@ export function activate(context: vscode.ExtensionContext) {
 		});
 
 	context.subscriptions.push(
+		reloadExtensionCommand,
 		previewManimCellCommand,
 		previewSelectionCommand,
 		startSceneCommand,
@@ -71,6 +78,7 @@ export function activate(context: vscode.ExtensionContext) {
 }
 
 export function deactivate() {
+	ManimShell.instance.resetActiveShell();
 	Logger.deactivate();
 	Logger.info("💠 Manim Notebook extension deactivated");
 }
@@ -211,4 +219,30 @@ function registerManimCellProviders(context: vscode.ExtensionContext) {
 	if (window.activeTextEditor) {
 		manimCell.applyCellDecorations(window.activeTextEditor);
 	}
+}
+
+/**
+ * Reloads the extension without the user having to reload entire VSCode.
+ * 
+ * inspired by DanTup's comment:
+ * https://github.com/microsoft/vscode/issues/45774#issuecomment-373423895
+ * 
+ * @param context The extension context.
+ */
+async function reloadExtension(context: vscode.ExtensionContext) {
+	await ManimShell.instance.forceQuitActiveShell();
+	deactivate();
+
+	for (const subscription of context.subscriptions) {
+		try {
+			subscription.dispose();
+		} catch (e) {
+			console.error(e);
+		}
+	}
+
+	activate(context);
+	window.showInformationMessage("Manim Notebook extension reloaded."
+		+ " If you encounter any issues, try to also reload VSCode."
+	);
 }

@@ -22,6 +22,11 @@
   "contributes": {
     "commands": [
       {
+        "command": "manim-notebook.reloadExtension",
+        "title": "Reload Extension",
+        "category": "Manim Notebook"
+      },
+      {
         "command": "manim-notebook.previewManimCell",
         "title": "Preview active Manim Cell",
         "category": "Manim Notebook"
