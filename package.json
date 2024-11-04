@@ -83,7 +83,7 @@
       }
     ],
     "configuration": {
-      "title": "Interactive Manim",
+      "title": "Manim Notebook",
       "properties": {
         "manim-notebook.clipboardTimeout": {
           "type": "number",
