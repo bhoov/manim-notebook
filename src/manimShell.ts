@@ -20,7 +20,7 @@ const IPYTHON_CELL_START_REGEX = /^\s*In \[\d+\]:/gm;
 /**
  * Regular expression to match IPython multiline input "...:"
  */
-const IPYTHON_MULTILINE_START_REGEX = /^\s*\.{3}:\s$/m;
+const IPYTHON_MULTILINE_START_REGEX = /^\s*\.{3}:\s+$/m;
 
 /**
  * Regular expression to match a KeyboardInterrupt.
@@ -488,12 +488,13 @@ export class ManimShell {
      * 
      * @param shell The shell to execute the command in.
      * @param command The command to execute in the shell.
+     * @param useShellIntegration Whether to use shell integration if available
      */
-    private exec(shell: Terminal, command: string) {
+    private exec(shell: Terminal, command: string, useShellIntegration = true) {
         this.detectShellExecutionEnd = false;
         Logger.debug("🔒 Shell execution end detection disabled");
 
-        if (shell.shellIntegration) {
+        if (useShellIntegration && shell.shellIntegration) {
             Logger.debug(`💨 Sending command to terminal (with shell integration): ${command}`);
             shell.shellIntegration.executeCommand(command);
         } else {
@@ -667,7 +668,7 @@ export class ManimShell {
                         // use sendText instead of ManimShell.exec as
                         // shell integration does not work here
                         // \x7F deletes the extra line ("...:") from IPython
-                        this.activeShell.sendText("\x7F");
+                        this.exec(this.activeShell, "\x7F", false);
                     }
 
                     if (data.match(ERROR_REGEX)) {
