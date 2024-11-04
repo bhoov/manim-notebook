@@ -85,6 +85,7 @@ export async function startScene(lineStart?: number) {
         const edit = new vscode.WorkspaceEdit();
         edit.insert(editor.document.uri, new vscode.Position(lineNumber, 0), HELPER_LINE + "\n");
         await vscode.workspace.applyEdit(edit);
+        await vscode.commands.executeCommand('workbench.action.files.save');
     }
 
     // Create the command
