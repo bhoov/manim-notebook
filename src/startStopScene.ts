@@ -80,12 +80,14 @@ export async function startScene(lineStart?: number) {
     }
     if (idx !== -1) {
         lineNumber++;
-        // Insert a comment line into editor at position `lineNumber`:
         const HELPER_LINE = '        #';
-        const edit = new vscode.WorkspaceEdit();
-        edit.insert(editor.document.uri, new vscode.Position(lineNumber, 0), HELPER_LINE + "\n");
-        await vscode.workspace.applyEdit(edit);
-        await vscode.commands.executeCommand('workbench.action.files.save');
+        if (lines[lineNumber] !== HELPER_LINE) {
+            // Insert a HELPER_LINE into the editor at position `lineNumber`:
+            const edit = new vscode.WorkspaceEdit();
+            edit.insert(editor.document.uri, new vscode.Position(lineNumber, 0), HELPER_LINE + "\n");
+            await vscode.workspace.applyEdit(edit);
+            await vscode.commands.executeCommand('workbench.action.files.save');
+        }
     }
 
     // Create the command
