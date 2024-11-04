@@ -488,13 +488,12 @@ export class ManimShell {
      * 
      * @param shell The shell to execute the command in.
      * @param command The command to execute in the shell.
-     * @param useShellIntegration Whether to use shell integration if available
      */
-    private exec(shell: Terminal, command: string, useShellIntegration = true) {
+    private exec(shell: Terminal, command: string) {
         this.detectShellExecutionEnd = false;
         Logger.debug("🔒 Shell execution end detection disabled");
 
-        if (useShellIntegration && shell.shellIntegration) {
+        if (shell.shellIntegration) {
             Logger.debug(`💨 Sending command to terminal (with shell integration): ${command}`);
             shell.shellIntegration.executeCommand(command);
         } else {
@@ -665,10 +664,8 @@ export class ManimShell {
 
                     if (this.isExecutingCommand && data.match(IPYTHON_MULTILINE_START_REGEX)) {
                         Logger.debug(`💨 IPython multiline detected, sending extra newline`);
-                        // use sendText instead of ManimShell.exec as
-                        // shell integration does not work here
                         // \x7F deletes the extra line ("...:") from IPython
-                        this.exec(this.activeShell, "\x7F", false);
+                        this.exec(this.activeShell, "\x7F");
                     }
 
                     if (data.match(ERROR_REGEX)) {
