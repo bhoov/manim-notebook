@@ -69,6 +69,24 @@ export async function startScene(lineStart?: number) {
         lineNumber--;
     }
 
+    // If current line contains: "def construct(" without "#" before it,
+    // then we insert a special comment line, and move the cursor to it
+    // (because `manimgl -se <lineNumber>` doesn't work on the "def construct(" line)
+    let idx = lines[lineNumber].indexOf("def construct(");
+    if (idx !== -1) {
+        if (lines[lineNumber].slice(0, idx).includes("#")) {
+            idx = -1;
+        }
+    }
+    if (idx !== -1) {
+        lineNumber++;
+        // Insert a comment line into editor at position `lineNumber`:
+        const HELPER_LINE = '        #';
+        const edit = new vscode.WorkspaceEdit();
+        edit.insert(editor.document.uri, new vscode.Position(lineNumber, 0), HELPER_LINE + "\n");
+        await vscode.workspace.applyEdit(edit);
+    }
+
     // Create the command
     const filePath = editor.document.fileName;  // absolute path
     const cmds = ["manimgl", `"${filePath}"`, sceneName];
