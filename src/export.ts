@@ -3,6 +3,7 @@ import { QuickPickItem, window } from 'vscode';
 import { MultiStepInput, toQuickPickItem, toQuickPickItems, shouldResumeNoOp } from './multiStepVscode';
 import { findClassLines } from './pythonParsing';
 import { Logger, Window } from './logger';
+import { waitNewTerminalDelay } from './manimShell';
 
 
 class VideoQuality {
@@ -99,9 +100,10 @@ export async function exportScene(sceneName?: string) {
     if (!settingsCmd) {
         return;
     }
-    
+
     const terminal = window.createTerminal("Manim Export");
-    // terminal.show();
+    terminal.show();
+    await waitNewTerminalDelay();
     terminal.sendText(settingsCmd, false);
 }
 

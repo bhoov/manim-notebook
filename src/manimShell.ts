@@ -537,34 +537,13 @@ export class ManimShell {
      * might be useful for some activation scripts to load like virtualenvs etc.
      */
     private async openNewTerminal() {
-        const delay: number = await vscode.workspace
-            .getConfiguration("manim-notebook").get("delayNewTerminal")!;
-
         // We don't want to detect shell execution ends here, since commands like
         // `source venv/bin/activate` might on their own trigger a terminal
         // execution end.
         this.detectShellExecutionEnd = false;
 
         this.activeShell = window.createTerminal();
-
-        if (delay > 600) {
-            await window.withProgress({
-                location: vscode.ProgressLocation.Notification,
-                title: "Waiting a user-defined delay for the new terminal...",
-                cancellable: false
-            }, async (progress, token) => {
-                progress.report({ increment: 0 });
-
-                // split user-defined timeout into 500ms chunks and show progress
-                const numChunks = Math.ceil(delay / 500);
-                for (let i = 0; i < numChunks; i++) {
-                    await new Promise(resolve => setTimeout(resolve, 500));
-                    progress.report({ increment: 100 / numChunks });
-                }
-            });
-        } else {
-            await new Promise(resolve => setTimeout(resolve, delay));
-        }
+        await waitNewTerminalDelay();
 
         this.detectShellExecutionEnd = true;
     }
@@ -741,5 +720,29 @@ export class ManimShell {
 async function* withoutAnsiCodes(stream: AsyncIterable<string>) {
     for await (const data of stream) {
         yield data.replace(ANSI_CONTROL_SEQUENCE_REGEX, '');
+    }
+}
+
+export async function waitNewTerminalDelay() {
+    const delay: number = await vscode.workspace
+        .getConfiguration("manim-notebook").get("delayNewTerminal")!;
+
+    if (delay > 600) {
+        await window.withProgress({
+            location: vscode.ProgressLocation.Notification,
+            title: "Waiting a user-defined delay for the new terminal...",
+            cancellable: false
+        }, async (progress, token) => {
+            progress.report({ increment: 0 });
+
+            // split user-defined timeout into 500ms chunks and show progress
+            const numChunks = Math.ceil(delay / 500);
+            for (let i = 0; i < numChunks; i++) {
+                await new Promise(resolve => setTimeout(resolve, 500));
+                progress.report({ increment: 100 / numChunks });
+            }
+        });
+    } else {
+        await new Promise(resolve => setTimeout(resolve, delay));
     }
 }
