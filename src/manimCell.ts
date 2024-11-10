@@ -95,10 +95,20 @@ export class ManimCell implements vscode.CodeLensProvider, vscode.FoldingRangePr
 
         editor.setDecorations(this.cellStartCommentDecoration,
             topRangesFocused.concat(topRangesUnfocused));
-        editor.setDecorations(this.cellTopDecoration, topRangesFocused);
-        editor.setDecorations(this.cellBottomDecoration, bottomRangesFocused);
-        editor.setDecorations(this.cellTopDecorationUnfocused, topRangesUnfocused);
-        editor.setDecorations(this.cellBottomDecorationUnfocused, bottomRangesUnfocused);
+
+        const showBorders: number = vscode.workspace
+            .getConfiguration("manim-notebook").get("showCellBorders")!;
+        if (showBorders) {
+            editor.setDecorations(this.cellTopDecoration, topRangesFocused);
+            editor.setDecorations(this.cellBottomDecoration, bottomRangesFocused);
+            editor.setDecorations(this.cellTopDecorationUnfocused, topRangesUnfocused);
+            editor.setDecorations(this.cellBottomDecorationUnfocused, bottomRangesUnfocused);
+        } else {
+            editor.setDecorations(this.cellTopDecoration, []);
+            editor.setDecorations(this.cellBottomDecoration, []);
+            editor.setDecorations(this.cellTopDecorationUnfocused, []);
+            editor.setDecorations(this.cellBottomDecorationUnfocused, []);
+        }
     }
 
 }

@@ -99,6 +99,11 @@
           "type": "number",
           "default": 0,
           "markdownDescription": "Number of milliseconds (ms) to wait before executing any command in a newly opened terminal. This is useful when you have custom terminal startup commands that need to be executed before running Manim, e.g. a virtual environment activation (Python venv)."
+        },
+        "manim-notebook.showCellBorders": {
+          "type": "boolean",
+          "default": true,
+          "markdownDescription": "If enabled, Manim cells will have a border around them (top and bottom)."
         }
       }
     },
