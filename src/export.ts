@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
-import { QuickPickItem } from 'vscode';
-import { MultiStepInput, toQuickPickItem, toQuickPickItems, shouldResumeNoOp } from './multiStepVscode';
+import { QuickPickItem, window } from 'vscode';
+import { MultiStepInput, toQuickPickItem, toQuickPickItems, shouldResumeNoOp, pickFile } from './multiStepVscode';
 
 class VideoQuality {
     static readonly LOW = new VideoQuality('Low Quality (480p)', '--low_quality');
@@ -26,6 +26,7 @@ export async function exportScene() {
     interface State {
         quality: string;
         fps: string;
+        filePath: string;
     }
 
     async function pickQuality(input: MultiStepInput, state: Partial<State>) {
@@ -60,10 +61,27 @@ export async function exportScene() {
             shouldResume: shouldResumeNoOp,
         });
         state.fps = fps;
+
+        return (input: MultiStepInput) => pickFileLocation(input, state);
+    }
+
+    async function pickFileLocation(input: MultiStepInput, state: Partial<State>) {
+        const uri = await window.showOpenDialog({
+            canSelectFiles: false,
+            canSelectFolders: true,
+            canSelectMany: false,
+            openLabel: "Select folder",
+            title: "Select folder to save the video to",
+        });
+        if (uri) {
+            state.filePath = uri[0].fsPath;
+        }
     }
 
     const state = {} as Partial<State>;
     await MultiStepInput.run((input: MultiStepInput) => pickQuality(input, state));
 
-    vscode.window.showInformationMessage(`Exporting scene, ${state}`);
+    if (state.quality && state.fps && state.filePath) {
+        vscode.window.showInformationMessage(`Exporting scene: ${state.quality}, ${state.fps} fps, ${state.filePath}`);
+    }
 }
