@@ -90,3 +90,16 @@ export class ManimCellRanges {
     }
 
 }
+
+export function findClassLines(document: vscode.TextDocument)
+    : { line: string, lineNumber: number }[] {
+    const lines = document.getText().split("\n");
+
+    // Find which lines define classes
+    // E.g. classLines = [{ line: "class FirstScene(Scene):", index: 3 }, ...]
+    const classLines = lines
+        .map((line, lineNumber) => ({ line, lineNumber }))
+        .filter(({ line }) => /^\s*class (.+?)\((.+?)\):/.test(line));
+
+    return classLines;
+}

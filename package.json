@@ -47,11 +47,6 @@
         "category": "Manim Notebook"
       },
       {
-        "command": "manim-notebook.exportScene",
-        "title": "Export scene as video",
-        "category": "Manim Notebook"
-      },
-      {
         "command": "manim-notebook.recordLogFile",
         "title": "Record Log File",
         "category": "Manim Notebook"

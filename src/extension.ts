@@ -2,11 +2,12 @@ import * as vscode from 'vscode';
 import { window } from 'vscode';
 import { ManimShell, NoActiveShellError } from './manimShell';
 import { ManimCell } from './manimCell';
-import { ManimCellRanges } from './manimCellRanges';
+import { ManimCellRanges } from './pythonParsing';
 import { previewCode } from './previewCode';
 import { startScene, exitScene } from './startStopScene';
 import { exportScene } from './export';
 import { Logger, Window, LogRecorder } from './logger';
+import { ExportSceneCodeLens } from './export';
 
 export function activate(context: vscode.ExtensionContext) {
 	// Trigger the Manim shell to start listening to the terminal
@@ -46,19 +47,23 @@ export function activate(context: vscode.ExtensionContext) {
 		}
 	);
 
-	const exportSceneCommand = vscode.commands.registerCommand(
-		'manim-notebook.exportScene', async () => {
-			Logger.info("💠 Command requested: Export Scene");
-			await exportScene();
-		});
-
 	const recordLogFileCommand = vscode.commands.registerCommand(
 		'manim-notebook.recordLogFile', async () => {
 			Logger.info("💠 Command requested: Record Log File");
 			await LogRecorder.recordLogFile(context);
 		});
 
-	// internal command
+	// Internal commands
+	const exportSceneCommand = vscode.commands.registerCommand(
+		'manim-notebook.exportScene', async () => {
+			Logger.info("💠 Command requested: Export Scene");
+			await exportScene();
+		});
+	context.subscriptions.push(
+		vscode.languages.registerCodeLensProvider(
+			{ language: 'python' }, new ExportSceneCodeLens())
+	);
+
 	const finishRecordingLogFileCommand = vscode.commands.registerCommand(
 		'manim-notebook.finishRecordingLogFile', async () => {
 			Logger.info("💠 Command requested: Finish Recording Log File");
@@ -71,8 +76,8 @@ export function activate(context: vscode.ExtensionContext) {
 		startSceneCommand,
 		exitSceneCommand,
 		clearSceneCommand,
-		exportSceneCommand,
 		recordLogFileCommand,
+		exportSceneCommand,
 		finishRecordingLogFileCommand
 	);
 	registerManimCellProviders(context);

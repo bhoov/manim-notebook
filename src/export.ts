@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import { QuickPickItem, window } from 'vscode';
-import { MultiStepInput, toQuickPickItem, toQuickPickItems, shouldResumeNoOp, pickFile } from './multiStepVscode';
+import { MultiStepInput, toQuickPickItem, toQuickPickItems, shouldResumeNoOp } from './multiStepVscode';
+import { findClassLines } from './pythonParsing';
 
 class VideoQuality {
     static readonly LOW = new VideoQuality('Low Quality (480p)', '--low_quality');
@@ -83,5 +84,28 @@ export async function exportScene() {
 
     if (state.quality && state.fps && state.filePath) {
         vscode.window.showInformationMessage(`Exporting scene: ${state.quality}, ${state.fps} fps, ${state.filePath}`);
+    }
+}
+
+export class ExportSceneCodeLens implements vscode.CodeLensProvider {
+    public provideCodeLenses(document: vscode.TextDocument, token: vscode.CancellationToken): vscode.CodeLens[] {
+        const codeLenses: vscode.CodeLens[] = [];
+
+        const classLines = findClassLines(document);
+        const ranges = classLines.map(({ lineNumber }) => new vscode.Range(lineNumber, 0, lineNumber, 0));
+
+        for (const range of ranges) {
+            codeLenses.push(new vscode.CodeLens(range, {
+                title: "Export Scene",
+                command: "manim-notebook.exportScene",
+                tooltip: "Export this scene as a video"
+            }));
+        }
+
+        return codeLenses;
+    }
+
+    public resolveCodeLens(codeLens: vscode.CodeLens, token: vscode.CancellationToken): vscode.CodeLens {
+        return codeLens;
     }
 }

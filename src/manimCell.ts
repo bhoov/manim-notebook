@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import { window } from 'vscode';
-import { ManimCellRanges } from './manimCellRanges';
+import { ManimCellRanges } from './pythonParsing';
 
 export class ManimCell implements vscode.CodeLensProvider, vscode.FoldingRangeProvider {
     private cellTopDecoration: vscode.TextEditorDecorationType;

@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 import { ManimShell, NoActiveShellError } from './manimShell';
 import { window } from 'vscode';
 import { Logger, Window } from './logger';
+import { findClassLines } from './pythonParsing';
 
 /**
  * Runs the `manimgl` command in the terminal, with the current cursor's line number:
@@ -41,20 +42,14 @@ export async function startScene(lineStart?: number) {
     }
 
     const lines = editor.document.getText().split("\n");
-
-    // Find which lines define classes
-    // E.g. here, classLines = [{ line: "class FirstScene(Scene):", index: 3 }, ...]
-    const classLines = lines
-        .map((line, index) => ({ line, index }))
-        .filter(({ line }) => /^class (.+?)\((.+?)\):/.test(line));
-
+    const classLines = findClassLines(editor.document);
     let cursorLine = lineStart || editor.selection.start.line;
 
     // Find the first class defined before where the cursor is
-    // E.g. here, matchingClass = { line: "class SelectedScene(Scene):", index: 42 }
+    // E.g. here, matchingClass = { line: "class SelectedScene(Scene):", lineNumber: 42 }
     const matchingClass = classLines
         .reverse()
-        .find(({ index }) => index <= cursorLine);
+        .find(({ lineNumber }) => lineNumber <= cursorLine);
     if (!matchingClass) {
         Window.showErrorMessage('Place your cursor in Manim code inside a class.');
         return;
@@ -73,7 +68,7 @@ export async function startScene(lineStart?: number) {
     const filePath = editor.document.fileName;  // absolute path
     const cmds = ["manimgl", `"${filePath}"`, sceneName];
     let enter = false;
-    if (cursorLine !== matchingClass.index) {
+    if (cursorLine !== matchingClass.lineNumber) {
         cmds.push(`-se ${lineNumber + 1}`);
         enter = true;
     }
