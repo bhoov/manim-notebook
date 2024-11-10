@@ -4,9 +4,8 @@ import { ManimShell } from './manimShell';
 import { EventEmitter } from 'events';
 import { Logger } from './logger';
 
-const PREVIEW_COMMAND = `\x0C checkpoint_paste()\x1b`;
-// \x0C: is Ctrl + L
-// \x1b: https://github.com/bhoov/manim-notebook/issues/18#issuecomment-2431146809
+// \x0C: is Ctrl + L, which clears the terminal screen
+const PREVIEW_COMMAND = `\x0Ccheckpoint_paste()`;
 
 /**
  * Interactively previews the given Manim code by means of the
