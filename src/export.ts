@@ -118,7 +118,7 @@ export async function exportScene(sceneName?: string) {
         return;
     }
 
-    const settingsCmd = settingsToManimCommand(state as VideoSettings);
+    const settingsCmd = toManimExportCommand(state as VideoSettings);
     if (!settingsCmd) {
         return;
     }
@@ -129,7 +129,7 @@ export async function exportScene(sceneName?: string) {
     terminal.sendText(settingsCmd, false);
 }
 
-function settingsToManimCommand(settings: VideoSettings): string | null {
+function toManimExportCommand(settings: VideoSettings): string | null {
     const editor = window.activeTextEditor;
     if (!editor) {
         Window.showErrorMessage(
