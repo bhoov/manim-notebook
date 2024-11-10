@@ -1,11 +1,29 @@
+import { QuickPickItem, window, Disposable, CancellationToken, QuickInputButton, QuickInput, ExtensionContext, QuickInputButtons, Uri } from 'vscode';
+
+export function toQuickPickItem(names: string): QuickPickItem {
+    return { label: names };
+}
+
+export function toQuickPickItems(names: string[]): QuickPickItem[] {
+    return names.map((name) => toQuickPickItem(name));
+}
+
+export function shouldResumeNoOp() {
+    return new Promise<boolean>((_resolve, _reject) => {
+        // noop
+    });
+}
+
+
 /**
  * Helper code that allows for a multi-step input flow in the VSCode extension.
  * 
- * Copied from the VSCode extension samples:
+ * This code was copied 1:1 from the VSCode extension samples:
  * https://github.com/microsoft/vscode-extension-samples/blob/6446fd7012bd1f7ef107683e09e488e943e668ef/quickinput-sample/src/multiStepInput.ts#L131C1-L314C2
+ * 
+ * Mark any changes you make to this code with a comment (!)
+ * - ...
  */
-
-import { QuickPickItem, window, Disposable, CancellationToken, QuickInputButton, QuickInput, ExtensionContext, QuickInputButtons, Uri } from 'vscode';
 
 class InputFlowAction {
     static back = new InputFlowAction();
