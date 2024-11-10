@@ -27,7 +27,8 @@ interface VideoSettings {
     sceneName: string;
     quality: string;
     fps: string;
-    filePath: string;
+    fileName: string;
+    folderPath: string;
 }
 
 export async function exportScene(sceneName?: string) {
@@ -42,7 +43,7 @@ export async function exportScene(sceneName?: string) {
         const qualityPick = await input.showQuickPick({
             title: QUICK_PICK_TITLE,
             step: 1,
-            totalSteps: 2,
+            totalSteps: 3,
             placeholder: "Select the quality of the video to export",
             items: toQuickPickItems(VideoQuality.names()),
             shouldResume: shouldResumeNoOp
@@ -56,7 +57,7 @@ export async function exportScene(sceneName?: string) {
         const fps = await input.showInputBox({
             title: QUICK_PICK_TITLE,
             step: 2,
-            totalSteps: 2,
+            totalSteps: 3,
             placeholder: "fps",
             prompt: "Frames per second (fps) of the video",
             value: typeof state.fps === 'string' ? state.fps : "30",
@@ -71,19 +72,40 @@ export async function exportScene(sceneName?: string) {
         });
         state.fps = fps;
 
+        return (input: MultiStepInput) => pickFileName(input, state);
+    }
+
+    async function pickFileName(input: MultiStepInput, state: Partial<VideoSettings>) {
+        const fileName = await input.showInputBox({
+            title: QUICK_PICK_TITLE,
+            step: 3,
+            totalSteps: 3,
+            placeholder: `${sceneName}.mp4`,
+            prompt: "Filename of the video",
+            value: state.fileName ? state.fileName : `${sceneName}.mp4`,
+            validate: async (input: string) => {
+                if (!input) {
+                    return "Please enter a filename";
+                }
+                return undefined;
+            },
+            shouldResume: shouldResumeNoOp,
+        });
+        state.fileName = fileName;
+
         return (input: MultiStepInput) => pickFileLocation(input, state);
     }
 
     async function pickFileLocation(input: MultiStepInput, state: Partial<VideoSettings>) {
-        const uri = await window.showOpenDialog({
+        const folderUri = await window.showOpenDialog({
             canSelectFiles: false,
             canSelectFolders: true,
             canSelectMany: false,
             openLabel: "Select folder",
             title: "Select folder to save the video to",
         });
-        if (uri) {
-            state.filePath = uri[0].fsPath;
+        if (folderUri) {
+            state.folderPath = folderUri[0].fsPath;
         }
     }
 
@@ -91,7 +113,7 @@ export async function exportScene(sceneName?: string) {
     state.sceneName = sceneName;
     await MultiStepInput.run((input: MultiStepInput) => pickQuality(input, state));
 
-    if (!state.quality || !state.fps || !state.filePath) {
+    if (!state.quality || !state.fps || !state.fileName || !state.folderPath) {
         Logger.debug("⭕ Export scene cancelled");
         return;
     }
@@ -117,9 +139,12 @@ function settingsToManimCommand(settings: VideoSettings): string | null {
     }
 
     const filePath = editor.document.fileName;
-    const cmds = ["manimgl", `"${filePath}"`, settings.sceneName,
+    const cmds = [
+        "manimgl", `"${filePath}"`, settings.sceneName,
         "-w", settings.quality, `--fps ${settings.fps}`,
-        `--video_dir "${settings.filePath}"`];
+        `--video_dir "${settings.folderPath}"`,
+        `--file_name "${settings.fileName}"`
+    ];
     return cmds.join(" ");
 }
 
