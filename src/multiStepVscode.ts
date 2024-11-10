@@ -14,16 +14,29 @@ export function shouldResumeNoOp() {
     });
 }
 
+////////////////////////////////////////////////////////////////////////////////
 
 /**
- * Helper code that allows for a multi-step input flow in the VSCode extension.
+ * What follows is helper code that eases multi-step input flow in quick picks
+ * by wrapping the VSCode API, e.g. it implements a stack to allow for back
+ * navigation in the quick picks.
  * 
- * This code was copied 1:1 from the VSCode extension samples:
- * https://github.com/microsoft/vscode-extension-samples/blob/6446fd7012bd1f7ef107683e09e488e943e668ef/quickinput-sample/src/multiStepInput.ts#L131C1-L314C2
+ * This code is copied 1:1 from the VSCode extension samples [1]. We do not use
+ * every feature of it, however it's designed flexibly enough that we can
+ * pick and choose what we need.
  * 
- * Mark any changes you make to this code with a comment (!)
- * - ...
+ * We could reduce the code size by removing unused features, but we leave it as
+ * is for now to keep the code as close to the original example as possible.
+ * If necessary, we might want to use more features of it in the future.
+ * See it as kind of a library that should (IMHO) be included in the VSCode API
+ * itself.
+ * 
+ * 🛑 List of what was manually changed after copying the code:
+ * - Export the `MultiStepInput` class.
+ * 
+ * [1] https://github.com/microsoft/vscode-extension-samples/blob/6446fd7012bd1f7ef107683e09e488e943e668ef/quickinput-sample/src/multiStepInput.ts#L131C1-L314C2
  */
+
 
 class InputFlowAction {
     static back = new InputFlowAction();
@@ -119,6 +132,7 @@ export class MultiStepInput {
                         if (item === QuickInputButtons.Back) {
                             reject(InputFlowAction.back);
                         } else {
+                            // eslint-disable-next-line @typescript-eslint/no-explicit-any
                             resolve((item as any));
                         }
                     }),
@@ -163,6 +177,7 @@ export class MultiStepInput {
                         if (item === QuickInputButtons.Back) {
                             reject(InputFlowAction.back);
                         } else {
+                            // eslint-disable-next-line @typescript-eslint/no-explicit-any
                             resolve(item as any);
                         }
                     }),
