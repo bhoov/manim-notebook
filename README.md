@@ -58,8 +58,8 @@ The resulting workflow can look like Grant's 🥳
 
 ## Customization
 
-- There are some settings that you can tweak, just press `Ctrl/Cmd + ,` in order to open the settings and search for `Manim Notebook`.
-- Customize the color of the Manim Cells in your `settings.json` file as [described here in the VSCode docs](https://code.visualstudio.com/docs/getstarted/themes#_customize-a-color-theme). Why not go for a more red-ish color of Manim Cells? 🎨
+- There are some extension settings that you can tweak: just press `Ctrl/Cmd + ,` in order to open the settings and search for `Manim Notebook`.
+- Customize the **color of the Manim Cells** in your `settings.json` file as [described here in the VSCode docs](https://code.visualstudio.com/docs/getstarted/themes#_customize-a-color-theme). Why not go for a more red-ish color? 🎨
 
 
 ```json
@@ -85,6 +85,36 @@ The resulting workflow can look like Grant's 🥳
     }
 }
 ```
+
+<details>
+
+<summary>See default blue-ish colors</summary>
+
+```json
+// https://stackoverflow.com/a/71962342/
+// https://stackoverflow.com/a/77515370/
+// Use `[*Light*]` to match themes whose name contains `Light` in them.
+"workbench.colorCustomizations": {
+    "[*Light*]": {
+        "manimNotebookColors.baseColor": "#2B7BD6",
+        "manimNotebookColors.unfocused": "#DCE9F7"
+    },
+    "[*Dark*]": {
+        "manimNotebookColors.baseColor": "#64A4ED",
+        "manimNotebookColors.unfocused": "#39506B"
+    },
+    "[*Light High Contrast*]": {
+        "manimNotebookColors.baseColor": "#216CC2",
+        "manimNotebookColors.unfocused": "#C3DDF7"
+    },
+    "[*Dark High Contrast*]": {
+        "manimNotebookColors.baseColor": "#75B6FF",
+        "manimNotebookColors.unfocused": "#3C5878"
+    }
+}
+```
+
+</details>
 
 
 ## Links
