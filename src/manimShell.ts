@@ -417,10 +417,17 @@ export class ManimShell {
      * from the entire IPython session and does not just interrupt the current
      * running command (inside IPython) as would be expected.
      * See https://github.com/3b1b/manim/discussions/2236
+     * 
+     * @param sendManimNotStartedEvent Whether to emit the `MANIM_NOT_STARTED`
+     * event. E.g. this is set to false when we detect a Manim welcome string
+     * in a new terminal and close the old one.
      */
-    public async forceQuitActiveShell() {
+    public async forceQuitActiveShell(sendManimNotStartedEvent = true) {
         if (this.activeShell) {
             Logger.debug("🔚 Force-quitting active shell");
+            if (sendManimNotStartedEvent) {
+                this.eventEmitter.emit(ManimShellEvent.MANIM_NOT_STARTED);
+            }
             let lastActiveShell = this.activeShell;
             await this.sendKeyboardInterrupt();
             lastActiveShell?.dispose();
@@ -634,7 +641,7 @@ export class ManimShell {
                         // Manim detected in new terminal
                         if (this.activeShell && this.activeShell !== event.terminal) {
                             Logger.debug("👋 Manim detected in new terminal, exiting old scene");
-                            await this.forceQuitActiveShell();
+                            await this.forceQuitActiveShell(false);
                         }
                         Logger.debug("👋 Manim welcome string detected");
                         this.activeShell = event.terminal;
