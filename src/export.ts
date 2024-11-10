@@ -84,7 +84,10 @@ export async function exportScene(sceneName?: string) {
             validate: async (input: string) => {
                 const fps = Number(input);
                 if (isNaN(fps) || fps <= 0) {
-                    return "Please enter a positive number";
+                    return "Please enter a positive number.";
+                }
+                if (input.includes(".")) {
+                    return "Please enter an integer number.";
                 }
                 return undefined;
             },
@@ -112,7 +115,17 @@ export async function exportScene(sceneName?: string) {
             value: state.fileName ? state.fileName : `${sceneName}.mp4`,
             validate: async (input: string) => {
                 if (!input) {
-                    return "Please enter a filename";
+                    return "Please enter a filename.";
+                }
+                if (/[/\\]/g.test(input)) {
+                    return "Please don't use slashes."
+                        + " You can specify the folder in the next step.";
+                }
+                if (/[~`@!#$§%\^&*+=\[\]';,{}|":<>\?]/g.test(input)) {
+                    return "Please don't use special characters in the filename.";
+                }
+                if (input.endsWith(".")) {
+                    return "Please don't end the filename with a dot.";
                 }
                 return undefined;
             },
