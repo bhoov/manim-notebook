@@ -5,6 +5,7 @@ import { ManimCell } from './manimCell';
 import { ManimCellRanges } from './manimCellRanges';
 import { previewCode } from './previewCode';
 import { startScene, exitScene } from './startStopScene';
+import { exportScene } from './exportScene';
 import { Logger, Window, LogRecorder } from './logger';
 
 export function activate(context: vscode.ExtensionContext) {
@@ -45,6 +46,12 @@ export function activate(context: vscode.ExtensionContext) {
 		}
 	);
 
+	const exportSceneCommand = vscode.commands.registerCommand(
+		'manim-notebook.exportScene', () => {
+			Logger.info("💠 Command requested: Export Scene");
+			exportScene();
+		});
+
 	const recordLogFileCommand = vscode.commands.registerCommand(
 		'manim-notebook.recordLogFile', async () => {
 			Logger.info("💠 Command requested: Record Log File");
@@ -64,6 +71,7 @@ export function activate(context: vscode.ExtensionContext) {
 		startSceneCommand,
 		exitSceneCommand,
 		clearSceneCommand,
+		exportSceneCommand,
 		recordLogFileCommand,
 		finishRecordingLogFileCommand
 	);
