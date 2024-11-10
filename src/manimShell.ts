@@ -723,6 +723,16 @@ async function* withoutAnsiCodes(stream: AsyncIterable<string>) {
     }
 }
 
+/**
+ * Waits a user-defined delay before allowing the terminal to be used. This 
+ * might be useful for some activation scripts to load like virtualenvs etc.
+ * 
+ * Note that this function must be awaited by the caller, otherwise the delay
+ * will not be respected.
+ * 
+ * This function does not have any reference to the actual terminal, it just
+ * waits, and that's it.
+ */
 export async function waitNewTerminalDelay() {
     const delay: number = await vscode.workspace
         .getConfiguration("manim-notebook").get("delayNewTerminal")!;
