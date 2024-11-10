@@ -359,6 +359,11 @@ export class ManimShell {
      * because another command needed to have a new shell started.
      * Only if the user manually starts a new scene, we want to exit a
      * potentially already running scene beforehand.
+     * @param shouldPreviewWholeScene Whether the command requests to preview
+     * the whole scene, i.e. without the `-se <lineNumber>` argument. In this
+     * case, we wait until an info message is shown in the terminal to detect
+     * when the whole scene has been previewed. Otherwise, we wait until the
+     * first IPython cell is found.
      */
     public async executeStartCommand(command: string,
         isRequestedForAnotherCommand: boolean, shouldPreviewWholeScene: boolean) {
