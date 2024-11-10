@@ -104,13 +104,18 @@
           "type": "boolean",
           "default": true,
           "markdownDescription": "If enabled, Manim cells will have a border around them (top and bottom)."
+        },
+        "manim-notebook.typesetStartCommentInBold": {
+          "type": "boolean",
+          "default": true,
+          "markdownDescription": "If enabled, the start comment of each cell (comment that begins with `##`) will be typeset in bold."
         }
       }
     },
     "colors": [
       {
         "id": "manimNotebookColors.baseColor",
-        "description": "Base color used for the Manim cell border and the start comment that beings with `##`.",
+        "description": "Base color used for the Manim cell border and the respective start comment (comment that begins with `##`).",
         "defaults": {
           "dark": "#64A4ED",
           "light": "#2B7BD6",
