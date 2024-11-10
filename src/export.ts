@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { window } from 'vscode';
+import { MultiStepInput } from './multiStepVscode';
 
 class VideoQuality {
     static readonly LOW = new VideoQuality('Low Quality (480p)', '--low_quality');
@@ -18,31 +18,59 @@ class VideoQuality {
     }
 }
 
+function toQuickPickItems(names: string[]): vscode.QuickPickItem[] {
+    return names.map((name) => ({ label: name }));
+}
+
+const QUICK_PICK_TITLE = "Export scene as video";
+
 export async function exportScene() {
-    const quality = await window.showQuickPick(VideoQuality.names(), {
-        placeHolder: "Select the quality of the video to export",
-    });
-    if (!quality) {
-        return;
-    }
-    const videoQuality = VideoQuality.fromName(quality);
 
-    const fps = await window.showInputBox({
-        placeHolder: "fps",
-        prompt: "Frames per second (fps) of the video",
-        value: "30",
-        validateInput: (input) => {
-            const fps = Number(input);
-            if (isNaN(fps) || fps <= 0) {
-                return "Please enter a positive number";
-            }
-            return null;
-        },
-    });
-    if (!fps) {
-        return;
+    interface State {
+        quality: string;
+        fps: string;
     }
 
-    // window.showInformationMessage(`Exporting scene in ${videoQuality.cliFlag}...`);
-    window.showInformationMessage(`Exporting scene in FPS: ${fps}`);
+    async function collectInputs() {
+        const state = {} as Partial<State>;
+        await MultiStepInput.run((input: MultiStepInput) => pickQuality(input, state));
+        return state as State;
+    }
+
+    async function pickQuality(input: MultiStepInput, state: Partial<State>) {
+        const qualityPick = await input.showQuickPick({
+            title: QUICK_PICK_TITLE,
+            step: 1,
+            totalSteps: 2,
+            placeholder: "Select the quality of the video to export",
+            items: toQuickPickItems(VideoQuality.names()),
+            shouldResume: () => Promise.resolve(true)
+        });
+        state.quality = VideoQuality.fromName(qualityPick.label).cliFlag;
+
+        return (input: MultiStepInput) => pickFPS(input, state);
+    }
+
+    async function pickFPS(input: MultiStepInput, state: Partial<State>) {
+        const fps = await input.showInputBox({
+            title: QUICK_PICK_TITLE,
+            step: 2,
+            totalSteps: 2,
+            placeholder: "fps",
+            prompt: "Frames per second (fps) of the video",
+            value: "30",
+            validate: async (input: string) => {
+                const fps = Number(input);
+                if (isNaN(fps) || fps <= 0) {
+                    return "Please enter a positive number";
+                }
+                return undefined;
+            },
+            shouldResume: () => Promise.resolve(true)
+        });
+        state.fps = fps;
+    }
+
+    const state = await collectInputs();
+    vscode.window.showInformationMessage(`Exporting scene, ${state}`);
 }
