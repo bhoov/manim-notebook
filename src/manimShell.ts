@@ -18,6 +18,14 @@ const ANSI_CONTROL_SEQUENCE_REGEX = /(?:\x1B[@-Z\\-_]|[\x80-\x9A\x9C-\x9F]|(?:\x
 const IPYTHON_CELL_START_REGEX = /^\s*In \[\d+\]:/gm;
 
 /**
+ * Regular expression to match an info message in the terminal,
+ * e.g. `[17:07:34] INFO`. This is used to detect when the end is reached
+ * when Manim was started not in the interactive embedded mode, but in a way
+ * to preview the whole scene (without the `-se <lineNumber>` argument).
+ */
+const LOG_INFO_MESSAGE_REGEX = /^\s*\[.*\] INFO/m;
+
+/**
  * Regular expression to match IPython multiline input "...:"
  * Sometimes IPython does not execute code when entering a newline, but enters a
  * multiline input mode, where it expects another line of code. We detect that
@@ -50,6 +58,11 @@ enum ManimShellEvent {
      * IPYTHON_CELL_START_REGEX is matched.
      */
     IPYTHON_CELL_FINISHED = 'ipythonCellFinished',
+
+    /**
+     * Event emitted when a log info message is detected in the terminal.
+     */
+    LOG_INFO_MESSAGE = 'logInfoMessage',
 
     /**
      * Event emitted when a keyboard interrupt is detected in the terminal, e.g.
@@ -347,7 +360,8 @@ export class ManimShell {
      * Only if the user manually starts a new scene, we want to exit a
      * potentially already running scene beforehand.
      */
-    public async executeStartCommand(command: string, isRequestedForAnotherCommand: boolean) {
+    public async executeStartCommand(command: string,
+        isRequestedForAnotherCommand: boolean, shouldPreviewWholeScene: boolean) {
         if (!isRequestedForAnotherCommand) {
             Logger.debug("🔆 Executing start command that is requested for its own");
             if (this.hasActiveShell()) {
@@ -368,9 +382,14 @@ export class ManimShell {
             Logger.debug("🔆 Executing start command that is requested for another command");
         }
 
+        if (shouldPreviewWholeScene) {
+            Logger.debug("🥽 Whole scene preview requested");
+        }
+
         await window.withProgress({
             location: vscode.ProgressLocation.Notification,
-            title: "Starting Manim...",
+            title: shouldPreviewWholeScene
+                ? "Previewing whole scene..." : "Starting Manim...",
             cancellable: false
         }, async (progress, token) => {
             // We are sure that the active shell is set since it is invoked
@@ -378,7 +397,9 @@ export class ManimShell {
             this.shellWeTryToSpawnIn = this.activeShell;
             this.exec(this.activeShell as Terminal, command);
 
-            const commandFinishedPromise = this.waitUntilCommandFinished(this.iPythonCellCount);
+            const commandFinishedPromise = shouldPreviewWholeScene
+                ? this.waitUntilInfoMessageShown()
+                : this.waitUntilCommandFinished(this.iPythonCellCount);
             const manimNotStartedPromise = new Promise<void>(resolve => {
                 this.eventEmitter.once(ManimShellEvent.MANIM_NOT_STARTED, resolve);
             });
@@ -575,6 +596,8 @@ export class ManimShell {
      * command has actually finished executing, e.g. when the whole animation
      * has been previewed.
      * 
+     * Can be interrupted by a keyboard interrupt.
+     * 
      * @param currentExecutionCount The current IPython cell count when the
      * command was issued. This is used to detect when the next cell has started.
      * @param callback An optional callback that is invoked when the command
@@ -603,6 +626,18 @@ export class ManimShell {
             Logger.debug("🕒 Calling callback after command has finished");
             callback();
         }
+    }
+
+    /**
+     * Waits until an info message is shown in the terminal.
+     * 
+     * Can be interrupted by a keyboard interrupt.
+     */
+    private async waitUntilInfoMessageShown() {
+        await Promise.race([
+            new Promise<void>(resolve => this.eventEmitter.once(ManimShellEvent.KEYBOARD_INTERRUPT, resolve)),
+            new Promise<void>(resolve => this.eventEmitter.once(ManimShellEvent.LOG_INFO_MESSAGE, resolve))
+        ]);
     }
 
     private async sendKeyboardInterrupt() {
@@ -653,6 +688,11 @@ export class ManimShell {
                     if (data.match(KEYBOARD_INTERRUPT_REGEX)) {
                         Logger.debug("🛑 Keyboard interrupt detected");
                         this.eventEmitter.emit(ManimShellEvent.KEYBOARD_INTERRUPT);
+                    }
+
+                    if (data.match(LOG_INFO_MESSAGE_REGEX)) {
+                        Logger.debug("📜 Log info message detected");
+                        this.eventEmitter.emit(ManimShellEvent.LOG_INFO_MESSAGE);
                     }
 
                     let ipythonMatches = data.match(IPYTHON_CELL_START_REGEX);
