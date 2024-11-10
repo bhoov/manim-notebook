@@ -55,9 +55,9 @@ export function activate(context: vscode.ExtensionContext) {
 
 	// Internal commands
 	const exportSceneCommand = vscode.commands.registerCommand(
-		'manim-notebook.exportScene', async () => {
+		'manim-notebook.exportScene', async (sceneName?: string) => {
 			Logger.info("💠 Command requested: Export Scene");
-			await exportScene();
+			await exportScene(sceneName);
 		});
 	context.subscriptions.push(
 		vscode.languages.registerCodeLensProvider(

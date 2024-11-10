@@ -2,6 +2,8 @@ import * as vscode from 'vscode';
 import { QuickPickItem, window } from 'vscode';
 import { MultiStepInput, toQuickPickItem, toQuickPickItems, shouldResumeNoOp } from './multiStepVscode';
 import { findClassLines } from './pythonParsing';
+import { Logger, Window } from './logger';
+
 
 class VideoQuality {
     static readonly LOW = new VideoQuality('Low Quality (480p)', '--low_quality');
@@ -20,17 +22,22 @@ class VideoQuality {
     }
 }
 
-export async function exportScene() {
+interface VideoSettings {
+    sceneName: string;
+    quality: string;
+    fps: string;
+    filePath: string;
+}
+
+export async function exportScene(sceneName?: string) {
+    if (sceneName === undefined) {
+        return Window.showErrorMessage("No scene name scecified for export");
+    }
 
     const QUICK_PICK_TITLE = "Export scene as video";
 
-    interface State {
-        quality: string;
-        fps: string;
-        filePath: string;
-    }
 
-    async function pickQuality(input: MultiStepInput, state: Partial<State>) {
+    async function pickQuality(input: MultiStepInput, state: Partial<VideoSettings>) {
         const qualityPick = await input.showQuickPick({
             title: QUICK_PICK_TITLE,
             step: 1,
@@ -44,7 +51,7 @@ export async function exportScene() {
         return (input: MultiStepInput) => pickFps(input, state);
     }
 
-    async function pickFps(input: MultiStepInput, state: Partial<State>) {
+    async function pickFps(input: MultiStepInput, state: Partial<VideoSettings>) {
         const fps = await input.showInputBox({
             title: QUICK_PICK_TITLE,
             step: 2,
@@ -66,7 +73,7 @@ export async function exportScene() {
         return (input: MultiStepInput) => pickFileLocation(input, state);
     }
 
-    async function pickFileLocation(input: MultiStepInput, state: Partial<State>) {
+    async function pickFileLocation(input: MultiStepInput, state: Partial<VideoSettings>) {
         const uri = await window.showOpenDialog({
             canSelectFiles: false,
             canSelectFolders: true,
@@ -79,26 +86,54 @@ export async function exportScene() {
         }
     }
 
-    const state = {} as Partial<State>;
+    const state = {} as Partial<VideoSettings>;
+    state.sceneName = sceneName;
     await MultiStepInput.run((input: MultiStepInput) => pickQuality(input, state));
 
-    if (state.quality && state.fps && state.filePath) {
-        vscode.window.showInformationMessage(`Exporting scene: ${state.quality}, ${state.fps} fps, ${state.filePath}`);
+    if (!state.quality || !state.fps || !state.filePath) {
+        Logger.debug("⭕ Export scene cancelled");
+        return;
     }
+
+    const settingsCmd = settingsToManimCommand(state as VideoSettings);
+    if (!settingsCmd) {
+        return;
+    }
+    
+    const terminal = window.createTerminal("Manim Export");
+    // terminal.show();
+    terminal.sendText(settingsCmd, false);
+}
+
+function settingsToManimCommand(settings: VideoSettings): string | null {
+    const editor = window.activeTextEditor;
+    if (!editor) {
+        Window.showErrorMessage(
+            'No opened file found. Please place your cursor at a line of code.'
+        );
+        return null;
+    }
+
+    const filePath = editor.document.fileName;
+    const cmds = ["manimgl", `"${filePath}"`, settings.sceneName,
+        "-w", settings.quality, `--fps ${settings.fps}`,
+        `--video_dir "${settings.filePath}"`];
+    return cmds.join(" ");
 }
 
 export class ExportSceneCodeLens implements vscode.CodeLensProvider {
+
     public provideCodeLenses(document: vscode.TextDocument, token: vscode.CancellationToken): vscode.CodeLens[] {
         const codeLenses: vscode.CodeLens[] = [];
 
-        const classLines = findClassLines(document);
-        const ranges = classLines.map(({ lineNumber }) => new vscode.Range(lineNumber, 0, lineNumber, 0));
+        for (const classLine of findClassLines(document)) {
+            const range = new vscode.Range(classLine.lineNumber, 0, classLine.lineNumber, 0);
 
-        for (const range of ranges) {
             codeLenses.push(new vscode.CodeLens(range, {
-                title: "Export Scene",
+                title: "📼 Export Scene",
                 command: "manim-notebook.exportScene",
-                tooltip: "Export this scene as a video"
+                tooltip: "Export this scene as a video",
+                arguments: [classLine.className]
             }));
         }
 
