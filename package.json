@@ -101,7 +101,27 @@
           "markdownDescription": "Number of milliseconds (ms) to wait before executing any command in a newly opened terminal. This is useful when you have custom terminal startup commands that need to be executed before running Manim, e.g. a virtual environment activation (Python venv)."
         }
       }
-    }
+    },
+    "walkthroughs": [
+      {
+        "id": "manim-notebook-walkthrough",
+        "title": "Manim Notebook",
+        "description": "Welcome 👋 Get to know how to make the best of Manim Notebook.",
+        "steps": [
+          {
+            "id": "checkManimInstallation",
+            "title": "Check Manim Installation",
+            "description": "Let's see if you have installed ManimGL.\n[Check Manim version](command:manim-notebook-walkthrough.checkManimVersion)\n[Open ManimGL installation guide](https://3b1b.github.io/manim/getting_started/installation.html)",
+            "media": {
+              "markdown": "src/walkthrough/manim-installation.md"
+            },
+            "completionEvents": [
+              "onCommand:manim-notebook-walkthrough.checkManimVersion"
+            ]
+          }
+        ]
+      }
+    ]
   },
   "scripts": {
     "vscode:prepublish": "npm run compile",

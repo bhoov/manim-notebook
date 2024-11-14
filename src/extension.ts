@@ -6,6 +6,7 @@ import { ManimCellRanges } from './manimCellRanges';
 import { previewCode } from './previewCode';
 import { startScene, exitScene } from './startStopScene';
 import { Logger, Window, LogRecorder } from './logger';
+import {registerWalkthroughCommands} from './walkthrough/commands';
 
 export function activate(context: vscode.ExtensionContext) {
 	// Trigger the Manim shell to start listening to the terminal
@@ -57,6 +58,8 @@ export function activate(context: vscode.ExtensionContext) {
 			Logger.info("💠 Command requested: Finish Recording Log File");
 			await LogRecorder.finishRecordingLogFile(context);
 		});
+
+    registerWalkthroughCommands(context);
 
 	context.subscriptions.push(
 		previewManimCellCommand,
