@@ -106,17 +106,28 @@
       {
         "id": "manim-notebook-walkthrough",
         "title": "Manim Notebook",
-        "description": "Welcome 👋 Get to know how to make the best of Manim Notebook.",
+        "description": "Welcome 👋 Get to know how to make the best out of Manim Notebook.",
         "steps": [
           {
             "id": "checkManimInstallation",
             "title": "Check Manim Installation",
-            "description": "Let's see if you have installed ManimGL.\n[Check Manim version](command:manim-notebook-walkthrough.checkManimVersion)\n[Open ManimGL installation guide](https://3b1b.github.io/manim/getting_started/installation.html)",
+            "description": "Let's see if you have installed ManimGL.\n[Check Manim version](command:manim-notebook-walkthrough.checkManimVersion)\n[Open installation guide](https://3b1b.github.io/manim/getting_started/installation.html)",
             "media": {
               "markdown": "src/walkthrough/manim-installation.md"
             },
             "completionEvents": [
               "onCommand:manim-notebook-walkthrough.checkManimVersion"
+            ]
+          },
+          {
+            "id": "startExample",
+            "title": "Start with an example",
+            "description": "Open an example file to see how Manim Notebook works.\n[Open Sample](command:manim-notebook-walkthrough.openSample)",
+            "media": {
+              "markdown": "src/walkthrough/open-sample.md"
+            },
+            "completionEvents": [
+              "onCommand:manim-notebook-walkthrough.openSample"
             ]
           }
         ]
