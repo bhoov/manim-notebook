@@ -124,7 +124,7 @@
             "title": "Start with an example",
             "description": "Open an example file to see how Manim Notebook works.\n[Open Sample](command:manim-notebook-walkthrough.openSample)",
             "media": {
-              "image": "src/walkthrough/preview-cell.svg",
+              "svg": "src/walkthrough/preview-cell.svg",
               "altText": "Preview Manim Cell"
             },
             "completionEvents": [
