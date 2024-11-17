@@ -3,12 +3,18 @@ import { window } from 'vscode';
 import { ManimCellRanges } from './pythonParsing';
 
 export class ManimCell implements vscode.CodeLensProvider, vscode.FoldingRangeProvider {
+    private cellStartCommentDecoration: vscode.TextEditorDecorationType;
     private cellTopDecoration: vscode.TextEditorDecorationType;
     private cellBottomDecoration: vscode.TextEditorDecorationType;
     private cellTopDecorationUnfocused: vscode.TextEditorDecorationType;
     private cellBottomDecorationUnfocused: vscode.TextEditorDecorationType;
 
     constructor() {
+        this.cellStartCommentDecoration = window.createTextEditorDecorationType({
+            isWholeLine: true,
+            fontWeight: 'bold',
+            color: new vscode.ThemeColor('manimNotebookColors.baseColor')
+        });
         this.cellTopDecoration = ManimCell.getBorder(true, true);
         this.cellBottomDecoration = ManimCell.getBorder(true, false);
         this.cellTopDecorationUnfocused = ManimCell.getBorder(false, true);
@@ -16,8 +22,10 @@ export class ManimCell implements vscode.CodeLensProvider, vscode.FoldingRangePr
     }
 
     private static getBorder(isFocused = true, isTop = true): vscode.TextEditorDecorationType {
-        const borderColor = isFocused ? 'interactive.activeCodeBorder' : 'interactive.inactiveCodeBorder';
-        const borderWidth = isTop ? '1.5px 0px 0px 0px' : '0px 0px 1.5px 0px';
+        const borderColor = isFocused
+            ? 'manimNotebookColors.baseColor'
+            : 'manimNotebookColors.unfocused';
+        const borderWidth = isTop ? '2px 0px 0px 0px' : '0px 0px 1.6px 0px';
         return window.createTextEditorDecorationType({
             borderColor: new vscode.ThemeColor(borderColor),
             borderWidth: borderWidth,
@@ -85,10 +93,28 @@ export class ManimCell implements vscode.CodeLensProvider, vscode.FoldingRangePr
             }
         });
 
-        editor.setDecorations(this.cellTopDecoration, topRangesFocused);
-        editor.setDecorations(this.cellBottomDecoration, bottomRangesFocused);
-        editor.setDecorations(this.cellTopDecorationUnfocused, topRangesUnfocused);
-        editor.setDecorations(this.cellBottomDecorationUnfocused, bottomRangesUnfocused);
+        const config = vscode.workspace.getConfiguration("manim-notebook");
+
+        // Start comment in bold
+        if (config.get("typesetStartCommentInBold")) {
+            editor.setDecorations(this.cellStartCommentDecoration,
+                topRangesFocused.concat(topRangesUnfocused));
+        } else {
+            editor.setDecorations(this.cellStartCommentDecoration, []);
+        }
+
+        // Cell borders
+        if (config.get("showCellBorders")) {
+            editor.setDecorations(this.cellTopDecoration, topRangesFocused);
+            editor.setDecorations(this.cellBottomDecoration, bottomRangesFocused);
+            editor.setDecorations(this.cellTopDecorationUnfocused, topRangesUnfocused);
+            editor.setDecorations(this.cellBottomDecorationUnfocused, bottomRangesUnfocused);
+        } else {
+            editor.setDecorations(this.cellTopDecoration, []);
+            editor.setDecorations(this.cellBottomDecoration, []);
+            editor.setDecorations(this.cellTopDecorationUnfocused, []);
+            editor.setDecorations(this.cellBottomDecorationUnfocused, []);
+        }
     }
 
 }
