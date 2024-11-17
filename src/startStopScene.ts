@@ -72,36 +72,18 @@ export async function startScene(lineStart?: number) {
     // Create the command
     const filePath = editor.document.fileName;  // absolute path
     const cmds = ["manimgl", `"${filePath}"`, sceneName];
-    let enter = false;
+    let shouldPreviewWholeScene = true;
     if (cursorLine !== matchingClass.index) {
+        // this is actually the more common case
+        shouldPreviewWholeScene = false;
         cmds.push(`-se ${lineNumber + 1}`);
-        enter = true;
     }
     const command = cmds.join(" ");
 
-    // // Commented out - in case someone would like it.
-    // // For us - we want to NOT overwrite our clipboard.
-    // // If one wants to run it in a different terminal,
-    // // it's often to write to a file
-    // await vscode.env.clipboard.writeText(command + " --prerun --finder -w");
-
     // Run the command
     const isRequestedForAnotherCommand = (lineStart !== undefined);
-    await ManimShell.instance.executeStartCommand(command, isRequestedForAnotherCommand);
-
-    // // Commented out - in case someone would like it.
-    // // For us - it would require MacOS. Also - the effect is not desired.
-    // // Focus some windows (ONLY for MacOS because it uses `osascript`!)
-    // const terminal = window.activeTerminal || window.createTerminal();
-    // if (enter) {
-    // 	// Keep cursor where it started (in VSCode)
-    // 	const cmd_focus_vscode = 'osascript -e "tell application \\"Visual Studio Code\\" to activate"';
-    // 	// Execute the command in the shell after a delay (to give the animation window enough time to open)
-    // 	await new Promise(resolve => setTimeout(resolve, 2500));
-    // 	require('child_process').exec(cmd_focus_vscode);
-    // } else {
-    // 	terminal.show();
-    // }
+    await ManimShell.instance.executeStartCommand(
+        command, isRequestedForAnotherCommand, shouldPreviewWholeScene);
 }
 
 /**
