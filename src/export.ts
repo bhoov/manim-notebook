@@ -1,6 +1,9 @@
 import * as vscode from 'vscode';
 import { QuickPickItem, window } from 'vscode';
-import { MultiStepInput, toQuickPickItem, toQuickPickItems, shouldResumeNoOp } from './utils/multiStepQuickPickUtil';
+import {
+    MultiStepInput, toQuickPickItem, toQuickPickItems,
+    shouldResumeNoOp
+} from './utils/multiStepQuickPickUtil';
 import { findClassLines } from './pythonParsing';
 import { Logger, Window } from './logger';
 import { waitNewTerminalDelay } from './manimShell';
