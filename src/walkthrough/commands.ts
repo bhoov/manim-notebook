@@ -33,8 +33,7 @@ async function openSampleFile(context: ExtensionContext) {
 
     const sampleFile = await workspace.openTextDocument({
         language: 'python',
-        content: sampleFileContent,
-        name: 'sample_scene.py'
+        content: sampleFileContent
     });
 
     await window.showTextDocument(sampleFile);
