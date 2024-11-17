@@ -237,7 +237,7 @@ export class ExportSceneCodeLens implements vscode.CodeLensProvider {
             codeLenses.push(new vscode.CodeLens(range, {
                 title: "🎞️ Generate command to export scene",
                 command: "manim-notebook.exportScene",
-                tooltip: "Export this scene as a video",
+                tooltip: "Generate a command to export this scene as a video",
                 arguments: [classLine.className]
             }));
         }
