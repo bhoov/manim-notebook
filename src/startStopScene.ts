@@ -2,7 +2,7 @@ import * as vscode from 'vscode';
 import { ManimShell, NoActiveShellError } from './manimShell';
 import { window } from 'vscode';
 import { Logger, Window } from './logger';
-import { findClassLines } from './pythonParsing';
+import { findClassLines, findManimSceneName } from './pythonParsing';
 
 /**
  * Runs the `manimgl` command in the terminal, with the current cursor's line number:
@@ -44,18 +44,11 @@ export async function startScene(lineStart?: number) {
     const lines = editor.document.getText().split("\n");
     const classLines = findClassLines(editor.document);
     let cursorLine = lineStart || editor.selection.start.line;
-
-    // Find the first class defined before where the cursor is
-    // E.g. here, matchingClass = { line: "class SelectedScene(Scene):", lineNumber: 42 }
-    const matchingClass = classLines
-        .reverse()
-        .find(({ lineNumber }) => lineNumber <= cursorLine);
-    if (!matchingClass) {
+    const sceneClassLine = findManimSceneName(editor.document, cursorLine);
+    if (!sceneClassLine) {
         Window.showErrorMessage('Place your cursor in Manim code inside a class.');
         return;
     }
-    // E.g. here, sceneName = "SelectedScene"
-    const sceneName = matchingClass.line.slice("class ".length, matchingClass.line.indexOf("("));
 
     // While line is empty - make it the previous line
     // (because `manimgl -se <lineNumber>` doesn't work on empty lines)
@@ -66,9 +59,9 @@ export async function startScene(lineStart?: number) {
 
     // Create the command
     const filePath = editor.document.fileName;  // absolute path
-    const cmds = ["manimgl", `"${filePath}"`, sceneName];
+    const cmds = ["manimgl", `"${filePath}"`, sceneClassLine.className];
     let shouldPreviewWholeScene = true;
-    if (cursorLine !== matchingClass.lineNumber) {
+    if (cursorLine !== sceneClassLine.lineNumber) {
         // this is actually the more common case
         shouldPreviewWholeScene = false;
         cmds.push(`-se ${lineNumber + 1}`);

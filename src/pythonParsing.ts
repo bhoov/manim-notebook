@@ -104,7 +104,7 @@ interface ClassLine {
  * 
  * @param document The document to search in.
  */
-export function findClassLines(document: vscode.TextDocument) : ClassLine[] {
+export function findClassLines(document: vscode.TextDocument): ClassLine[] {
     const lines = document.getText().split("\n");
 
     const classLines: ClassLine[] = [];
@@ -117,4 +117,25 @@ export function findClassLines(document: vscode.TextDocument) : ClassLine[] {
     }
 
     return classLines;
+}
+
+/**
+ * Finds the name of the Manim scene at the given cursor position.
+ * 
+ * @param document The document to search in.
+ * @param cursorLine The line number of the cursor.
+ * @returns The ClassLine associated to the Manim scene, or null if not found.
+ */
+export function findManimSceneName(document: vscode.TextDocument, cursorLine: number)
+    : ClassLine | null {
+    const classLines = findClassLines(document);
+    const matchingClass = classLines
+        .reverse()
+        .find(({ lineNumber }) => lineNumber <= cursorLine);
+
+    if (!matchingClass) {
+        return null;
+    }
+
+    return matchingClass;
 }
