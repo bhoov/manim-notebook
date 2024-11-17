@@ -4,7 +4,7 @@ import {
     MultiStepInput, toQuickPickItem, toQuickPickItems,
     shouldResumeNoOp
 } from './utils/multiStepQuickPickUtil';
-import { findClassLines } from './pythonParsing';
+import { findClassLines, findManimSceneName } from './pythonParsing';
 import { Logger, Window } from './logger';
 import { waitNewTerminalDelay } from './manimShell';
 
@@ -45,13 +45,24 @@ interface VideoSettings {
  * for a scene, i.e. quality, fps, filename, and folder path. The final command
  * is then pasted to a new terminal where the user can run it.
  * 
- * This function is called from a CodeLens on a Python class definition line.
- * 
- * @param sceneName The name of the Manim scene to export.
+ * @param sceneName The name of the Manim scene to export. Optional if called
+ * from the command palette. Not optional if called from a CodeLens.
  */
 export async function exportScene(sceneName?: string) {
+    // Command called via command palette
     if (sceneName === undefined) {
-        return Window.showErrorMessage("Internal error: No scene name specified for export");
+        const editor = window.activeTextEditor;
+        if (!editor) {
+            return Window.showErrorMessage(
+                "No opened file found. Please place your cursor in a Manim scene.");
+        }
+
+        const sceneClassLine = findManimSceneName(editor.document, editor.selection.start.line);
+        if (!sceneClassLine) {
+            return Window.showErrorMessage("Place your cursor in a Manim scene.");
+        }
+
+        sceneName = sceneClassLine.className;
     }
 
     const QUICK_PICK_TITLE = "Export scene as video";
