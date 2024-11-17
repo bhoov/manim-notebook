@@ -191,11 +191,14 @@ export async function exportScene(sceneName?: string) {
             "No opened file found. Please place your cursor at a line of code.");
     }
 
-    const settingsCmd = toManimExportCommand(settings, editor);
+    const exportCommand = toManimExportCommand(settings, editor);
+
+    await vscode.env.clipboard.writeText(exportCommand);
     const terminal = window.createTerminal("Manim Export");
     terminal.show();
     await waitNewTerminalDelay();
-    terminal.sendText(settingsCmd, false);
+    terminal.sendText(exportCommand, false);
+    Window.showInformationMessage("Export command pasted to terminal and clipboard.");
 }
 
 /**
