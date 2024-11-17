@@ -49,6 +49,8 @@ interface VideoSettings {
  * from the command palette. Not optional if called from a CodeLens.
  */
 export async function exportScene(sceneName?: string) {
+    await vscode.commands.executeCommand('workbench.action.files.save');
+
     // Command called via command palette
     if (sceneName === undefined) {
         const editor = window.activeTextEditor;

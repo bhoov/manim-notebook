@@ -32,8 +32,7 @@ export async function startScene(lineStart?: number) {
         return;
     }
 
-    // Save active file
-    vscode.commands.executeCommand('workbench.action.files.save');
+    await vscode.commands.executeCommand('workbench.action.files.save');
 
     const languageId = editor.document.languageId;
     if (languageId !== 'python') {
