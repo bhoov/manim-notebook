@@ -90,3 +90,52 @@ export class ManimCellRanges {
     }
 
 }
+
+interface ClassLine {
+    line: string;
+    lineNumber: number;
+    className: string;
+}
+
+/**
+ * Returns the lines that define Python classes in the given document.
+ * 
+ * TODO: Only trigger on actual Manim classes, not all Python classes.
+ * 
+ * @param document The document to search in.
+ */
+export function findClassLines(document: vscode.TextDocument): ClassLine[] {
+    const lines = document.getText().split("\n");
+
+    const classLines: ClassLine[] = [];
+    for (let lineNumber = 0; lineNumber < lines.length; lineNumber++) {
+        const line = lines[lineNumber];
+        const match = line.match(/^\s*class\s+(.+?)[(:]/);
+        if (match) {
+            classLines.push({ line, lineNumber, className: match[1] });
+        }
+    }
+
+    return classLines;
+}
+
+/**
+ * Finds the name of the Manim scene at the given cursor position.
+ * 
+ * @param document The document to search in.
+ * @param cursorLine The line number of the cursor.
+ * @returns The ClassLine associated to the Manim scene, or null if not found.
+ */
+export function findManimSceneName(document: vscode.TextDocument, cursorLine: number)
+    : ClassLine | null {
+    const classLines = findClassLines(document);
+    const matchingClass = classLines
+        .reverse()
+        .find(({ lineNumber }) => lineNumber <= cursorLine);
+
+    if (!matchingClass) {
+        return null;
+    }
+
+    return matchingClass;
+}

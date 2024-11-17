@@ -50,6 +50,11 @@
         "command": "manim-notebook.recordLogFile",
         "title": "Record Log File",
         "category": "Manim Notebook"
+      },
+      {
+        "command": "manim-notebook.exportScene",
+        "title": "🎞️ Generate command to export scene",
+        "category": "Manim Notebook"
       }
     ],
     "keybindings": [
