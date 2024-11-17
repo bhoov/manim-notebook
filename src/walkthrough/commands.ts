@@ -17,7 +17,17 @@ export function registerWalkthroughCommands(context: ExtensionContext) {
             await openSampleFile(context);
         });
 
-    context.subscriptions.push(checkManimVersionCommand);
+    const showAllCommandsCommand = commands.registerCommand(
+        'manim-notebook-walkthrough.showCommands', async () => {
+            Logger.info("💠 Command Show All Commands requested");
+            await showAllCommands();
+        }
+    );
+
+    context.subscriptions.push(
+        checkManimVersionCommand,
+        openSampleFileCommand,
+        showAllCommandsCommand);
 }
 
 async function checkManimVersion() {
@@ -26,6 +36,11 @@ async function checkManimVersion() {
     terminal.sendText("manimgl --version");
 }
 
+/**
+ * Opens a sample Manim file in a new editor that the user can use to get started.
+ * 
+ * @param context The extension context.
+ */
 async function openSampleFile(context: ExtensionContext) {
     const sampleFilePath = path.join(context.extensionPath,
         'src', 'walkthrough', 'sample_scene.py');
@@ -37,4 +52,11 @@ async function openSampleFile(context: ExtensionContext) {
     });
 
     await window.showTextDocument(sampleFile);
+}
+
+/**
+ * Opens the command palette with all the "Manim Notebook" commands.
+ */
+async function showAllCommands() {
+    await commands.executeCommand('workbench.action.quickOpen', '>Manim Notebook:');
 }

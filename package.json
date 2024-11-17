@@ -130,6 +130,17 @@
             "completionEvents": [
               "onCommand:manim-notebook-walkthrough.openSample"
             ]
+          },
+          {
+            "id": "showAllAvailableCommands",
+            "title": "Show all available commands",
+            "description": "Get a list of all available commands in Manim Notebook.\n[Show Commands](command:manim-notebook-walkthrough.showCommands)",
+            "media": {
+              "markdown": "src/walkthrough/manim-commands.md"
+            },
+            "completionEvents": [
+              "onCommand:manim-notebook-walkthrough.showCommands"
+            ]
           }
         ]
       }
