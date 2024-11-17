@@ -4,6 +4,7 @@ VSCode extension for replicating Grant Sanderson's `manim` workflow for Sublime 
 
 **Note** this extension is specifically for [3b1b's original manim library](https://github.com/3b1b/manim), NOT the community version.
 
+
 ## Example usage
 
 1. [Install manimgl](https://3b1b.github.io/manim/getting_started/installation.html), make sure that the command `manimgl` works in your terminal
@@ -12,8 +13,6 @@ VSCode extension for replicating Grant Sanderson's `manim` workflow for Sublime 
 4. Run the VSCode command: `cmd+shift+p` -> `Manim Notebook: Start scene at cursor`  
     (This command runs `manimgl scene.py NAME_OF_SCENE -se <lineNumber>` in your terminal)  
     In the upper-right of your screen - the manim interactive video will appear.
-
-<br />
 
 Then you can do either:
 
@@ -26,8 +25,6 @@ Then you can do either:
     `cmd+shift+p` -> `Manim Notebook: Preview selected Manim code`  
     This will run the selected lines.
 
-
-<br /><br />
 
 ## Keybord shortcuts
 
@@ -50,9 +47,6 @@ All current commands are:
     Shortcut: `cmd+' cmd+w`
 
 
-
-<br /><br />
-
 ## Demonstration
 
 The resulting workflow can look like Grant's 🥳
@@ -62,17 +56,73 @@ The resulting workflow can look like Grant's 🥳
 <iframe width="560" height="315" src="https://www.youtube.com/embed/VaNHlFh0r5E?si=ClVdBSI1k_-mzKFr" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
 
 
-<br /><br />
+## Customization
+
+- There are some extension settings that you can tweak: just press `Ctrl/Cmd + ,` in order to open the settings and search for `Manim Notebook`.
+- Customize the **color of the Manim Cells** in your `settings.json` file as [described here in the VSCode docs](https://code.visualstudio.com/docs/getstarted/themes#_customize-a-color-theme). Why not go for a more red-ish color? 🎨
+
+
+```json
+// https://stackoverflow.com/a/71962342/
+// https://stackoverflow.com/a/77515370/
+// Use `[*Light*]` to match themes whose name contains `Light` in them.
+"workbench.colorCustomizations": {
+    "[*Light*]": {
+        "manimNotebookColors.baseColor": "#FF708A",
+        "manimNotebookColors.unfocused": "#FFBFCC"
+    },
+    "[*Dark*]": {
+        "manimNotebookColors.baseColor": "#FF708A",
+        "manimNotebookColors.unfocused": "#804953"
+    },
+    "[*Light High Contrast*]": {
+        "manimNotebookColors.baseColor": "#FF5473",
+        "manimNotebookColors.unfocused": "#FFA3B6"
+    },
+    "[*Dark High Contrast*]": {
+        "manimNotebookColors.baseColor": "#FF5473",
+        "manimNotebookColors.unfocused": "#8C5660"
+    }
+}
+```
+
+<details>
+
+<summary>See default blue-ish colors</summary>
+
+```json
+// https://stackoverflow.com/a/71962342/
+// https://stackoverflow.com/a/77515370/
+// Use `[*Light*]` to match themes whose name contains `Light` in them.
+"workbench.colorCustomizations": {
+    "[*Light*]": {
+        "manimNotebookColors.baseColor": "#2B7BD6",
+        "manimNotebookColors.unfocused": "#DCE9F7"
+    },
+    "[*Dark*]": {
+        "manimNotebookColors.baseColor": "#64A4ED",
+        "manimNotebookColors.unfocused": "#39506B"
+    },
+    "[*Light High Contrast*]": {
+        "manimNotebookColors.baseColor": "#216CC2",
+        "manimNotebookColors.unfocused": "#C3DDF7"
+    },
+    "[*Dark High Contrast*]": {
+        "manimNotebookColors.baseColor": "#75B6FF",
+        "manimNotebookColors.unfocused": "#3C5878"
+    }
+}
+```
+
+</details>
+
 
 ## Links
 
 - [GitHub](https://github.com/bhoov/manim-notebook)
-
 - [contributing](https://github.com/bhoov/manim-notebook/blob/main/CONTRIBUTING.md)
-
 - [wiki](https://github.com/bhoov/manim-notebook/wiki)
 
-<br /><br />
 
 ## Troubleshooting
 

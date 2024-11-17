@@ -99,9 +99,41 @@
           "type": "number",
           "default": 0,
           "markdownDescription": "Number of milliseconds (ms) to wait before executing any command in a newly opened terminal. This is useful when you have custom terminal startup commands that need to be executed before running Manim, e.g. a virtual environment activation (Python venv)."
+        },
+        "manim-notebook.showCellBorders": {
+          "type": "boolean",
+          "default": true,
+          "markdownDescription": "If enabled, Manim cells will have a border around them (top and bottom)."
+        },
+        "manim-notebook.typesetStartCommentInBold": {
+          "type": "boolean",
+          "default": true,
+          "markdownDescription": "If enabled, the start comment of each cell (comment that begins with `##`) will be typeset in bold."
         }
       }
-    }
+    },
+    "colors": [
+      {
+        "id": "manimNotebookColors.baseColor",
+        "description": "Base color used for the Manim cell border and the respective start comment (comment that begins with `##`).",
+        "defaults": {
+          "dark": "#64A4ED",
+          "light": "#2B7BD6",
+          "highContrast": "#75B6FF",
+          "highContrastLight": "#216CC2"
+        }
+      },
+      {
+        "id": "manimNotebookColors.unfocused",
+        "description": "Color used for the Manim cell border when the cell is not focused.",
+        "defaults": {
+          "dark": "#39506B",
+          "light": "#DCE9F7",
+          "highContrast": "#3C5878",
+          "highContrastLight": "#C3DDF7"
+        }
+      }
+    ]
   },
   "scripts": {
     "vscode:prepublish": "npm run compile",
