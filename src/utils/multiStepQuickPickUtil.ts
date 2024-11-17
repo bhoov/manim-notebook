@@ -1,4 +1,7 @@
-import { QuickPickItem, window, Disposable, CancellationToken, QuickInputButton, QuickInput, ExtensionContext, QuickInputButtons, Uri } from 'vscode';
+import {
+    QuickPickItem, window, Disposable, CancellationToken, QuickInputButton,
+    QuickInput, ExtensionContext, QuickInputButtons, Uri
+} from 'vscode';
 
 export function toQuickPickItem(names: string): QuickPickItem {
     return { label: names };
