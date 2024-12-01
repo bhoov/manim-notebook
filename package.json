@@ -124,11 +124,22 @@
             "title": "Start with an example",
             "description": "Open an example file to see how Manim Notebook works.\n[Open Sample](command:manim-notebook-walkthrough.openSample)",
             "media": {
-              "image": "src/walkthrough/preview-cell.svg",
+              "svg": "src/walkthrough/preview-cell.svg",
               "altText": "Preview Manim Cell"
             },
             "completionEvents": [
               "onCommand:manim-notebook-walkthrough.openSample"
+            ]
+          },
+          {
+            "id": "showAllAvailableCommands",
+            "title": "Show all available commands",
+            "description": "Get a list of all available commands in Manim Notebook.\n[Show Commands](command:manim-notebook-walkthrough.showCommands)",
+            "media": {
+              "markdown": "src/walkthrough/manim-commands.md"
+            },
+            "completionEvents": [
+              "onCommand:manim-notebook-walkthrough.showCommands"
             ]
           }
         ]
