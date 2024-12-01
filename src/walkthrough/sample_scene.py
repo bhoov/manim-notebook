@@ -35,7 +35,7 @@ class MyFirstManimNotebook(Scene):
         # Many more example scenes can be found here:
         # https://3b1b.github.io/manim/getting_started/example_scenes.html
 
-        # 🌟 Last but not least: if you like this extension, give it a star on GitHub,
-        # that would mean a lot to us :) If you don't like it, let us know what
-        # we can improve. Happy Manim Animation! 🌈
+        # 🌟 Last but not least: if you like this extension, give it a star on
+        # GitHub. That would mean a lot to us :) Feel free to also let us know
+        # what we can improve. Happy Manim Animation! 🌈
         # https://github.com/Manim-Notebook/manim-notebook
