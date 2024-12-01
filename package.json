@@ -50,6 +50,11 @@
         "command": "manim-notebook.recordLogFile",
         "title": "Record Log File",
         "category": "Manim Notebook"
+      },
+      {
+        "command": "manim-notebook.openWalkthrough",
+        "title": "Open Walkthrough",
+        "category": "Manim Notebook"
       }
     ],
     "keybindings": [
@@ -136,8 +141,8 @@
             "title": "Show all available commands",
             "description": "Get a list of all available commands in Manim Notebook.\n[Show Commands](command:manim-notebook-walkthrough.showCommands)",
             "media": {
-                "svg": "src/walkthrough/commands.svg",
-                "altText": "Manim Notebook commands"
+              "svg": "src/walkthrough/commands.svg",
+              "altText": "Manim Notebook commands"
             },
             "completionEvents": [
               "onCommand:manim-notebook-walkthrough.showCommands"

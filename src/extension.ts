@@ -52,6 +52,13 @@ export function activate(context: vscode.ExtensionContext) {
 			await LogRecorder.recordLogFile(context);
 		});
 
+    const openWalkthroughCommand = vscode.commands.registerCommand(
+        'manim-notebook.openWalkthrough', async () => {
+            Logger.info("💠 Command requested: Open Walkthrough");
+            await vscode.commands.executeCommand('workbench.action.openWalkthrough',
+                'bhoov.manim-notebook#manim-notebook-walkthrough', false);
+        });
+
 	// internal command
 	const finishRecordingLogFileCommand = vscode.commands.registerCommand(
 		'manim-notebook.finishRecordingLogFile', async () => {
@@ -68,7 +75,8 @@ export function activate(context: vscode.ExtensionContext) {
 		exitSceneCommand,
 		clearSceneCommand,
 		recordLogFileCommand,
-		finishRecordingLogFileCommand
+        openWalkthroughCommand,
+		finishRecordingLogFileCommand,
 	);
 	registerManimCellProviders(context);
 }
