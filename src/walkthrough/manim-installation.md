@@ -1,3 +1,5 @@
+# 🎈 Manim Installation
+
 > **Manim Notebook only works with ManimGL by 3Blue1Brown, NOT with the community edition of Manim (Manim CE)**.
 
 If you haven't already installed ManimGL, follow the [**Manim installation guide**](https://3b1b.github.io/manim/getting_started/installation.html). This will be the most difficult part of all the steps here and there are quite a few dependencies to install. But don't despair; with a bit of patience and StackOverflow you will get there.
