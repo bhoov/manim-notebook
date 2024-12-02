@@ -191,6 +191,18 @@
             "completionEvents": [
               "onCommand:manim-notebook-walkthrough.showShortcuts"
             ]
+          },
+          {
+            "id": "showSettings",
+            "title": "Show settings",
+            "description": "Customize your Manim Notebook experience by changing settings.\n[Show Settings](command:manim-notebook-walkthrough.showSettings)",
+            "media": {
+              "svg": "src/walkthrough/settings.svg",
+              "altText": "Manim Notebook settings"
+            },
+            "completionEvents": [
+              "onCommand:manim-notebook-walkthrough.showSettings"
+            ]
           }
         ]
       }

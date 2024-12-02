@@ -31,11 +31,19 @@ export function registerWalkthroughCommands(context: ExtensionContext) {
         }
     );
 
+    const showSettingsCommand = commands.registerCommand(
+        'manim-notebook-walkthrough.showSettings', async () => {
+            Logger.info("💠 Command Show Settings requested");
+            await showSettings();
+        }
+    );
+
     context.subscriptions.push(
         checkManimVersionCommand,
         openSampleFileCommand,
         showAllCommandsCommand,
-        showKeyboardShortcutsCommand
+        showKeyboardShortcutsCommand,
+        showSettingsCommand
     );
 }
 
@@ -76,4 +84,12 @@ async function showAllCommands() {
 async function showKeyboardShortcuts() {
     await commands.executeCommand(
         'workbench.action.openGlobalKeybindings', "Manim Notebook");
+}
+
+/**
+ * Opens the settings page for the extension.
+ */
+async function showSettings() {
+    await commands.executeCommand(
+        'workbench.action.openSettings', "Manim Notebook");
 }
