@@ -6,6 +6,7 @@ import { ManimCellRanges } from './manimCellRanges';
 import { previewCode } from './previewCode';
 import { startScene, exitScene } from './startStopScene';
 import { Logger, Window, LogRecorder } from './logger';
+import {registerWalkthroughCommands} from './walkthrough/commands';
 
 export function activate(context: vscode.ExtensionContext) {
 	// Trigger the Manim shell to start listening to the terminal
@@ -51,12 +52,21 @@ export function activate(context: vscode.ExtensionContext) {
 			await LogRecorder.recordLogFile(context);
 		});
 
+    const openWalkthroughCommand = vscode.commands.registerCommand(
+        'manim-notebook.openWalkthrough', async () => {
+            Logger.info("💠 Command requested: Open Walkthrough");
+            await vscode.commands.executeCommand('workbench.action.openWalkthrough',
+                'bhoov.manim-notebook#manim-notebook-walkthrough', false);
+        });
+
 	// internal command
 	const finishRecordingLogFileCommand = vscode.commands.registerCommand(
 		'manim-notebook.finishRecordingLogFile', async () => {
 			Logger.info("💠 Command requested: Finish Recording Log File");
 			await LogRecorder.finishRecordingLogFile(context);
 		});
+
+    registerWalkthroughCommands(context);
 
 	context.subscriptions.push(
 		previewManimCellCommand,
@@ -65,7 +75,8 @@ export function activate(context: vscode.ExtensionContext) {
 		exitSceneCommand,
 		clearSceneCommand,
 		recordLogFileCommand,
-		finishRecordingLogFileCommand
+        openWalkthroughCommand,
+		finishRecordingLogFileCommand,
 	);
 	registerManimCellProviders(context);
 }
