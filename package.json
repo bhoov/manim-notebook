@@ -179,6 +179,18 @@
             "completionEvents": [
               "onCommand:manim-notebook-walkthrough.showCommands"
             ]
+          },
+          {
+            "id": "showKeyboardShortcuts",
+            "title": "Show keyboard shortcuts",
+            "description": "See all available keyboard shortcuts in Manim Notebook and modify them to whatever you like.\n[Show Shortcuts](command:manim-notebook-walkthrough.showShortcuts)",
+            "media": {
+              "svg": "src/walkthrough/shortcuts.svg",
+              "altText": "Manim Notebook keyboard shortcuts"
+            },
+            "completionEvents": [
+              "onCommand:manim-notebook-walkthrough.showShortcuts"
+            ]
           }
         ]
       }
