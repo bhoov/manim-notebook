@@ -203,6 +203,18 @@
             "completionEvents": [
               "onCommand:manim-notebook-walkthrough.showSettings"
             ]
+          },
+          {
+            "id": "openWiki",
+            "title": "Open Wiki",
+            "description": "Learn more about Manim Notebook on the GitHub Wiki.\n[Open Wiki](command:manim-notebook-walkthrough.openWiki)",
+            "media": {
+              "svg": "src/walkthrough/wiki.svg",
+              "altText": "Manim Notebook Wiki"
+            },
+            "completionEvents": [
+              "onCommand:manim-notebook-walkthrough.openWiki"
+            ]
           }
         ]
       }

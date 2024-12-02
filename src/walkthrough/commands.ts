@@ -1,3 +1,4 @@
+import * as vscode from 'vscode';
 import { ExtensionContext, window, workspace, commands, extensions } from 'vscode';
 import { Logger, Window } from '../logger';
 import { ManimShell } from '../manimShell';
@@ -38,12 +39,20 @@ export function registerWalkthroughCommands(context: ExtensionContext) {
         }
     );
 
+    const openWikiCommand = commands.registerCommand(
+        'manim-notebook-walkthrough.openWiki', async () => {
+            Logger.info("💠 Command Open Wiki requested");
+            await openWiki();
+        }
+    );
+
     context.subscriptions.push(
         checkManimVersionCommand,
         openSampleFileCommand,
         showAllCommandsCommand,
         showKeyboardShortcutsCommand,
-        showSettingsCommand
+        showSettingsCommand,
+        openWikiCommand
     );
 }
 
@@ -92,4 +101,12 @@ async function showKeyboardShortcuts() {
 async function showSettings() {
     await commands.executeCommand(
         'workbench.action.openSettings', "Manim Notebook");
+}
+
+/**
+ * Opens the GitHub wiki page for the extension.
+ */
+async function openWiki() {
+    const wikiUrl = "https://github.com/Manim-Notebook/manim-notebook/wiki";
+    await vscode.env.openExternal(vscode.Uri.parse(wikiUrl));
 }
