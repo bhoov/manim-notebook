@@ -163,7 +163,7 @@ export class ManimShell {
      * Whether to lock the execution of a new command while another command is
      * currently running. On MacOS, we do lock since the IPython terminal *exits*
      * when sending Ctrl+C instead of just interrupting the current command.
-     * See issue #16: https://github.com/bhoov/manim-notebook/issues/16
+     * See issue #16: https://github.com/Manim-Notebook/manim-notebook/issues/16
      */
     private shouldLockDuringCommandExecution = false;
     private isExecutingCommand = false;
