@@ -54,14 +54,14 @@ export class ManimCell implements vscode.CodeLensProvider, vscode.FoldingRangePr
                 title: "🥽 Preview Manim Cell",
                 command: "manim-notebook.previewManimCell",
                 tooltip: "Preview this Manim Cell inside an interactive Manim environment",
-                arguments: [cellCode, codeLens.range.start.line]
+                arguments: [cellCode, range.start.line]
             };
 
             codeLensReload.command = {
                 title: "🥽 Reload & Preview",
                 command: "manim-notebook.reloadAndPreviewManimCell",
                 tooltip: "Preview this Manim Cell inside an interactive Manim environment",
-                arguments: [cellCode, codeLens.range.start.line]
+                arguments: [cellCode, range.start.line]
             };
 
             codeLenses.push(codeLens);
