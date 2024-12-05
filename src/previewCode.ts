@@ -8,20 +8,7 @@ import { Logger, Window } from './logger';
 // \x0C: is Ctrl + L, which clears the terminal screen
 const PREVIEW_COMMAND = `\x0Ccheckpoint_paste()`;
 
-/**
- * Previews all code inside of a Manim cell.
- * 
- * A Manim cell starts with `##`.
- * 
- * This can be invoked by either:
- * - clicking the code lens (the button above the cell) -> this cell is previewed
- * - command pallette -> the 1 cell where the cursor is is previewed
- * 
- * If Manim isn't running, it will be automatically started
- * (at the start of the cell which will be previewed: on its starting ## line),
- * and then this cell is previewed.
- */
-export async function previewManimCell(cellCode?: string, startLine?: number) {
+function parsePreviewCellArgs(cellCode?: string, startLine?: number) {
     let startLineFinal: number | undefined = startLine;
 
     // User has executed the command via command pallette
@@ -46,16 +33,56 @@ export async function previewManimCell(cellCode?: string, startLine?: number) {
     }
 
     if (startLineFinal === undefined) {
-        Window.showErrorMessage('Internal error: Line number not found in `previewManimCell()`.');
+        Window.showErrorMessage(
+            'Internal error: Line number not found in `parsePreviewCellArgs()`.');
         return;
     }
 
-    await previewCode(cellCode, startLineFinal);
+    return { cellCode, startLineFinal };
+}
+
+/**
+ * Previews all code inside of a Manim cell.
+ * 
+ * A Manim cell starts with `##`.
+ * 
+ * This can be invoked by either:
+ * - clicking the code lens (the button above the cell) -> this cell is previewed
+ * - command pallette -> the 1 cell where the cursor is is previewed
+ * 
+ * If Manim isn't running, it will be automatically started
+ * (at the start of the cell which will be previewed: on its starting ## line),
+ * and then this cell is previewed.
+ */
+export async function previewManimCell(cellCode?: string, startLine?: number) {
+    const res = parsePreviewCellArgs(cellCode, startLine);
+    if (!res) {
+        return;
+    }
+    const { cellCode: cellCodeFinal, startLineFinal } = res;
+
+    await previewCode(cellCodeFinal, startLineFinal);
 }
 
 export async function reloadAndPreviewManimCell(cellCode?: string, startLine?: number) {
-    Window.showWarningMessage('Reloading and previewing the Manim cell...');
-    await previewManimCell(cellCode, startLine);
+    console.log("reloadAndPreviewManimCell");
+    console.log(startLine);
+
+    const res = parsePreviewCellArgs(cellCode, startLine);
+    if (!res) {
+        return;
+    }
+    const { cellCode: cellCodeFinal, startLineFinal } = res;
+
+    if (ManimShell.instance.hasActiveShell()) {
+        const reloadCmd = `reload(${startLineFinal + 1})`;
+        await ManimShell.instance.executeCommandErrorOnNoActiveSession(reloadCmd);
+    } else {
+        Window.showWarningMessage("Not implemented yet"); // TODO
+        return;
+    }
+
+    await previewManimCell(cellCodeFinal, startLineFinal);
 }
 
 
