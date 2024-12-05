@@ -2,10 +2,62 @@ import * as vscode from 'vscode';
 import { window } from 'vscode';
 import { ManimShell } from './manimShell';
 import { EventEmitter } from 'events';
-import { Logger } from './logger';
+import { ManimCellRanges } from './manimCellRanges';
+import { Logger, Window } from './logger';
 
 // \x0C: is Ctrl + L, which clears the terminal screen
 const PREVIEW_COMMAND = `\x0Ccheckpoint_paste()`;
+
+/**
+ * Previews all code inside of a Manim cell.
+ * 
+ * A Manim cell starts with `##`.
+ * 
+ * This can be invoked by either:
+ * - clicking the code lens (the button above the cell) -> this cell is previewed
+ * - command pallette -> the 1 cell where the cursor is is previewed
+ * 
+ * If Manim isn't running, it will be automatically started
+ * (at the start of the cell which will be previewed: on its starting ## line),
+ * and then this cell is previewed.
+ */
+export async function previewManimCell(cellCode?: string, startLine?: number) {
+    let startLineFinal: number | undefined = startLine;
+
+    // User has executed the command via command pallette
+    if (cellCode === undefined) {
+        const editor = window.activeTextEditor;
+        if (!editor) {
+            Window.showErrorMessage(
+                'No opened file found. Place your cursor in a Manim cell.');
+            return;
+        }
+        const document = editor.document;
+
+        // Get the code of the cell where the cursor is placed
+        const cursorLine = editor.selection.active.line;
+        const range = ManimCellRanges.getCellRangeAtLine(document, cursorLine);
+        if (!range) {
+            Window.showErrorMessage('Place your cursor in a Manim cell.');
+            return;
+        }
+        cellCode = document.getText(range);
+        startLineFinal = range.start.line;
+    }
+
+    if (startLineFinal === undefined) {
+        Window.showErrorMessage('Internal error: Line number not found in `previewManimCell()`.');
+        return;
+    }
+
+    await previewCode(cellCode, startLineFinal);
+}
+
+export async function reloadAndPreviewManimCell(cellCode?: string, startLine?: number) {
+    Window.showWarningMessage('Reloading and previewing the Manim cell...');
+    await previewManimCell(cellCode, startLine);
+}
+
 
 /**
  * Interactively previews the given Manim code by means of the
