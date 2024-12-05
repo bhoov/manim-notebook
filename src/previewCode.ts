@@ -9,7 +9,7 @@ import { Logger, Window } from './logger';
 const PREVIEW_COMMAND = `\x0Ccheckpoint_paste()`;
 
 function parsePreviewCellArgs(cellCode?: string, startLine?: number) {
-    let startLineFinal: number | undefined = startLine;
+    let startLineParsed: number | undefined = startLine;
 
     // User has executed the command via command pallette
     if (cellCode === undefined) {
@@ -29,16 +29,16 @@ function parsePreviewCellArgs(cellCode?: string, startLine?: number) {
             return;
         }
         cellCode = document.getText(range);
-        startLineFinal = range.start.line;
+        startLineParsed = range.start.line;
     }
 
-    if (startLineFinal === undefined) {
+    if (startLineParsed === undefined) {
         Window.showErrorMessage(
             'Internal error: Line number not found in `parsePreviewCellArgs()`.');
         return;
     }
 
-    return { cellCode, startLineFinal };
+    return { cellCodeParsed: cellCode, startLineParsed };
 }
 
 /**
@@ -59,9 +59,9 @@ export async function previewManimCell(cellCode?: string, startLine?: number) {
     if (!res) {
         return;
     }
-    const { cellCode: cellCodeFinal, startLineFinal } = res;
+    const { cellCodeParsed, startLineParsed } = res;
 
-    await previewCode(cellCodeFinal, startLineFinal);
+    await previewCode(cellCodeParsed, startLineParsed);
 }
 
 export async function reloadAndPreviewManimCell(cellCode?: string, startLine?: number) {
@@ -72,17 +72,17 @@ export async function reloadAndPreviewManimCell(cellCode?: string, startLine?: n
     if (!res) {
         return;
     }
-    const { cellCode: cellCodeFinal, startLineFinal } = res;
+    const { cellCodeParsed, startLineParsed } = res;
 
     if (ManimShell.instance.hasActiveShell()) {
-        const reloadCmd = `reload(${startLineFinal + 1})`;
+        const reloadCmd = `reload(${startLineParsed + 1})`;
         await ManimShell.instance.executeCommandErrorOnNoActiveSession(reloadCmd);
     } else {
         Window.showWarningMessage("Not implemented yet"); // TODO
         return;
     }
 
-    await previewManimCell(cellCodeFinal, startLineFinal);
+    await previewManimCell(cellCodeParsed, startLineParsed);
 }
 
 
