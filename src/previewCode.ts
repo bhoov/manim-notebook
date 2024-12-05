@@ -77,11 +77,7 @@ export async function reloadAndPreviewManimCell(cellCode?: string, startLine?: n
     if (ManimShell.instance.hasActiveShell()) {
         const reloadCmd = `reload(${startLineParsed + 1})`;
         await ManimShell.instance.executeCommandErrorOnNoActiveSession(reloadCmd);
-    } else {
-        Window.showWarningMessage("Not implemented yet"); // TODO
-        return;
     }
-
     await previewManimCell(cellCodeParsed, startLineParsed);
 }
 
