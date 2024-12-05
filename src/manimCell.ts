@@ -35,33 +35,40 @@ export class ManimCell implements vscode.CodeLensProvider, vscode.FoldingRangePr
     }
 
     public provideCodeLenses(document: vscode.TextDocument, token: vscode.CancellationToken): vscode.CodeLens[] {
+        if (!window.activeTextEditor) {
+            return [];
+        }
+
         const codeLenses: vscode.CodeLens[] = [];
 
         const ranges = ManimCellRanges.calculateRanges(document);
-        for (const range of ranges) {
-            codeLenses.push(new vscode.CodeLens(range));
+        for (let range of ranges) {
+            range = new vscode.Range(range.start, range.end);
+            const codeLens = new vscode.CodeLens(range);
+            const codeLensReload = new vscode.CodeLens(range);
+
+            const document = window.activeTextEditor.document;
+            const cellCode = document.getText(range);
+
+            codeLens.command = {
+                title: "Preview Manim Cell",
+                command: "manim-notebook.previewManimCell",
+                tooltip: "Preview this Manim Cell",
+                arguments: [cellCode, range.start.line]
+            };
+
+            codeLensReload.command = {
+                title: "Reload & Preview",
+                command: "manim-notebook.reloadAndPreviewManimCell",
+                tooltip: "Reload & Preview this Manim Cell",
+                arguments: [cellCode, range.start.line]
+            };
+
+            codeLenses.push(codeLens);
+            codeLenses.push(codeLensReload);
         }
 
         return codeLenses;
-    }
-
-    public resolveCodeLens(codeLens: vscode.CodeLens, token: vscode.CancellationToken): vscode.CodeLens {
-        if (!window.activeTextEditor) {
-            return codeLens;
-        }
-
-        const document = window.activeTextEditor?.document;
-        const range = new vscode.Range(codeLens.range.start, codeLens.range.end);
-        const cellCode = document.getText(range);
-
-        codeLens.command = {
-            title: "▶ Preview Manim Cell",
-            command: "manim-notebook.previewManimCell",
-            tooltip: "Preview this Manim Cell inside an interactive Manim environment",
-            arguments: [cellCode, codeLens.range.start.line]
-        };
-
-        return codeLens;
     }
 
     public provideFoldingRanges(document: vscode.TextDocument, context: vscode.FoldingContext, token: vscode.CancellationToken): vscode.FoldingRange[] {

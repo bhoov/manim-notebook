@@ -2,8 +2,7 @@ import * as vscode from 'vscode';
 import { window } from 'vscode';
 import { ManimShell, NoActiveShellError } from './manimShell';
 import { ManimCell } from './manimCell';
-import { ManimCellRanges } from './manimCellRanges';
-import { previewCode } from './previewCode';
+import { previewManimCell, reloadAndPreviewManimCell, previewCode } from './previewCode';
 import { startScene, exitScene } from './startStopScene';
 import { Logger, Window, LogRecorder } from './logger';
 
@@ -15,6 +14,14 @@ export function activate(context: vscode.ExtensionContext) {
 		'manim-notebook.previewManimCell', (cellCode?: string, startLine?: number) => {
 			Logger.info(`💠 Command requested: Preview Manim Cell, startLine=${startLine}`);
 			previewManimCell(cellCode, startLine);
+		});
+
+	const reloadAndPreviewManimCellCommand = vscode.commands.registerCommand(
+		'manim-notebook.reloadAndPreviewManimCell',
+		(cellCode?: string, startLine?: number) => {
+			Logger.info("💠 Command requested: Reload & Preview Manim Cell"
+				+ `, startLine=${startLine}`);
+			reloadAndPreviewManimCell(cellCode, startLine);
 		});
 
 	const previewSelectionCommand = vscode.commands.registerCommand(
@@ -73,51 +80,6 @@ export function activate(context: vscode.ExtensionContext) {
 export function deactivate() {
 	Logger.deactivate();
 	Logger.info("💠 Manim Notebook extension deactivated");
-}
-
-/**
- * Previews all code inside of a Manim cell.
- * 
- * A Manim cell starts with ##
- * 
- * This can be invoked by either:
- * - clicking the code lens (the button above the cell) -> this cell is previewed
- * - command pallette -> the 1 cell where the cursor is is previewed
- * 
- * If Manim isn't running, it will be automatically started
- * (at the start of the cell which will be previewed: on its starting ## line),
- * and then this cell is previewed.
- */
-async function previewManimCell(cellCode?: string, startLine?: number) {
-	let startLineFinal: number | undefined = startLine;
-
-	// User has executed the command via command pallette
-	if (cellCode === undefined) {
-		const editor = window.activeTextEditor;
-		if (!editor) {
-			Window.showErrorMessage(
-				'No opened file found. Place your cursor in a Manim cell.');
-			return;
-		}
-		const document = editor.document;
-
-		// Get the code of the cell where the cursor is placed
-		const cursorLine = editor.selection.active.line;
-		const range = ManimCellRanges.getCellRangeAtLine(document, cursorLine);
-		if (!range) {
-			Window.showErrorMessage('Place your cursor in a Manim cell.');
-			return;
-		}
-		cellCode = document.getText(range);
-		startLineFinal = range.start.line;
-	}
-
-	if (startLineFinal === undefined) {
-		Window.showErrorMessage('Internal error: Line number not found in `previewManimCell()`.');
-		return;
-	}
-
-	await previewCode(cellCode, startLineFinal);
 }
 
 /**
