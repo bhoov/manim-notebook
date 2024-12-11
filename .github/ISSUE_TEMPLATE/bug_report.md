@@ -17,7 +17,7 @@ assignees: ''
 Make sure you have the latest [Manim release](https://github.com/3b1b/manim/releases) installed or a commit from the [Manim `master` branch](https://github.com/3b1b/manim) that is even newer.
 
 - ManimGL version (`manimgl --version`):
-- Manim Notebook version (go to the VSCode extension pane to see the version): 
+- Manim Notebook version (`Manim Notebook: Show Version`, or go to the VSCode extension pane to see the version): 
 - Python version (`python --version`, ideally have something like `3.12` or newer):
 
 

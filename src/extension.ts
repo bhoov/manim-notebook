@@ -11,6 +11,15 @@ export function activate(context: vscode.ExtensionContext) {
 	// Trigger the Manim shell to start listening to the terminal
 	ManimShell.instance;
 
+	const showVersionCommand = vscode.commands.registerCommand(
+		'manim-notebook.showVersion', () => {
+			Logger.info(`💠 Command requested: Show Version`);
+            let version = context.extension.packageJSON.version
+            Window.showInformationMessage(`Manim Notebook version: ${version}`);
+            Logger.info(`\tExtension version is ${version}`);
+		});
+
+
 	const previewManimCellCommand = vscode.commands.registerCommand(
 		'manim-notebook.previewManimCell', (cellCode?: string, startLine?: number) => {
 			Logger.info(`💠 Command requested: Preview Manim Cell, startLine=${startLine}`);
@@ -59,6 +68,7 @@ export function activate(context: vscode.ExtensionContext) {
 		});
 
 	context.subscriptions.push(
+        showVersionCommand,
 		previewManimCellCommand,
 		previewSelectionCommand,
 		startSceneCommand,
