@@ -17,7 +17,6 @@ assignees: ''
 Make sure you have the latest [Manim release](https://github.com/3b1b/manim/releases) installed or a commit from the [Manim `master` branch](https://github.com/3b1b/manim) that is even newer.
 
 - ManimGL version (`manimgl --version`):
-- Manim Notebook version (`Manim Notebook: Show Version`, or go to the VSCode extension pane to see the version): 
 - Python version (`python --version`, ideally have something like `3.12` or newer):
 
 
@@ -30,4 +29,4 @@ Make sure you have the latest [Manim release](https://github.com/3b1b/manim/rele
 
 ## 🧾 Logs
 
-In most situations, we can only fix the problem if you attach a Manim Notebook log file. It's easy to create one, see the [Wiki here](https://github.com/Manim-Notebook/manim-notebook/wiki/%F0%9F%A4%A2-Troubleshooting#-record-log-file). Just drag and drop the file here.
+Please always attach a log file even if you cannot reproduce an error since the log will include some information about your system like the Manim Notebook version you're using. It's easy to create a log file, see the [Wiki here](https://github.com/Manim-Notebook/manim-notebook/wiki/%F0%9F%A4%A2-Troubleshooting#-record-log-file). Then just drag and drop the file here.
