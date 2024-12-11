@@ -16,6 +16,7 @@ class MyFirstManimNotebook(Scene):
         self.play(ShowCreation(circle))
 
         ## Transform circle to square
+        # You can also preview the cell with the default hotkey `Cmd+' Cmd+e` (MacOS) of `Ctrl+' Ctrl+e` (Windows/Linux).
         square = Square()
         self.play(ReplacementTransform(circle, square))
         self.wait(1.5)
