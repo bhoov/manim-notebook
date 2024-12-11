@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 import { ManimShell, NoActiveShellError } from './manimShell';
 import { window } from 'vscode';
 import { Logger, Window } from './logger';
+import { findClassLines, findManimSceneName } from './pythonParsing';
 
 /**
  * Runs the `manimgl` command in the terminal, with the current cursor's line number:
@@ -31,8 +32,7 @@ export async function startScene(lineStart?: number) {
         return;
     }
 
-    // Save active file
-    vscode.commands.executeCommand('workbench.action.files.save');
+    await vscode.commands.executeCommand('workbench.action.files.save');
 
     const languageId = editor.document.languageId;
     if (languageId !== 'python') {
@@ -41,26 +41,13 @@ export async function startScene(lineStart?: number) {
     }
 
     const lines = editor.document.getText().split("\n");
-
-    // Find which lines define classes
-    // E.g. here, classLines = [{ line: "class FirstScene(Scene):", index: 3 }, ...]
-    const classLines = lines
-        .map((line, index) => ({ line, index }))
-        .filter(({ line }) => /^class (.+?)\((.+?)\):/.test(line));
-
+    const classLines = findClassLines(editor.document);
     let cursorLine = lineStart || editor.selection.start.line;
-
-    // Find the first class defined before where the cursor is
-    // E.g. here, matchingClass = { line: "class SelectedScene(Scene):", index: 42 }
-    const matchingClass = classLines
-        .reverse()
-        .find(({ index }) => index <= cursorLine);
-    if (!matchingClass) {
+    const sceneClassLine = findManimSceneName(editor.document, cursorLine);
+    if (!sceneClassLine) {
         Window.showErrorMessage('Place your cursor in Manim code inside a class.');
         return;
     }
-    // E.g. here, sceneName = "SelectedScene"
-    const sceneName = matchingClass.line.slice("class ".length, matchingClass.line.indexOf("("));
 
     // While line is empty - make it the previous line
     // (because `manimgl -se <lineNumber>` doesn't work on empty lines)
@@ -71,9 +58,9 @@ export async function startScene(lineStart?: number) {
 
     // Create the command
     const filePath = editor.document.fileName;  // absolute path
-    const cmds = ["manimgl", `"${filePath}"`, sceneName];
+    const cmds = ["manimgl", `"${filePath}"`, sceneClassLine.className];
     let shouldPreviewWholeScene = true;
-    if (cursorLine !== matchingClass.index) {
+    if (cursorLine !== sceneClassLine.lineNumber) {
         // this is actually the more common case
         shouldPreviewWholeScene = false;
         cmds.push(`-se ${lineNumber + 1}`);

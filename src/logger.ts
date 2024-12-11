@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import { window } from 'vscode';
 import { LogOutputChannel } from 'vscode';
-import { waitUntilFileExists, revealFileInOS } from './fileUtil';
+import { waitUntilFileExists, revealFileInOS } from './utils/fileUtil';
 import * as path from 'path';
 import * as fs from 'fs';
 import * as os from 'os';

@@ -55,6 +55,11 @@
         "command": "manim-notebook.recordLogFile",
         "title": "Record Log File",
         "category": "Manim Notebook"
+      },
+      {
+        "command": "manim-notebook.exportScene",
+        "title": "Export current scene as CLI command",
+        "category": "Manim Notebook"
       }
     ],
     "keybindings": [
