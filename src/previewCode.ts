@@ -65,9 +65,6 @@ export async function previewManimCell(cellCode?: string, startLine?: number) {
 }
 
 export async function reloadAndPreviewManimCell(cellCode?: string, startLine?: number) {
-    console.log("reloadAndPreviewManimCell");
-    console.log(startLine);
-
     const res = parsePreviewCellArgs(cellCode, startLine);
     if (!res) {
         return;
