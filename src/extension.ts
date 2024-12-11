@@ -56,7 +56,7 @@ export function activate(context: vscode.ExtensionContext) {
         'manim-notebook.openWalkthrough', async () => {
             Logger.info("💠 Command requested: Open Walkthrough");
             await vscode.commands.executeCommand('workbench.action.openWalkthrough',
-                'bhoov.manim-notebook#manim-notebook-walkthrough', false);
+                `${context.extension.id}#manim-notebook-walkthrough`, false);
         });
 
 	// internal command
