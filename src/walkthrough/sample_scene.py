@@ -9,14 +9,15 @@ class MyFirstManimNotebook(Scene):
     def construct(self):
         ## Your first Manim Cell
         # Note how a Manim Cell is introduced by a comment starting with `##`.
-        # You should see a button `▶ Preview Manim Cell` above this cell.
+        # You should see a button `Preview Manim Cell` above this cell.
         # Click on it to preview the animation.
         circle = Circle()
         circle.set_stroke(BLUE_E, width=4)
         self.play(ShowCreation(circle))
 
         ## Transform circle to square
-        # You can also preview the cell with the default hotkey `Cmd+' Cmd+e` (MacOS) of `Ctrl+' Ctrl+e` (Windows/Linux).
+        # You can also preview the cell with the default hotkey:
+        # `Cmd+' Cmd+e` (MacOS) or `Ctrl+' Ctrl+e` (Windows/Linux)
         square = Square()
         self.play(ReplacementTransform(circle, square))
         self.wait(1.5)
