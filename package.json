@@ -53,7 +53,7 @@
       },
       {
         "command": "manim-notebook.exportScene",
-        "title": "🎞️ Generate command to export scene",
+        "title": "Export current scene as CLI command",
         "category": "Manim Notebook"
       }
     ],
