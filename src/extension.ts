@@ -18,7 +18,6 @@ export function activate(context: vscode.ExtensionContext) {
 			Logger.info(`💠 Command requested: Show Version`);
 			let version = context.extension.packageJSON.version;
 			Window.showInformationMessage(`Manim Notebook version: ${version}`);
-			Logger.info(`\tExtension version is ${version}`);
 		});
 
 
