@@ -16,9 +16,9 @@ export function activate(context: vscode.ExtensionContext) {
 	const showVersionCommand = vscode.commands.registerCommand(
 		'manim-notebook.showVersion', () => {
 			Logger.info(`💠 Command requested: Show Version`);
-            let version = context.extension.packageJSON.version
-            Window.showInformationMessage(`Manim Notebook version: ${version}`);
-            Logger.info(`\tExtension version is ${version}`);
+			let version = context.extension.packageJSON.version;
+			Window.showInformationMessage(`Manim Notebook version: ${version}`);
+			Logger.info(`\tExtension version is ${version}`);
 		});
 
 
@@ -80,7 +80,7 @@ export function activate(context: vscode.ExtensionContext) {
 		});
 
 	context.subscriptions.push(
-        showVersionCommand,
+		showVersionCommand,
 		previewManimCellCommand,
 		previewSelectionCommand,
 		startSceneCommand,
