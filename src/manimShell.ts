@@ -153,7 +153,8 @@ export class ManimShell {
     private iPythonCellCount: number = 0;
 
     /**
-     * TODO
+     * Whether to wait for a restarted IPython instance, i.e. for an IPython
+     * cell count of 1. This is used to correctly issue the `reload()` command.
      */
     waitForRestartedIPythonInstance = false;
 
@@ -204,6 +205,11 @@ export class ManimShell {
         return ManimShell.#instance;
     }
 
+    /**
+     * Indicates that the next command should wait until a restarted IPython
+     * instance is detected, i.e. starting with cell 1 again. This is used
+     * such that we can correctly issue the `reload()` command.
+     */
     public nextTimeWaitForRestartedIPythonInstance() {
         this.iPythonCellCount = 0;
         this.waitForRestartedIPythonInstance = true;
