@@ -1,22 +1,33 @@
 {
   "name": "manim-notebook",
   "displayName": "Manim Notebook",
-  "description": "Replicates Grant Sanderson's interactive workflow for manim in VSCode",
+  "description": "ManimGL with interactive previewing to easily visualize and share the beauty of mathematics and related fields.",
   "version": "0.0.4",
-  "publisher": "bhoov",
+  "publisher": "Manim-Notebook",
   "author": {
-    "name": "Ben Hoover",
-    "email": "benhoover34@gmail.com",
-    "url": "https://bhoov.com"
+    "name": "Manim Notebook Contributors"
   },
+  "license": "SEE LICENSE IN LICENSE.txt",
+  "homepage": "https://github.com/Manim-Notebook/manim-notebook",
+  "bugs": "https://github.com/Manim-Notebook/manim-notebook/issues",
+  "keywords": [
+    "Manim",
+    "ManimGL",
+    "3Blue1Brown",
+    "notebook",
+    "animation"
+  ],
   "engines": {
     "vscode": "^1.93.0"
   },
   "categories": [
-    "Other"
+    "Visualization",
+    "Notebooks",
+    "Education"
   ],
+  "qna": false,
   "activationEvents": [
-    "*"
+    "onLanguage:python"
   ],
   "main": "./out/extension.js",
   "contributes": {
@@ -54,6 +65,11 @@
       {
         "command": "manim-notebook.recordLogFile",
         "title": "Record Log File",
+        "category": "Manim Notebook"
+      },
+      {
+        "command": "manim-notebook.openWalkthrough",
+        "title": "Open Walkthrough",
         "category": "Manim Notebook"
       },
       {
@@ -143,6 +159,86 @@
           "highContrastLight": "#C3DDF7"
         }
       }
+    ],
+    "walkthroughs": [
+      {
+        "id": "manim-notebook-walkthrough",
+        "title": "Manim Notebook",
+        "description": "Welcome 👋 Get to know how to make the best out of Manim Notebook.",
+        "steps": [
+          {
+            "id": "checkManimInstallation",
+            "title": "Check Manim Installation",
+            "description": "Let's see if you have installed ManimGL.\n[Check Manim version](command:manim-notebook-walkthrough.checkManimVersion)\n[Open installation guide](https://3b1b.github.io/manim/getting_started/installation.html)",
+            "media": {
+              "markdown": "src/walkthrough/manim-installation.md"
+            },
+            "completionEvents": [
+              "onCommand:manim-notebook-walkthrough.checkManimVersion"
+            ]
+          },
+          {
+            "id": "startExample",
+            "title": "Start with an example",
+            "description": "Open an example file to see how Manim Notebook works.\n[Open Sample](command:manim-notebook-walkthrough.openSample)",
+            "media": {
+              "svg": "src/walkthrough/preview-cell.svg",
+              "altText": "Preview Manim Cell"
+            },
+            "completionEvents": [
+              "onCommand:manim-notebook-walkthrough.openSample"
+            ]
+          },
+          {
+            "id": "showAllAvailableCommands",
+            "title": "Show all available commands",
+            "description": "Get a list of all available commands in Manim Notebook.\n[Show Commands](command:manim-notebook-walkthrough.showCommands)",
+            "media": {
+              "svg": "src/walkthrough/commands.svg",
+              "altText": "Manim Notebook commands"
+            },
+            "completionEvents": [
+              "onCommand:manim-notebook-walkthrough.showCommands"
+            ]
+          },
+          {
+            "id": "showKeyboardShortcuts",
+            "title": "Show keyboard shortcuts",
+            "description": "See all available keyboard shortcuts in Manim Notebook and modify them to whatever you like.\n[Show Shortcuts](command:manim-notebook-walkthrough.showShortcuts)",
+            "media": {
+              "svg": "src/walkthrough/shortcuts.svg",
+              "altText": "Manim Notebook keyboard shortcuts"
+            },
+            "completionEvents": [
+              "onCommand:manim-notebook-walkthrough.showShortcuts"
+            ]
+          },
+          {
+            "id": "showSettings",
+            "title": "Show settings",
+            "description": "Customize your Manim Notebook experience by changing settings.\n[Show Settings](command:manim-notebook-walkthrough.showSettings)",
+            "media": {
+              "svg": "src/walkthrough/settings.svg",
+              "altText": "Manim Notebook settings"
+            },
+            "completionEvents": [
+              "onCommand:manim-notebook-walkthrough.showSettings"
+            ]
+          },
+          {
+            "id": "openWiki",
+            "title": "Open Wiki",
+            "description": "Learn more about Manim Notebook on the GitHub Wiki.\n[Open Wiki](command:manim-notebook-walkthrough.openWiki)",
+            "media": {
+              "svg": "src/walkthrough/wiki.svg",
+              "altText": "Manim Notebook Wiki"
+            },
+            "completionEvents": [
+              "onCommand:manim-notebook-walkthrough.openWiki"
+            ]
+          }
+        ]
+      }
     ]
   },
   "scripts": {
@@ -166,7 +262,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/bhoov/manim-notebook"
+    "url": "https://github.com/Manim-Notebook/manim-notebook.git"
   },
   "icon": "assets/logo.png"
 }
