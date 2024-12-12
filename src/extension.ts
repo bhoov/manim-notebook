@@ -54,6 +54,16 @@ export function activate(context: vscode.ExtensionContext) {
 			await LogRecorder.recordLogFile(context);
 		});
 
+	const exportSceneCommand = vscode.commands.registerCommand(
+		'manim-notebook.exportScene', async (sceneName?: string) => {
+			Logger.info("💠 Command requested: Export Scene");
+			await exportScene(sceneName);
+		});
+	context.subscriptions.push(
+		vscode.languages.registerCodeLensProvider(
+			{ language: 'python' }, new ExportSceneCodeLens())
+	);
+
 	const openWalkthroughCommand = vscode.commands.registerCommand(
 		'manim-notebook.openWalkthrough', async () => {
 			Logger.info("💠 Command requested: Open Walkthrough");
