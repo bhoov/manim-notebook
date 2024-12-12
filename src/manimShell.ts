@@ -153,6 +153,11 @@ export class ManimShell {
     private iPythonCellCount: number = 0;
 
     /**
+     * TODO
+     */
+    waitForRestartedIPythonInstance = false;
+
+    /**
      * Whether the execution of a new command is locked. This is used to prevent
      * multiple new scenes from being started at the same time, e.g. when users
      * click on "Preview Manim Cell" multiple times in quick succession.
@@ -197,6 +202,11 @@ export class ManimShell {
             ManimShell.#instance = new ManimShell();
         }
         return ManimShell.#instance;
+    }
+
+    public nextTimeWaitForRestartedIPythonInstance() {
+        this.iPythonCellCount = 0;
+        this.waitForRestartedIPythonInstance = true;
     }
 
     /**
@@ -688,14 +698,27 @@ export class ManimShell {
 
                     let ipythonMatches = data.match(IPYTHON_CELL_START_REGEX);
                     if (ipythonMatches) {
-                        // Terminal data might include multiple IPython statements,
-                        // so take the highest cell number found.
+                        // Terminal data might include multiple IPython statements
                         const cellNumbers = ipythonMatches.map(
                             match => parseInt(match.match(/\d+/)![0]));
-                        const maxCellNumber = Math.max(...cellNumbers);
-                        this.iPythonCellCount = maxCellNumber;
-                        Logger.debug(`📦 IPython cell ${maxCellNumber} detected`);
-                        this.eventEmitter.emit(ManimShellEvent.IPYTHON_CELL_FINISHED);
+
+                        if (this.waitForRestartedIPythonInstance) {
+                            const cellNumber = Math.min(...cellNumbers);
+                            Logger.debug("📦 While waiting for restarted IPython instance:"
+                                + ` cell ${cellNumber} detected`);
+                            if (cellNumber === 1) {
+                                Logger.debug("🔄 Restarted IPython instance detected");
+                                this.iPythonCellCount = 1;
+                                this.waitForRestartedIPythonInstance = false;
+                                this.eventEmitter.emit(ManimShellEvent.IPYTHON_CELL_FINISHED);
+                            }
+                        } else {
+                            // more frequent case
+                            const cellNumber = Math.max(...cellNumbers);
+                            this.iPythonCellCount = cellNumber;
+                            Logger.debug(`📦 IPython cell ${cellNumber} detected`);
+                            this.eventEmitter.emit(ManimShellEvent.IPYTHON_CELL_FINISHED);
+                        }
                     }
 
                     if (this.isExecutingCommand && data.match(IPYTHON_MULTILINE_START_REGEX)) {
