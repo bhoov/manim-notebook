@@ -2,7 +2,7 @@ import * as vscode from 'vscode';
 import { window } from 'vscode';
 import { ManimShell } from './manimShell';
 import { EventEmitter } from 'events';
-import { ManimCellRanges } from './manimCellRanges';
+import { ManimCellRanges } from './pythonParsing';
 import { Logger, Window } from './logger';
 
 // \x0C: is Ctrl + L, which clears the terminal screen
