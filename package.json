@@ -1,22 +1,33 @@
 {
   "name": "manim-notebook",
   "displayName": "Manim Notebook",
-  "description": "Replicates Grant Sanderson's interactive workflow for manim in VSCode",
+  "description": "ManimGL with interactive previewing to easily visualize and share the beauty of mathematics and related fields.",
   "version": "0.0.4",
-  "publisher": "bhoov",
+  "publisher": "Manim-Notebook",
   "author": {
-    "name": "Ben Hoover",
-    "email": "benhoover34@gmail.com",
-    "url": "https://bhoov.com"
+    "name": "Manim Notebook Contributors"
   },
+  "license": "SEE LICENSE IN LICENSE.txt",
+  "homepage": "https://github.com/Manim-Notebook/manim-notebook",
+  "bugs": "https://github.com/Manim-Notebook/manim-notebook/issues",
+  "keywords": [
+    "Manim",
+    "ManimGL",
+    "3Blue1Brown",
+    "notebook",
+    "animation"
+  ],
   "engines": {
     "vscode": "^1.93.0"
   },
   "categories": [
-    "Other"
+    "Visualization",
+    "Notebooks",
+    "Education"
   ],
+  "qna": false,
   "activationEvents": [
-    "*"
+    "onLanguage:python"
   ],
   "main": "./out/extension.js",
   "contributes": {
@@ -161,7 +172,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/bhoov/manim-notebook"
+    "url": "https://github.com/Manim-Notebook/manim-notebook.git"
   },
   "icon": "assets/logo.png"
 }
