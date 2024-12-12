@@ -20,7 +20,6 @@ class MyFirstManimNotebook(Scene):
         # `Cmd+' Cmd+e` (MacOS) or `Ctrl+' Ctrl+e` (Windows/Linux)
         square = Square()
         self.play(ReplacementTransform(circle, square))
-        self.wait(1.5)
 
         ## Make it red and fly away
         self.play(
