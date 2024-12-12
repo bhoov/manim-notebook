@@ -58,6 +58,7 @@ export function registerWalkthroughCommands(context: ExtensionContext) {
 
 async function checkManimVersion() {
     const terminal = window.createTerminal("Manim Version");
+    terminal.show()
     await new Promise((resolve) => setTimeout(resolve, 1500));
     terminal.sendText("manimgl --version");
 }
