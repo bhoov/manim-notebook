@@ -163,7 +163,7 @@ export class ManimShell {
      * Whether to lock the execution of a new command while another command is
      * currently running. On MacOS, we do lock since the IPython terminal *exits*
      * when sending Ctrl+C instead of just interrupting the current command.
-     * See issue #16: https://github.com/bhoov/manim-notebook/issues/16
+     * See issue #16: https://github.com/Manim-Notebook/manim-notebook/issues/16
      */
     private shouldLockDuringCommandExecution = false;
     private isExecutingCommand = false;
@@ -570,34 +570,13 @@ export class ManimShell {
      * might be useful for some activation scripts to load like virtualenvs etc.
      */
     private async openNewTerminal() {
-        const delay: number = await vscode.workspace
-            .getConfiguration("manim-notebook").get("delayNewTerminal")!;
-
         // We don't want to detect shell execution ends here, since commands like
         // `source venv/bin/activate` might on their own trigger a terminal
         // execution end.
         this.detectShellExecutionEnd = false;
 
         this.activeShell = window.createTerminal();
-
-        if (delay > 600) {
-            await window.withProgress({
-                location: vscode.ProgressLocation.Notification,
-                title: "Waiting a user-defined delay for the new terminal...",
-                cancellable: false
-            }, async (progress, token) => {
-                progress.report({ increment: 0 });
-
-                // split user-defined timeout into 500ms chunks and show progress
-                const numChunks = Math.ceil(delay / 500);
-                for (let i = 0; i < numChunks; i++) {
-                    await new Promise(resolve => setTimeout(resolve, 500));
-                    progress.report({ increment: 100 / numChunks });
-                }
-            });
-        } else {
-            await new Promise(resolve => setTimeout(resolve, delay));
-        }
+        await waitNewTerminalDelay();
 
         this.detectShellExecutionEnd = true;
     }
@@ -793,5 +772,39 @@ export class ManimShell {
 async function* withoutAnsiCodes(stream: AsyncIterable<string>) {
     for await (const data of stream) {
         yield data.replace(ANSI_CONTROL_SEQUENCE_REGEX, '');
+    }
+}
+
+/**
+ * Waits a user-defined delay before allowing the terminal to be used. This 
+ * might be useful for some activation scripts to load like virtualenvs etc.
+ * 
+ * Note that this function must be awaited by the caller, otherwise the delay
+ * will not be respected.
+ * 
+ * This function does not have any reference to the actual terminal, it just
+ * waits, and that's it.
+ */
+export async function waitNewTerminalDelay() {
+    const delay: number = await vscode.workspace
+        .getConfiguration("manim-notebook").get("delayNewTerminal")!;
+
+    if (delay > 600) {
+        await window.withProgress({
+            location: vscode.ProgressLocation.Notification,
+            title: "Waiting a user-defined delay for the new terminal...",
+            cancellable: false
+        }, async (progress, token) => {
+            progress.report({ increment: 0 });
+
+            // split user-defined timeout into 500ms chunks and show progress
+            const numChunks = Math.ceil(delay / 500);
+            for (let i = 0; i < numChunks; i++) {
+                await new Promise(resolve => setTimeout(resolve, 500));
+                progress.report({ increment: 100 / numChunks });
+            }
+        });
+    } else {
+        await new Promise(resolve => setTimeout(resolve, delay));
     }
 }
