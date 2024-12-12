@@ -2,11 +2,13 @@ import * as vscode from 'vscode';
 import { window } from 'vscode';
 import { ManimShell, NoActiveShellError } from './manimShell';
 import { ManimCell } from './manimCell';
-import { ManimCellRanges } from './manimCellRanges';
+import { ManimCellRanges } from './pythonParsing';
 import { previewCode } from './previewCode';
 import { startScene, exitScene } from './startStopScene';
+import { exportScene } from './export';
 import { Logger, Window, LogRecorder } from './logger';
 import {registerWalkthroughCommands} from './walkthrough/commands';
+import { ExportSceneCodeLens } from './export';
 
 export function activate(context: vscode.ExtensionContext) {
 	// Trigger the Manim shell to start listening to the terminal
@@ -76,6 +78,7 @@ export function activate(context: vscode.ExtensionContext) {
 		clearSceneCommand,
 		recordLogFileCommand,
         openWalkthroughCommand,
+		exportSceneCommand,
 		finishRecordingLogFileCommand,
 	);
 	registerManimCellProviders(context);
