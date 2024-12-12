@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import { ManimShell, NoActiveShellError } from './manimShell';
-import { window } from 'vscode';
+import { window, workspace } from 'vscode';
 import { Logger, Window } from './logger';
 import { findClassLines, findManimSceneName } from './pythonParsing';
 
@@ -64,6 +64,10 @@ export async function startScene(lineStart?: number) {
         // this is actually the more common case
         shouldPreviewWholeScene = false;
         cmds.push(`-se ${lineNumber + 1}`);
+    }
+    const autoreload = await workspace.getConfiguration("manim-notebook").get("autoreload");
+    if (autoreload) {
+        cmds.push("--autoreload");
     }
     const command = cmds.join(" ");
 
