@@ -25,7 +25,7 @@ class MyFirstManimNotebook(Scene):
         ## Make it red and fly away
         self.play(
             square.animate.set_fill(RED_D, opacity=0.5),
-            self.camera_config.frame.animate.set_width(25),
+            self.frame.animate.set_width(25),
         )
 
         # Now try to interact with the scene, e.g. press `d` and drag the mouse
