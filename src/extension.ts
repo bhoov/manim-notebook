@@ -7,7 +7,7 @@ import { previewCode } from './previewCode';
 import { startScene, exitScene } from './startStopScene';
 import { exportScene } from './export';
 import { Logger, Window, LogRecorder } from './logger';
-import {registerWalkthroughCommands} from './walkthrough/commands';
+import { registerWalkthroughCommands } from './walkthrough/commands';
 import { ExportSceneCodeLens } from './export';
 
 export function activate(context: vscode.ExtensionContext) {
@@ -54,12 +54,12 @@ export function activate(context: vscode.ExtensionContext) {
 			await LogRecorder.recordLogFile(context);
 		});
 
-    const openWalkthroughCommand = vscode.commands.registerCommand(
-        'manim-notebook.openWalkthrough', async () => {
-            Logger.info("💠 Command requested: Open Walkthrough");
-            await vscode.commands.executeCommand('workbench.action.openWalkthrough',
-                `${context.extension.id}#manim-notebook-walkthrough`, false);
-        });
+	const openWalkthroughCommand = vscode.commands.registerCommand(
+		'manim-notebook.openWalkthrough', async () => {
+			Logger.info("💠 Command requested: Open Walkthrough");
+			await vscode.commands.executeCommand('workbench.action.openWalkthrough',
+				`${context.extension.id}#manim-notebook-walkthrough`, false);
+		});
 
 	// internal command
 	const finishRecordingLogFileCommand = vscode.commands.registerCommand(
@@ -68,7 +68,7 @@ export function activate(context: vscode.ExtensionContext) {
 			await LogRecorder.finishRecordingLogFile(context);
 		});
 
-    registerWalkthroughCommands(context);
+	registerWalkthroughCommands(context);
 
 	context.subscriptions.push(
 		previewManimCellCommand,
@@ -77,7 +77,7 @@ export function activate(context: vscode.ExtensionContext) {
 		exitSceneCommand,
 		clearSceneCommand,
 		recordLogFileCommand,
-        openWalkthroughCommand,
+		openWalkthroughCommand,
 		exportSceneCommand,
 		finishRecordingLogFileCommand,
 	);
