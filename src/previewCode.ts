@@ -73,7 +73,7 @@ export async function reloadAndPreviewManimCell(cellCode?: string, startLine?: n
 
     if (ManimShell.instance.hasActiveShell()) {
         const reloadCmd = `reload(${startLineParsed + 1})`;
-        ManimShell.instance.nextTimeWaitForRestartedIPythonInstance();
+        await ManimShell.instance.nextTimeWaitForRestartedIPythonInstance();
         await ManimShell.instance.executeCommandErrorOnNoActiveSession(reloadCmd, true);
     }
     await previewManimCell(cellCodeParsed, startLineParsed);

@@ -210,7 +210,11 @@ export class ManimShell {
      * instance is detected, i.e. starting with cell 1 again. This is used
      * such that we can correctly issue the `reload()` command.
      */
-    public nextTimeWaitForRestartedIPythonInstance() {
+    public async nextTimeWaitForRestartedIPythonInstance() {
+        if (await this.isLocked()) {
+            return;
+        }
+
         this.iPythonCellCount = 0;
         this.waitForRestartedIPythonInstance = true;
     }
@@ -245,6 +249,36 @@ export class ManimShell {
     ) {
         await this.execCommand(
             command, waitUntilFinished, forceExecute, true, undefined, undefined);
+    }
+
+    /**
+     * Returns whether the command execution is currently locked, i.e. when
+     * Manim is starting up or another command is currently running.
+     * 
+     * @param forceExecute see `execCommand()`
+     * @returns true if the command execution is locked, false otherwise.
+     */
+    private async isLocked(forceExecute = false): Promise<boolean> {
+        if (this.lockDuringStartup) {
+            Window.showWarningMessage("Manim is currently starting. Please wait a moment.");
+            return true;
+        }
+
+        if (this.isExecutingCommand) {
+            // MacOS specific behavior
+            if (this.shouldLockDuringCommandExecution && !forceExecute) {
+                Window.showWarningMessage(
+                    `Simultaneous Manim commands are not currently supported on MacOS. `
+                    + `Please wait for the current operations to finish before initiating `
+                    + `a new command.`);
+                return true;
+            }
+
+            this.sendKeyboardInterrupt();
+            await new Promise(resolve => setTimeout(resolve, 500));
+        }
+
+        return false;
     }
 
     /**
@@ -292,27 +326,12 @@ export class ManimShell {
             return;
         }
 
-        if (this.lockDuringStartup) {
-            Window.showWarningMessage("Manim is currently starting. Please wait a moment.");
-            return;
-        }
-
         if (errorOnNoActiveShell) {
             this.errorOnNoActiveShell();
         }
 
-        if (this.isExecutingCommand) {
-            // MacOS specific behavior
-            if (this.shouldLockDuringCommandExecution && !forceExecute) {
-                Window.showWarningMessage(
-                    `Simultaneous Manim commands are not currently supported on MacOS. `
-                    + `Please wait for the current operations to finish before initiating `
-                    + `a new command.`);
-                return;
-            }
-
-            this.sendKeyboardInterrupt();
-            await new Promise(resolve => setTimeout(resolve, 500));
+        if (await this.isLocked(forceExecute)) {
+            return;
         }
 
         this.isExecutingCommand = true;
