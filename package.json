@@ -33,11 +33,6 @@
   "contributes": {
     "commands": [
       {
-        "command": "manim-notebook.showVersion",
-        "title": "Show Version",
-        "category": "Manim Notebook"
-      },
-      {
         "command": "manim-notebook.previewManimCell",
         "title": "Preview active Manim Cell",
         "category": "Manim Notebook"
