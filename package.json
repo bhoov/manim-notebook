@@ -111,6 +111,11 @@
     "configuration": {
       "title": "Manim Notebook",
       "properties": {
+        "manim-notebook.autoreload": {
+          "type": "boolean",
+          "default": "true",
+          "markdownDescription": "If enabled, Manim will be startup with the `--autoreload` flag, such that your imported Python modules are reloaded automatically in the background."
+        },
         "manim-notebook.clipboardTimeout": {
           "type": "number",
           "default": 650,

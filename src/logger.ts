@@ -72,23 +72,12 @@ export class Logger {
         Logger.info(`📜 Logfile found and cleared at ${new Date().toISOString()}`);
     }
 
-    public static logSystemInformation() {
+    public static logSystemInformation(context: vscode.ExtensionContext) {
         Logger.info(`Operating system: ${os.type()} ${os.release()} ${os.arch()}`);
         Logger.info(`Process versions: ${JSON.stringify(process.versions)}`);
 
-        try {
-            const packageJsonPath = path.join(__dirname, '..', 'package.json');
-            const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8'));
-            Logger.info(`Manim notebook version: ${packageJson.version}`);
-        } catch (error: Error | unknown) {
-            Logger.error("Could not determine Manim notebook version used");
-            try {
-                Logger.error(String(error));
-            } catch {
-                Logger.error("(Unable to stringify the error message)");
-                // in this case we will still record the log session
-            }
-        }
+        const manimNotebookVersion = context.extension.packageJSON.version;
+        Logger.info(`Manim Notebook version: ${manimNotebookVersion}`);
 
         Logger.info("--------------------------");
     }
@@ -234,7 +223,7 @@ export class LogRecorder {
         await vscode.commands.executeCommand('workbench.action.setLogLevel');
 
         Logger.info("📜 Logfile recording started");
-        Logger.logSystemInformation();
+        Logger.logSystemInformation(context);
         this.recorderStatusBar.show();
     }
 

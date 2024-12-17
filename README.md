@@ -1,135 +1,56 @@
-# Manim Notebook
+<div align="center">
+  <a href="https://marketplace.visualstudio.com/items?itemName=bhoov.vscode-manim">
+    <img src="./assets/logo.png" width="130px" alt="Manim Notebook Logo"/>
+  </a>
 
-VSCode extension for replicating Grant Sanderson's `manim` workflow for Sublime Text from [this video](https://www.youtube.com/watch?v=rbu7Zu5X1zI)
+  <div align="center">
+    <h3 align="center">Manim Notebook</h3>
+    <p>
+      VSCode extension to interactively preview your Manim animations</strong>
+    </p>
+  </div>
 
-**Note** this extension is specifically for [3b1b's original manim library](https://github.com/3b1b/manim), NOT the community version.
+  <div align="center">
+    <a href="https://marketplace.visualstudio.com/items?itemName=bhoov.vscode-manim">VSCode Marketplace (outdated)</a>
+    | <a href="https://github.com/Manim-Notebook/manim-notebook/">GitHub</a>
+  </div>
+</div>
 
+> [!note]
+> December 2024: Hey there👋 We are currently working to ship the first release of Manim Notebook. The version already available on the VSCode Marketplace is outdated. If you are interested in the current state of the extension, just clone this repo and follow the [Developing guide](https://github.com/Manim-Notebook/manim-notebook/wiki/Developing).
 
-## Example usage
+> [!warning]
+> This VSCode extension is specifically for [3b1b's original manim library](https://github.com/3b1b/manim)<br>
+> and *NOT* the [Manim Community Edition (Manim CE)](https://www.manim.community/).
 
-1. [Install manimgl](https://3b1b.github.io/manim/getting_started/installation.html), make sure that the command `manimgl` works in your terminal
-2. Open your manim file (e.g. `scene.py`) in VSCode
-3. Place your cursor where you want to start the scene, on a line of code within the `construct` method in a scene class
-4. Run the VSCode command: `cmd+shift+p` -> `Manim Notebook: Start scene at cursor`  
-    (This command runs `manimgl scene.py NAME_OF_SCENE -se <lineNumber>` in your terminal)  
-    In the upper-right of your screen - the manim interactive video will appear.
+## 🎈 What is this?
 
-Then you can do either:
+Manim Notebook is a VSCode extension that tailors your needs when writing Python code to animate mathematical concepts with 3Blue1Brown's [Manim library](https://github.com/3b1b/manim). It's *NOT* a Jupyter Notebook; instead it enriches your existing Python files with interactive Manim cells that let you live-preview parts of the code and instantly see the animations.
 
-- Write some comments which start with: `##`.  
-    The clickable "Preview Manim Cell" buttons will appear above each such comment.  
-    Clicking on one will run it.  
-    It is equivalent to: `cmd+shift+p` -> `Manim Notebook: Preview active Manim Cell`
+Originally, the motivation for this extension was Grant Sanderson's video [How I animate 3Blue1Brown](https://youtu.be/rbu7Zu5X1zI?feature=shared) where he shows his Manim workflow in Sublime Text. This extension brings a similar workflow to VSCode but even goes further and provides a rich VSCode integration.
 
-- Place your cursor on some line (or highlight several lines),  
-    `cmd+shift+p` -> `Manim Notebook: Preview selected Manim code`  
-    This will run the selected lines.
+## 💻 Usage
 
+Our VSCode **walkthrough** will guide you through the first steps and provide a sample file. It should open automatically upon installation of [the Manim Notebook extension](https://marketplace.visualstudio.com/items?itemName=bhoov.vscode-manim). If not, you can invoke it manually: open the command palette (`Ctrl/Cmd + Shift + P`) and search for `Manim Notebook: Open Walkthrough`.
 
-## Keybord shortcuts
+The main concept is that of a Manim Cell, which is just a regular Python comment, but one that starts with `##` instead of `#`.
 
-You can use the default keyboard shortcuts for these commands, or assign your own.  
+![manim-cell-preview](https://github.com/user-attachments/assets/577a93cb-0d05-4fa7-b1a9-52c1ccf2e5dc)
 
-- the default shortcuts all start with `cmd+'`
-- use `cmd` or `ctrl` depending on your OS
+> [!tip]
+> For customization options, troubleshooting tips and a lot more, check out the [Wiki](https://github.com/Manim-Notebook/manim-notebook/wiki/).
 
-All current commands are:
+---
 
-- `Manim Notebook: Start scene at cursor`.  
-    Shortcut: `cmd+' cmd+s`
-- `Manim Notebook: Preview active Manim Cell`.  
-    Shortcut: `cmd+' cmd+e`
-- `Manim Notebook: Preview selected Manim code`.  
-    Shortcut: `cmd+' cmd+r`
-- `Manim Notebook: Remove all objects from scene`.  
-    Shortcut: `cmd+' cmd+c`
-- `Manim Notebook: Quit preview`.  
-    Shortcut: `cmd+' cmd+w`
+## 🚀 Features
 
+- **Manim Cells**. Split your code into Manim Cells that start with `##`. You will be presented with a CodeLens to preview the animation.
+- **Preview any code**. Simple as that, select any code and preview it.
+- **With or without Terminal**. The extension parses the `manimgl` terminal output to provide rich VSCode integrations and makes possible an almost terminal-free workflow.
+  - Shows the progress of the live Manim preview as VSCode progress bar.
+  - Takes a user-defined delay into account, e.g. to wait for custom shell startup scripts (like `venv` activation).
+  - State management: keeps track of the ManimGL state to react accordingly in different situations, e.g. prevent from running multiple statements at the same time.
+- **Video export**. Export your animations to a video file. A small wizard will guide you through the most important settings.
+- **And more...** Find all commands in the command palette (`Ctrl/Cmd + Shift + P`) by searching for `> Manim Notebook`. E.g. another command lets you `clear()` the window. Yet with another one you can start the scene at your cursor.
 
-## Demonstration
-
-The resulting workflow can look like Grant's 🥳
-
-[(see demo on youtube)](https://www.youtube.com/watch?v=VaNHlFh0r5E)
-
-<iframe width="560" height="315" src="https://www.youtube.com/embed/VaNHlFh0r5E?si=ClVdBSI1k_-mzKFr" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
-
-
-## Customization
-
-- There are some extension settings that you can tweak: just press `Ctrl/Cmd + ,` in order to open the settings and search for `Manim Notebook`.
-- Customize the **color of the Manim Cells** in your `settings.json` file as [described here in the VSCode docs](https://code.visualstudio.com/docs/getstarted/themes#_customize-a-color-theme). Why not go for a more red-ish color? 🎨
-
-
-```json
-// https://stackoverflow.com/a/71962342/
-// https://stackoverflow.com/a/77515370/
-// Use `[*Light*]` to match themes whose name contains `Light` in them.
-"workbench.colorCustomizations": {
-    "[*Light*]": {
-        "manimNotebookColors.baseColor": "#FF708A",
-        "manimNotebookColors.unfocused": "#FFBFCC"
-    },
-    "[*Dark*]": {
-        "manimNotebookColors.baseColor": "#FF708A",
-        "manimNotebookColors.unfocused": "#804953"
-    },
-    "[*Light High Contrast*]": {
-        "manimNotebookColors.baseColor": "#FF5473",
-        "manimNotebookColors.unfocused": "#FFA3B6"
-    },
-    "[*Dark High Contrast*]": {
-        "manimNotebookColors.baseColor": "#FF5473",
-        "manimNotebookColors.unfocused": "#8C5660"
-    }
-}
-```
-
-<details>
-
-<summary>See default blue-ish colors</summary>
-
-```json
-// https://stackoverflow.com/a/71962342/
-// https://stackoverflow.com/a/77515370/
-// Use `[*Light*]` to match themes whose name contains `Light` in them.
-"workbench.colorCustomizations": {
-    "[*Light*]": {
-        "manimNotebookColors.baseColor": "#2B7BD6",
-        "manimNotebookColors.unfocused": "#DCE9F7"
-    },
-    "[*Dark*]": {
-        "manimNotebookColors.baseColor": "#64A4ED",
-        "manimNotebookColors.unfocused": "#39506B"
-    },
-    "[*Light High Contrast*]": {
-        "manimNotebookColors.baseColor": "#216CC2",
-        "manimNotebookColors.unfocused": "#C3DDF7"
-    },
-    "[*Dark High Contrast*]": {
-        "manimNotebookColors.baseColor": "#75B6FF",
-        "manimNotebookColors.unfocused": "#3C5878"
-    }
-}
-```
-
-</details>
-
-
-## Links
-
-- [GitHub](https://github.com/bhoov/manim-notebook)
-- [contributing](https://github.com/bhoov/manim-notebook/blob/main/CONTRIBUTING.md)
-- [wiki](https://github.com/bhoov/manim-notebook/wiki)
-
-
-## Troubleshooting
-
-If you encounter an issue, search for some related keywords first in the [issues](https://github.com/bhoov/manim-notebook/issues). If you can't find anything, feel free to open a new issue. To analyze the problem, we need a **log file** from you:
-
-- Open the command palette `Ctrl+Shift+P` (or `Cmd+Shift+P`)<br>and use the command `Manim Notebook: Record Log File`.
-- Then set the log level by searching for `Manim Notebook` and selecting `Trace`.
-- Now reproduce the issue, e.g. by running a command that causes the problem or previewing a certain Manim cell etc.
-- Once you're done, click on the button in the status bar (bottom right) to finish recording. The log file will be opened afterwards.
-- Drag-and-drop the log file into the GitHub issue text field (as a _file_, i.e. please don't copy-paste its _content_ because this would make it hard to read).
+TODO: Add a more complete feature list (maybe to the Wiki?). Add images to showcase each feature.
