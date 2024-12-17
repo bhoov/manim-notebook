@@ -34,7 +34,7 @@ Our VSCode **walkthrough** will guide you through the first steps and provide a 
 
 The main concept is that of a Manim Cell, which is just a regular Python comment, but one that starts with `##` instead of `#`.
 
-![Preview Cell example](./src/walkthrough/preview-cell.svg)
+![manim-cell-preview](https://github.com/user-attachments/assets/577a93cb-0d05-4fa7-b1a9-52c1ccf2e5dc)
 
 > [!tip]
 > For customization options, troubleshooting tips and a lot more, check out the [Wiki](https://github.com/Manim-Notebook/manim-notebook/wiki/).
