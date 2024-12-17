@@ -16,7 +16,7 @@
   </div>
 </div>
 
-> [!warning]
+> [!note]
 > December 2024: Hey there👋 We are currently working to ship the first release of Manim Notebook. The version already available on the VSCode Marketplace is outdated. If you are interested in the current state of the extension, just clone this repo and follow the [Developing guide](https://github.com/Manim-Notebook/manim-notebook/wiki/Developing).
 
 > [!warning]
