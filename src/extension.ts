@@ -2,10 +2,13 @@ import * as vscode from 'vscode';
 import { window } from 'vscode';
 import { ManimShell, NoActiveShellError } from './manimShell';
 import { ManimCell } from './manimCell';
-import { ManimCellRanges } from './manimCellRanges';
+import { ManimCellRanges } from './pythonParsing';
 import { previewCode } from './previewCode';
 import { startScene, exitScene } from './startStopScene';
+import { exportScene } from './export';
 import { Logger, Window, LogRecorder } from './logger';
+import { registerWalkthroughCommands } from './walkthrough/commands';
+import { ExportSceneCodeLens } from './export';
 
 export function activate(context: vscode.ExtensionContext) {
 	// Trigger the Manim shell to start listening to the terminal
@@ -51,12 +54,31 @@ export function activate(context: vscode.ExtensionContext) {
 			await LogRecorder.recordLogFile(context);
 		});
 
+	const exportSceneCommand = vscode.commands.registerCommand(
+		'manim-notebook.exportScene', async (sceneName?: string) => {
+			Logger.info("💠 Command requested: Export Scene");
+			await exportScene(sceneName);
+		});
+	context.subscriptions.push(
+		vscode.languages.registerCodeLensProvider(
+			{ language: 'python' }, new ExportSceneCodeLens())
+	);
+
+	const openWalkthroughCommand = vscode.commands.registerCommand(
+		'manim-notebook.openWalkthrough', async () => {
+			Logger.info("💠 Command requested: Open Walkthrough");
+			await vscode.commands.executeCommand('workbench.action.openWalkthrough',
+				`${context.extension.id}#manim-notebook-walkthrough`, false);
+		});
+
 	// internal command
 	const finishRecordingLogFileCommand = vscode.commands.registerCommand(
 		'manim-notebook.finishRecordingLogFile', async () => {
 			Logger.info("💠 Command requested: Finish Recording Log File");
 			await LogRecorder.finishRecordingLogFile(context);
 		});
+
+	registerWalkthroughCommands(context);
 
 	context.subscriptions.push(
 		previewManimCellCommand,
@@ -65,7 +87,9 @@ export function activate(context: vscode.ExtensionContext) {
 		exitSceneCommand,
 		clearSceneCommand,
 		recordLogFileCommand,
-		finishRecordingLogFileCommand
+		openWalkthroughCommand,
+		exportSceneCommand,
+		finishRecordingLogFileCommand,
 	);
 	registerManimCellProviders(context);
 }
