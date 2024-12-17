@@ -153,6 +153,13 @@ export class ManimShell {
     private iPythonCellCount: number = 0;
 
     /**
+     * Whether to wait for a restarted IPython instance, i.e. for an IPython
+     * cell count of 1. This is set to `true` before the `reload()` command is
+     * issued and set back to `false` after the IPython cell count is 1.
+     */
+    waitForRestartedIPythonInstance = false;
+
+    /**
      * Whether the execution of a new command is locked. This is used to prevent
      * multiple new scenes from being started at the same time, e.g. when users
      * click on "Preview Manim Cell" multiple times in quick succession.
@@ -200,6 +207,20 @@ export class ManimShell {
     }
 
     /**
+     * Indicates that the next command should wait until a restarted IPython
+     * instance is detected, i.e. starting with cell 1 again. This should be
+     * called before the `reload()` command is issued.
+     */
+    public async nextTimeWaitForRestartedIPythonInstance() {
+        if (await this.isLocked()) {
+            return;
+        }
+
+        this.iPythonCellCount = 0;
+        this.waitForRestartedIPythonInstance = true;
+    }
+
+    /**
      * Executes the given command. If no active terminal running Manim is found,
      * a new terminal is spawned, and a new Manim session is started in it
      * before executing the given command.
@@ -229,6 +250,36 @@ export class ManimShell {
     ) {
         await this.execCommand(
             command, waitUntilFinished, forceExecute, true, undefined, undefined);
+    }
+
+    /**
+     * Returns whether the command execution is currently locked, i.e. when
+     * Manim is starting up or another command is currently running.
+     * 
+     * @param forceExecute see `execCommand()`
+     * @returns true if the command execution is locked, false otherwise.
+     */
+    private async isLocked(forceExecute = false): Promise<boolean> {
+        if (this.lockDuringStartup) {
+            Window.showWarningMessage("Manim is currently starting. Please wait a moment.");
+            return true;
+        }
+
+        if (this.isExecutingCommand) {
+            // MacOS specific behavior
+            if (this.shouldLockDuringCommandExecution && !forceExecute) {
+                Window.showWarningMessage(
+                    `Simultaneous Manim commands are not currently supported on MacOS. `
+                    + `Please wait for the current operations to finish before initiating `
+                    + `a new command.`);
+                return true;
+            }
+
+            this.sendKeyboardInterrupt();
+            await new Promise(resolve => setTimeout(resolve, 500));
+        }
+
+        return false;
     }
 
     /**
@@ -276,27 +327,12 @@ export class ManimShell {
             return;
         }
 
-        if (this.lockDuringStartup) {
-            Window.showWarningMessage("Manim is currently starting. Please wait a moment.");
-            return;
-        }
-
         if (errorOnNoActiveShell) {
             this.errorOnNoActiveShell();
         }
 
-        if (this.isExecutingCommand) {
-            // MacOS specific behavior
-            if (this.shouldLockDuringCommandExecution && !forceExecute) {
-                Window.showWarningMessage(
-                    `Simultaneous Manim commands are not currently supported on MacOS. `
-                    + `Please wait for the current operations to finish before initiating `
-                    + `a new command.`);
-                return;
-            }
-
-            this.sendKeyboardInterrupt();
-            await new Promise(resolve => setTimeout(resolve, 500));
+        if (await this.isLocked(forceExecute)) {
+            return;
         }
 
         this.isExecutingCommand = true;
@@ -503,7 +539,7 @@ export class ManimShell {
      * A shell that was previously used to run Manim, but has exited from the
      * Manim session (IPython environment), is considered inactive.
      */
-    private hasActiveShell(): boolean {
+    public hasActiveShell(): boolean {
         const hasActiveShell =
             this.activeShell !== null && this.activeShell.exitStatus === undefined;
         Logger.debug(`👩‍💻 Has active shell?: ${hasActiveShell}`);
@@ -688,14 +724,27 @@ export class ManimShell {
 
                     let ipythonMatches = data.match(IPYTHON_CELL_START_REGEX);
                     if (ipythonMatches) {
-                        // Terminal data might include multiple IPython statements,
-                        // so take the highest cell number found.
+                        // Terminal data might include multiple IPython statements
                         const cellNumbers = ipythonMatches.map(
                             match => parseInt(match.match(/\d+/)![0]));
-                        const maxCellNumber = Math.max(...cellNumbers);
-                        this.iPythonCellCount = maxCellNumber;
-                        Logger.debug(`📦 IPython cell ${maxCellNumber} detected`);
-                        this.eventEmitter.emit(ManimShellEvent.IPYTHON_CELL_FINISHED);
+
+                        if (this.waitForRestartedIPythonInstance) {
+                            const cellNumber = Math.min(...cellNumbers);
+                            Logger.debug("📦 While waiting for restarted IPython instance:"
+                                + ` cell ${cellNumber} detected`);
+                            if (cellNumber === 1) {
+                                Logger.debug("🔄 Restarted IPython instance detected");
+                                this.iPythonCellCount = 1;
+                                this.waitForRestartedIPythonInstance = false;
+                                this.eventEmitter.emit(ManimShellEvent.IPYTHON_CELL_FINISHED);
+                            }
+                        } else {
+                            // more frequent case
+                            const cellNumber = Math.max(...cellNumbers);
+                            this.iPythonCellCount = cellNumber;
+                            Logger.debug(`📦 IPython cell ${cellNumber} detected`);
+                            this.eventEmitter.emit(ManimShellEvent.IPYTHON_CELL_FINISHED);
+                        }
                     }
 
                     if (this.isExecutingCommand && data.match(IPYTHON_MULTILINE_START_REGEX)) {

@@ -38,6 +38,11 @@
         "category": "Manim Notebook"
       },
       {
+        "command": "manim-notebook.reloadAndPreviewManimCell",
+        "title": "Reload and Preview active Manim Cell",
+        "category": "Manim Notebook"
+      },
+      {
         "command": "manim-notebook.previewSelection",
         "title": "Preview selected Manim code",
         "category": "Manim Notebook"
