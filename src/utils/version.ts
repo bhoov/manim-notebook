@@ -1,6 +1,9 @@
 import * as vscode from 'vscode';
 import { window } from 'vscode';
-import { waitNewTerminalDelay, withoutAnsiCodes, onTerminalOutput } from './terminal';
+import {
+    waitNewTerminalDelay, withoutAnsiCodes, onTerminalOutput,
+    createOrReuseTerminal
+} from './terminal';
 import { EventEmitter } from 'events';
 import { Window, Logger } from '../logger';
 
@@ -91,11 +94,10 @@ export async function tryToDetermineManimVersion() {
     isCanceledByUser = false;
     const latestVersionPromise = fetchLatestManimVersion();
 
-    const terminal = await window.createTerminal(
-        {
-            name: "ManimGL Version",
-            iconPath: new vscode.ThemeIcon("tag")
-        });
+    const terminal = await createOrReuseTerminal({
+        name: "ManimGL Version",
+        iconPath: new vscode.ThemeIcon("tag")
+    });
     await waitNewTerminalDelay();
 
     await window.withProgress({
