@@ -85,24 +85,3 @@ export async function onTerminalOutput(
             }
         });
 }
-
-/**
- * If a terminal with the given name exists, it is reused. Otherwise, a new
- * terminal is created.
- * 
- * @param nameOrTerminalOptions The name of the terminal or the terminal options.
- * @returns The reused or created terminal.
- */
-export async function createOrReuseTerminal(nameOrTerminalOptions: string | vscode.TerminalOptions)
-    : Promise<vscode.Terminal> {
-    const terminalOptions = typeof nameOrTerminalOptions === 'string'
-        ? { name: nameOrTerminalOptions }
-        : nameOrTerminalOptions;
-
-    const name = terminalOptions.name;
-    const terminal = vscode.window.terminals.find(t => t.name === name);
-    if (terminal) {
-        return terminal;
-    }
-    return vscode.window.createTerminal(terminalOptions);
-}
