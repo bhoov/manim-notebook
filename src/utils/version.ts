@@ -85,7 +85,7 @@ async function fetchLatestManimVersion(): Promise<string | undefined> {
 /**
  * Tries to determine the Manim version with the `manimgl --version` command.
  */
-export async function tryToDetermineManimVersion() {
+export async function tryToDetermineManimVersion(isAtStartup = false) {
     MANIM_VERSION = undefined;
     let res = false;
     isCanceledByUser = false;
@@ -116,11 +116,14 @@ export async function tryToDetermineManimVersion() {
         });
     });
 
-    await showUserFeedbackForVersion(res, terminal, latestVersionPromise);
+    await showUserFeedbackForVersion(res, terminal, latestVersionPromise, isAtStartup);
 }
 
-async function showUserFeedbackForVersion(versionCouldBeDetermined: boolean,
-    terminal: vscode.Terminal, latestVersionPromise: Promise<string | undefined>) {
+async function showUserFeedbackForVersion(
+    versionCouldBeDetermined: boolean,
+    terminal: vscode.Terminal, latestVersionPromise: Promise<string | undefined>,
+    isAtStartup: boolean
+) {
     if (versionCouldBeDetermined) {
         terminal.dispose();
         const latestVersion = await latestVersionPromise;
@@ -138,10 +141,15 @@ async function showUserFeedbackForVersion(versionCouldBeDetermined: boolean,
         }
     } else if (!isCanceledByUser) {
         terminal.show();
-        const try_again_answer = "Try again";
-        const answer = await Window.showErrorMessage(
-            "Your ManimGL version could not be determined.", try_again_answer);
-        if (answer === try_again_answer) {
+        const tryAgainAnswer = "Try again";
+        let errMessage = "Your ManimGL version could not be determined.";
+        if (isAtStartup) {
+            errMessage += " This can happen at startup since"
+                + " a virtual environment might not have been activated yet."
+                + " Please try again...";
+        }
+        const answer = await Window.showErrorMessage(errMessage, tryAgainAnswer);
+        if (answer === tryAgainAnswer) {
             await tryToDetermineManimVersion();
         }
     }

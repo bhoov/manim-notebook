@@ -12,7 +12,7 @@ import { ExportSceneCodeLens } from './export';
 import { tryToDetermineManimVersion } from './utils/version';
 
 export async function activate(context: vscode.ExtensionContext) {
-	await tryToDetermineManimVersion();
+	await tryToDetermineManimVersion(true);
 
 	// Trigger the Manim shell to start listening to the terminal
 	ManimShell.instance;
