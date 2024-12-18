@@ -150,9 +150,9 @@ export class Logger {
  */
 export class Window {
 
-    public static async showInformationMessage(message: string) {
+    public static async showInformationMessage(message: string, ...items: string[]) {
         Logger.info(`💡 ${message}`);
-        return await window.showInformationMessage(message);
+        return await window.showInformationMessage(message, ...items);
     }
 
     public static async showWarningMessage(message: string, ...items: string[]) {
@@ -160,8 +160,7 @@ export class Window {
         return await window.showWarningMessage(message, ...items);
     }
 
-    public static async showErrorMessage(message: string, ...items: any[])
-        : Promise<Thenable<unknown | undefined>> {
+    public static async showErrorMessage(message: string, ...items: string[]) {
         Logger.error(`💡 ${message}`);
         return await window.showErrorMessage(message, ...items);
     }

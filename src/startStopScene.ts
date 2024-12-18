@@ -68,7 +68,7 @@ export async function startScene(lineStart?: number) {
     }
 
     // Autoreload
-    if (isAtLeastManimVersion("1.7.2")) {
+    if (await isAtLeastManimVersion("1.7.2")) {
         const autoreload = await workspace.getConfiguration("manim-notebook").get("autoreload");
         if (autoreload) {
             cmds.push("--autoreload");

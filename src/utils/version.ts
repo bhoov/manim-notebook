@@ -43,7 +43,16 @@ function isAtLeastVersion(versionRequired: string, version: string): boolean {
 /**
  * Returns true if the current Manim version is at least the required version.
  */
-export function isAtLeastManimVersion(versionRequired: string): boolean {
+export async function isAtLeastManimVersion(versionRequired: string): Promise<boolean> {
+    if (!MANIM_VERSION) {
+        const determineAgainOption = "Determine my ManimGL version again";
+        const answer = await Window.showInformationMessage("You might be missing out"
+            + " on some Manim Notebook features because your ManimGL version"
+            + " could not be determined.", determineAgainOption, "I don't care");
+        if (answer === determineAgainOption) {
+            await tryToDetermineManimVersion();
+        }
+    }
     if (!MANIM_VERSION) {
         return false;
     }
