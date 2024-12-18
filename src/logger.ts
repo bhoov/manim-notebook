@@ -160,9 +160,10 @@ export class Window {
         return await window.showWarningMessage(message, ...items);
     }
 
-    public static async showErrorMessage(message: string) {
+    public static async showErrorMessage(message: string, ...items: any[])
+        : Promise<Thenable<unknown | undefined>> {
         Logger.error(`💡 ${message}`);
-        return await window.showErrorMessage(message);
+        return await window.showErrorMessage(message, ...items);
     }
 }
 

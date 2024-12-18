@@ -5,6 +5,7 @@ import { EventEmitter } from 'events';
 import { Window } from '../logger';
 
 let MANIM_VERSION: string | undefined;
+let isCanceledByUser = false;
 
 /**
  * Checks if the given version is at least the required version.
@@ -47,7 +48,8 @@ export function isAtLeastManimVersion(versionRequired: string): boolean {
  */
 export async function tryToDetermineManimVersion() {
     let res;
-    let isCanceledByUser = false;
+    isCanceledByUser = false;
+
     const terminal = await window.createTerminal(
         {
             name: "ManimGL Version",
@@ -70,13 +72,20 @@ export async function tryToDetermineManimVersion() {
                     resolve(false);
                 });
         });
-        if (res) {
-            window.showInformationMessage(`🔍 ManimGL version: ${MANIM_VERSION}`);
-            terminal.dispose();
-        } else if (!isCanceledByUser) {
-            Window.showErrorMessage("🔍 ManimGL version could not be determined.");
-        }
     });
+
+    if (res) {
+        window.showInformationMessage(`🔍 ManimGL version: ${MANIM_VERSION}`);
+        terminal.dispose();
+    } else if (!isCanceledByUser) {
+        terminal.show();
+        const try_again_answer = "Try again";
+        const answer = await Window.showErrorMessage(
+            "🔍 ManimGL version could not be determined.", try_again_answer);
+        if (answer === try_again_answer) {
+            await tryToDetermineManimVersion();
+        }
+    }
 }
 
 function constructTimeoutPromise(timeout: number,
@@ -86,10 +95,13 @@ function constructTimeoutPromise(timeout: number,
             clearTimeout(timeoutId);
             reject();
         }, timeout);
+
         token.onCancellationRequested(() => {
+            isCanceledByUser = true;
             clearTimeout(timeoutId);
             reject();
         });
+
         const numChunks = Math.ceil(timeout / 500);
         for (let i = 0; i < numChunks; i++) {
             await new Promise(resolve => setTimeout(resolve, 500));
@@ -105,11 +117,13 @@ async function lookForManimVersionString(terminal: vscode.Terminal): Promise<boo
             if (!versionMatch) {
                 return;
             }
+
             MANIM_VERSION = versionMatch[1];
             console.log(`🔍 ManimGL version: ${MANIM_VERSION}`);
             terminal.dispose();
             resolve(true);
         });
+
         terminal.sendText("manimgl --version");
     });
 }
