@@ -62,24 +62,8 @@ export async function tryToDetermineManimVersion() {
     }, async (progress, token) => {
         res = await new Promise<boolean>(async (resolve, reject) => {
             progress.report({ increment: 0 });
-            const maxWait = 8000;
-
-            const timeoutPromise = new Promise<boolean>(async (_, reject) => {
-                const timeout = setTimeout(reject, maxWait);
-                token.onCancellationRequested(() => {
-                    isCanceledByUser = true;
-                    clearTimeout(timeout);
-                    reject();
-                });
-                const numChunks = Math.ceil(maxWait / 500);
-                for (let i = 0; i < numChunks; i++) {
-                    await new Promise(resolve => setTimeout(resolve, 500));
-                    progress.report({ increment: 100 / numChunks });
-                }
-            });
-
+            const timeoutPromise = constructTimeoutPromise(8000, progress, token);
             const versionPromise = lookForManimVersionString(terminal);
-
             Promise.race([timeoutPromise, versionPromise])
                 .then((couldResolveVersion) => resolve(couldResolveVersion))
                 .catch((_error) => {
@@ -91,6 +75,25 @@ export async function tryToDetermineManimVersion() {
             terminal.dispose();
         } else if (!isCanceledByUser) {
             Window.showErrorMessage("🔍 ManimGL version could not be determined.");
+        }
+    });
+}
+
+function constructTimeoutPromise(timeout: number,
+    progress: vscode.Progress<unknown>, token: vscode.CancellationToken): Promise<boolean> {
+    return new Promise<boolean>(async (resolve, reject) => {
+        const timeoutId = setTimeout(() => {
+            clearTimeout(timeoutId);
+            reject();
+        }, timeout);
+        token.onCancellationRequested(() => {
+            clearTimeout(timeoutId);
+            reject();
+        });
+        const numChunks = Math.ceil(timeout / 500);
+        for (let i = 0; i < numChunks; i++) {
+            await new Promise(resolve => setTimeout(resolve, 500));
+            progress.report({ increment: 100 / numChunks });
         }
     });
 }
