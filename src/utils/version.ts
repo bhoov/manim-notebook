@@ -55,7 +55,6 @@ export function isAtLeastManimVersion(versionRequired: string): boolean {
  */
 async function fetchLatestManimVersion(): Promise<string | undefined> {
     const url = 'https://api.github.com/repos/3b1b/manim/releases/latest';
-
     try {
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 5000);
@@ -89,6 +88,7 @@ async function fetchLatestManimVersion(): Promise<string | undefined> {
 export async function tryToDetermineManimVersion() {
     let res;
     isCanceledByUser = false;
+    const latestVersionPromise = fetchLatestManimVersion();
 
     const terminal = await window.createTerminal(
         {
@@ -116,7 +116,7 @@ export async function tryToDetermineManimVersion() {
 
     if (res) {
         terminal.dispose();
-        const latestVersion = await fetchLatestManimVersion();
+        const latestVersion = await latestVersionPromise;
         if (latestVersion) {
             if (latestVersion === MANIM_VERSION) {
                 window.showInformationMessage(
@@ -133,7 +133,7 @@ export async function tryToDetermineManimVersion() {
         terminal.show();
         const try_again_answer = "Try again";
         const answer = await Window.showErrorMessage(
-            "🔍 ManimGL version could not be determined.", try_again_answer);
+            "Your ManimGL version could not be determined.", try_again_answer);
         if (answer === try_again_answer) {
             await tryToDetermineManimVersion();
         }
@@ -171,7 +171,7 @@ async function lookForManimVersionString(terminal: vscode.Terminal): Promise<boo
             }
 
             MANIM_VERSION = versionMatch[1];
-            console.log(`🔍 ManimGL version: ${MANIM_VERSION}`);
+            Logger.info(`👋 ManimGL version found: ${MANIM_VERSION}`);
             terminal.dispose();
             resolve(true);
         });
