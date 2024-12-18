@@ -76,6 +76,11 @@
         "command": "manim-notebook.exportScene",
         "title": "Export current scene as CLI command",
         "category": "Manim Notebook"
+      },
+      {
+        "command": "manim-notebook.redetectManimVersion",
+        "title": "Redetect Manim version",
+        "category": "Manim Notebook"
       }
     ],
     "keybindings": [
