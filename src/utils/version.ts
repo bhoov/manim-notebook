@@ -86,7 +86,7 @@ async function fetchLatestManimVersion(): Promise<string | undefined> {
  * Tries to determine the Manim version with the `manimgl --version` command.
  */
 export async function tryToDetermineManimVersion() {
-    let res;
+    let res = false;
     isCanceledByUser = false;
     const latestVersionPromise = fetchLatestManimVersion();
 
@@ -114,7 +114,12 @@ export async function tryToDetermineManimVersion() {
         });
     });
 
-    if (res) {
+    await showUserFeedbackForVersion(res, terminal, latestVersionPromise);
+}
+
+async function showUserFeedbackForVersion(versionCouldBeDetermined: boolean,
+    terminal: vscode.Terminal, latestVersionPromise: Promise<string | undefined>) {
+    if (versionCouldBeDetermined) {
         terminal.dispose();
         const latestVersion = await latestVersionPromise;
         if (latestVersion) {
