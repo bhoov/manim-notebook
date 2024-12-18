@@ -154,6 +154,13 @@ export class ManimShell {
     waitForRestartedIPythonInstance = false;
 
     /**
+    * Whether to lock the detection of the Manim welcome string in the terminal.
+    * This is used since this string is also printed during ManimGL version
+    * detection in another terminal (that we don't want to detect).
+    */
+    lockManimWelcomeStringDetection = false;
+
+    /**
      * Whether the execution of a new command is locked. This is used to prevent
      * multiple new scenes from being started at the same time, e.g. when users
      * click on "Preview Manim Cell" multiple times in quick succession.
@@ -688,12 +695,17 @@ export class ManimShell {
 
                     if (data.match(MANIM_WELCOME_REGEX)) {
                         // Manim detected in new terminal
-                        if (this.activeShell && this.activeShell !== event.terminal) {
-                            Logger.debug("👋 Manim detected in new terminal, exiting old scene");
-                            await this.forceQuitActiveShell(false);
+                        if (this.lockManimWelcomeStringDetection) {
+                            Logger.debug("🔒 Manim welcome string detected, but is locked");
+                        } else {
+                            if (this.activeShell && this.activeShell !== event.terminal) {
+                                Logger.debug(
+                                    "👋 Manim detected in new terminal, exiting old scene");
+                                await this.forceQuitActiveShell(false);
+                            }
+                            Logger.debug("👋 Manim welcome string detected");
+                            this.activeShell = event.terminal;
                         }
-                        Logger.debug("👋 Manim welcome string detected");
-                        this.activeShell = event.terminal;
                     }
 
                     // Subsequent data handling should only occur for the

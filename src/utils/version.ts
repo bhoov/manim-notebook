@@ -3,6 +3,7 @@ import { window } from 'vscode';
 import { waitNewTerminalDelay, withoutAnsiCodes, onTerminalOutput } from './terminal';
 import { EventEmitter } from 'events';
 import { Window, Logger } from '../logger';
+import { ManimShell } from '../manimShell';
 
 /**
  * Manim version that the user has installed without the 'v' prefix, e.g. '1.2.3'.
@@ -103,17 +104,27 @@ export async function tryToDetermineManimVersion(isAtStartup = false) {
         title: "Determining ManimGL version...",
         cancellable: true,
     }, async (progress, token) => {
-        res = await new Promise<boolean>(async (resolve, reject) => {
-            progress.report({ increment: 0 });
-            const timeoutPromise = constructTimeoutPromise(8000, progress, token);
-            const versionPromise = lookForManimVersionString(terminal);
-            Promise.race([timeoutPromise, versionPromise])
-                .then((couldResolveVersion) => resolve(couldResolveVersion))
-                .catch((err) => {
-                    Logger.error(`Abnormal termination of ManimGL version determination: ${err}`);
-                    resolve(false);
-                });
-        });
+        try {
+            res = await new Promise<boolean>(async (resolve, reject) => {
+                progress.report({ increment: 0 });
+
+                ManimShell.instance.lockManimWelcomeStringDetection = true;
+                Logger.info("🔒 Locking Manim welcome string detection");
+
+                const timeoutPromise = constructTimeoutPromise(8000, progress, token);
+                const versionPromise = lookForManimVersionString(terminal);
+                Promise.race([timeoutPromise, versionPromise])
+                    .then((couldResolveVersion) => resolve(couldResolveVersion))
+                    .catch((err) => {
+                        Logger.error(
+                            `Abnormal termination of ManimGL version determination: ${err}`);
+                        resolve(false);
+                    });
+            });
+        } finally {
+            ManimShell.instance.lockManimWelcomeStringDetection = false;
+            Logger.info("🔓 Unlocking Manim welcome string detection");
+        }
     });
 
     await showUserFeedbackForVersion(res, terminal, latestVersionPromise, isAtStartup);
