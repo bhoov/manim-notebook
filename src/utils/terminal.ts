@@ -49,8 +49,39 @@ const ANSI_CONTROL_SEQUENCE_REGEX = /(?:\x1B[@-Z\\-_]|[\x80-\x9A\x9C-\x9F]|(?:\x
  * @param stream The stream of strings to clean.
  * @returns An async iterable stream of strings without ANSI control codes.
  */
-export async function* withoutAnsiCodes(stream: AsyncIterable<string>) {
+export async function* withoutAnsiCodes(stream: AsyncIterable<string>): AsyncIterable<string> {
     for await (const data of stream) {
         yield data.replace(ANSI_CONTROL_SEQUENCE_REGEX, '');
     }
+}
+
+/**
+ * Registers a callback to read the stdout from the terminal. The callback is
+ * invoked whenever the given terminal emits output. The output is cleaned from
+ * ANSI control codes by default.
+ * 
+ * Note that you should execute the command in the terminal after registering
+ * the callback, otherwise the callback might not be invoked.
+ * 
+ * @param terminal The terminal to listen to.
+ * @param callback The callback to invoke when output is emitted.
+ * @param withoutAnsi Whether to clean the output from ANSI control codes.
+ */
+export async function onTerminalOutput(
+    terminal: vscode.Terminal, callback: (data: string) => void, withoutAnsi = true) {
+    window.onDidStartTerminalShellExecution(
+        async (event: vscode.TerminalShellExecutionStartEvent) => {
+            if (event.terminal !== terminal) {
+                return;
+            }
+
+            let stream = event.execution.read();
+            if (withoutAnsi) {
+                stream = withoutAnsiCodes(stream);
+            }
+
+            for await (const data of stream) {
+                callback(data);
+            }
+        });
 }

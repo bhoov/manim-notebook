@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import { window } from 'vscode';
-import { waitNewTerminalDelay, withoutAnsiCodes } from './terminal';
+import { waitNewTerminalDelay, withoutAnsiCodes, onTerminalOutput } from './terminal';
 
 let MANIM_VERSION: string | undefined;
 
@@ -43,21 +43,13 @@ export function isAtLeastManimVersion(versionRequired: string): boolean {
 export async function tryToDetermineManimVersion() {
     const terminal = await window.createTerminal("ManimGL Version Check");
     await waitNewTerminalDelay();
-    window.onDidStartTerminalShellExecution(
-        async (event: vscode.TerminalShellExecutionStartEvent) => {
-            if (event.terminal !== terminal) {
-                return;
-            }
-
-            const stream = event.execution.read();
-            for await (const data of withoutAnsiCodes(stream)) {
-                const versionMatch = data.match(/^\s*ManimGL v([0-9]+\.[0-9]+\.[0-9]+)/);
-                if (versionMatch) {
-                    MANIM_VERSION = versionMatch[1];
-                    console.log(`🔍 ManimGL version: ${MANIM_VERSION}`);
-                    terminal.dispose();
-                }
-            }
-        });
+    onTerminalOutput(terminal, (data: string) => {
+        const versionMatch = data.match(/^\s*ManimGL v([0-9]+\.[0-9]+\.[0-9]+)/);
+        if (versionMatch) {
+            MANIM_VERSION = versionMatch[1];
+            console.log(`🔍 ManimGL version: ${MANIM_VERSION}`);
+            terminal.dispose();
+        }
+    });
     terminal.sendText("manimgl --version");
 }
