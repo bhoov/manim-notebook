@@ -181,6 +181,12 @@ async function lookForManimVersionString(terminal: vscode.Terminal): Promise<boo
             resolve(true);
         });
 
+        window.onDidEndTerminalShellExecution((event) => {
+            if (event.terminal === terminal) {
+                resolve(false);
+            }
+        });
+
         terminal.sendText("manimgl --version");
     });
 }
