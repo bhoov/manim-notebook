@@ -9,13 +9,10 @@ import { exportScene } from './export';
 import { Logger, Window, LogRecorder } from './logger';
 import { registerWalkthroughCommands } from './walkthrough/commands';
 import { ExportSceneCodeLens } from './export';
-import {
-	tryToDetermineManimVersionForTheFirstTime,
-	tryToDetermineManimVersion
-} from './utils/version';
+import { tryToDetermineManimVersion } from './utils/version';
 
 export async function activate(context: vscode.ExtensionContext) {
-	await tryToDetermineManimVersionForTheFirstTime();
+	await tryToDetermineManimVersion();
 
 	// Trigger the Manim shell to start listening to the terminal
 	ManimShell.instance;
@@ -95,7 +92,7 @@ export async function activate(context: vscode.ExtensionContext) {
 	const redetectManimVersionCommand = vscode.commands.registerCommand(
 		'manim-notebook.redetectManimVersion', async () => {
 			Logger.info("💠 Command requested: Redetect Manim Version");
-			await tryToDetermineManimVersionForTheFirstTime();
+			await tryToDetermineManimVersion();
 		});
 
 	registerWalkthroughCommands(context);

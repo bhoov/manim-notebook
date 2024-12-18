@@ -43,9 +43,9 @@ export function isAtLeastManimVersion(versionRequired: string): boolean {
 }
 
 /**
- * Tries to determine the Manim version for the first time.
+ * Tries to determine the Manim version with the `manimgl --version` command.
  */
-export async function tryToDetermineManimVersionForTheFirstTime() {
+export async function tryToDetermineManimVersion() {
     let res;
     let isCanceledByUser = false;
     const terminal = await window.createTerminal(
@@ -80,7 +80,7 @@ export async function tryToDetermineManimVersionForTheFirstTime() {
                     }
                 });
 
-                const versionPromise = tryToDetermineManimVersion(terminal);
+                const versionPromise = lookForManimVersionString(terminal);
 
                 Promise.race([timeoutPromise, versionPromise])
                     .then(() => resolve(true))
@@ -101,13 +101,7 @@ export async function tryToDetermineManimVersionForTheFirstTime() {
     }
 }
 
-/**
- * Tries to determine the Manim version by means of the `manimgl --version`
- * command.
- * 
- * @returns True if the version was determined, false otherwise.
- */
-export async function tryToDetermineManimVersion(terminal: vscode.Terminal): Promise<boolean> {
+async function lookForManimVersionString(terminal: vscode.Terminal): Promise<boolean> {
     return new Promise<boolean>(async (resolve, reject) => {
         onTerminalOutput(terminal, (data: string) => {
             const versionMatch = data.match(/^\s*ManimGL v([0-9]+\.[0-9]+\.[0-9]+)/);
