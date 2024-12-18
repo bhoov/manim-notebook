@@ -2,13 +2,19 @@ import * as vscode from 'vscode';
 import { window } from 'vscode';
 import { waitNewTerminalDelay, withoutAnsiCodes, onTerminalOutput } from './terminal';
 import { EventEmitter } from 'events';
-import { Window } from '../logger';
+import { Window, Logger } from '../logger';
 
+/**
+ * Manim version that the user has installed without the 'v' prefix, e.g. '1.2.3'.
+ */
 let MANIM_VERSION: string | undefined;
 let isCanceledByUser = false;
 
 /**
  * Checks if the given version is at least the required version.
+ * 
+ * @param versionRequired The required version, e.g. '1.2.3'.
+ * @param version The version to compare against, e.g. '1.3.4'.
  */
 function isAtLeastVersion(versionRequired: string, version: string): boolean {
     const versionRequiredParts = versionRequired.split('.');
@@ -44,6 +50,40 @@ export function isAtLeastManimVersion(versionRequired: string): boolean {
 }
 
 /**
+ * Returns the tag name of the latest Manim release if the GitHub API is reachable.
+ * This tag name won't include the 'v' prefix, e.g. '1.2.3'.
+ */
+async function fetchLatestManimVersion(): Promise<string | undefined> {
+    const url = 'https://api.github.com/repos/3b1b/manim/releases/latest';
+
+    try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 5000);
+
+        const response = await fetch(url, {
+            headers: {
+                'Accept': 'application/vnd.github+json',
+            },
+            signal: controller.signal
+        });
+
+        clearTimeout(timeoutId);
+
+        if (!response.ok) {
+            Logger.error(`GitHub API error: ${response.statusText}`);
+            return undefined;
+        }
+
+        const data: any = await response.json();
+        const tag = data.tag_name;
+        return tag.startsWith('v') ? tag.substring(1) : tag;
+    } catch (error) {
+        Logger.error(`Error fetching latest Manim version: ${error}`);
+        return undefined;
+    }
+}
+
+/**
  * Tries to determine the Manim version with the `manimgl --version` command.
  */
 export async function tryToDetermineManimVersion() {
@@ -75,8 +115,20 @@ export async function tryToDetermineManimVersion() {
     });
 
     if (res) {
-        window.showInformationMessage(`🔍 ManimGL version: ${MANIM_VERSION}`);
         terminal.dispose();
+        const latestVersion = await fetchLatestManimVersion();
+        if (latestVersion) {
+            if (latestVersion === MANIM_VERSION) {
+                window.showInformationMessage(
+                    `You're using the latest ManimGL version: v${MANIM_VERSION}`);
+            } else {
+                window.showInformationMessage(
+                    `You're using ManimGL version v${MANIM_VERSION}.`
+                    + ` The latest version is v${latestVersion}.`);
+            }
+        } else {
+            window.showInformationMessage(`You're using ManimGL version: v${MANIM_VERSION}`);
+        }
     } else if (!isCanceledByUser) {
         terminal.show();
         const try_again_answer = "Try again";
