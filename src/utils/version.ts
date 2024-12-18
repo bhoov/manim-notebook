@@ -86,6 +86,7 @@ async function fetchLatestManimVersion(): Promise<string | undefined> {
  * Tries to determine the Manim version with the `manimgl --version` command.
  */
 export async function tryToDetermineManimVersion() {
+    MANIM_VERSION = undefined;
     let res = false;
     isCanceledByUser = false;
     const latestVersionPromise = fetchLatestManimVersion();
@@ -108,7 +109,8 @@ export async function tryToDetermineManimVersion() {
             const versionPromise = lookForManimVersionString(terminal);
             Promise.race([timeoutPromise, versionPromise])
                 .then((couldResolveVersion) => resolve(couldResolveVersion))
-                .catch((_error) => {
+                .catch((err) => {
+                    Logger.error(`Abnormal termination of ManimGL version determination: ${err}`);
                     resolve(false);
                 });
         });
@@ -182,7 +184,11 @@ async function lookForManimVersionString(terminal: vscode.Terminal): Promise<boo
         });
 
         window.onDidEndTerminalShellExecution((event) => {
-            if (event.terminal === terminal) {
+            if (event.terminal !== terminal || MANIM_VERSION || isCanceledByUser) {
+                return;
+            }
+            if (event.exitCode !== 0) {
+                Logger.error("ManimGL version detection: shell exited with error code");
                 resolve(false);
             }
         });
