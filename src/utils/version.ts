@@ -55,50 +55,44 @@ export async function tryToDetermineManimVersion() {
         });
     await waitNewTerminalDelay();
 
-    try {
-        await window.withProgress({
-            location: vscode.ProgressLocation.Notification,
-            title: "Determining ManimGL version...",
-            cancellable: true,
-        }, async (progress, token) => {
-            res = await new Promise<boolean>(async (resolve, reject) => {
-                progress.report({ increment: 0 });
-                const maxWait = 8000;
+    await window.withProgress({
+        location: vscode.ProgressLocation.Notification,
+        title: "Determining ManimGL version...",
+        cancellable: true,
+    }, async (progress, token) => {
+        res = await new Promise<boolean>(async (resolve, reject) => {
+            progress.report({ increment: 0 });
+            const maxWait = 8000;
 
-                const timeoutPromise = new Promise(async (_, reject) => {
-                    const timeout = setTimeout(reject, maxWait);
-                    token.onCancellationRequested(() => {
-                        isCanceledByUser = true;
-                        clearTimeout(timeout);
-                        reject();
-                    });
-
-                    const numChunks = Math.ceil(maxWait / 500);
-                    for (let i = 0; i < numChunks; i++) {
-                        await new Promise(resolve => setTimeout(resolve, 500));
-                        progress.report({ increment: 100 / numChunks });
-                    }
+            const timeoutPromise = new Promise<boolean>(async (_, reject) => {
+                const timeout = setTimeout(reject, maxWait);
+                token.onCancellationRequested(() => {
+                    isCanceledByUser = true;
+                    clearTimeout(timeout);
+                    reject();
                 });
-
-                const versionPromise = lookForManimVersionString(terminal);
-
-                Promise.race([timeoutPromise, versionPromise])
-                    .then(() => resolve(true))
-                    .catch((_error) => {
-                        reject();
-                    });
+                const numChunks = Math.ceil(maxWait / 500);
+                for (let i = 0; i < numChunks; i++) {
+                    await new Promise(resolve => setTimeout(resolve, 500));
+                    progress.report({ increment: 100 / numChunks });
+                }
             });
+
+            const versionPromise = lookForManimVersionString(terminal);
+
+            Promise.race([timeoutPromise, versionPromise])
+                .then((couldResolveVersion) => resolve(couldResolveVersion))
+                .catch((_error) => {
+                    resolve(false);
+                });
         });
-    } catch (error) {
-        if (!isCanceledByUser) {
-            Window.showErrorMessage("🔍 ManimGL version could not be determined.");
-        }
-    } finally {
         if (res) {
             window.showInformationMessage(`🔍 ManimGL version: ${MANIM_VERSION}`);
             terminal.dispose();
+        } else if (!isCanceledByUser) {
+            Window.showErrorMessage("🔍 ManimGL version could not be determined.");
         }
-    }
+    });
 }
 
 async function lookForManimVersionString(terminal: vscode.Terminal): Promise<boolean> {
