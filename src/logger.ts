@@ -217,7 +217,7 @@ export class LogRecorder {
         this.recorderStatusBar.backgroundColor = new vscode.ThemeColor(
             'statusBarItem.errorBackground');
 
-        // Right now, there is no way to set the log level programatically.
+        // Right now, there is no way to set the log level programmatically.
         // We can just show the pop-up to do so to users.
         // see https://github.com/microsoft/vscode/issues/223536
         await vscode.commands.executeCommand('workbench.action.setLogLevel');

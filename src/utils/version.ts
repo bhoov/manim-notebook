@@ -60,6 +60,26 @@ export async function isAtLeastManimVersion(versionRequired: string): Promise<bo
 }
 
 /**
+ * Returns whether the user has at least the given minimal Manim version installed.
+ * If this is not the case, a warning message is shown.
+ * 
+ * @param requiredVersion The minimal Manim version required, e.g. '1.2.3'.
+ * @returns True if the user has at least the required Manim version installed.
+ */
+export async function userHasMinimalManimVersion(requiredVersion: string): Promise<boolean> {
+    if (await isAtLeastManimVersion(requiredVersion)) {
+        return true;
+    }
+    const currentVersionMessage = MANIM_VERSION ?
+        `Your current version is v${MANIM_VERSION}.`
+        : "Your current version could not be determined yet.";
+    Window.showWarningMessage(
+        `Sorry, this feature requires Manim version v${requiredVersion} or higher.`
+        + " " + currentVersionMessage);
+    return false;
+}
+
+/**
  * Returns the tag name of the latest Manim release if the GitHub API is reachable.
  * This tag name won't include the 'v' prefix, e.g. '1.2.3'.
  */
