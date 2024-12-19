@@ -66,7 +66,7 @@ export async function isAtLeastManimVersion(versionRequired: string): Promise<bo
  * @param requiredVersion The minimal Manim version required, e.g. '1.2.3'.
  * @returns True if the user has at least the required Manim version installed.
  */
-export async function userHasMinimalManimVersion(requiredVersion: string): Promise<boolean> {
+export async function hasUserMinimalManimVersion(requiredVersion: string): Promise<boolean> {
     if (await isAtLeastManimVersion(requiredVersion)) {
         return true;
     }
