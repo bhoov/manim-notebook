@@ -11,7 +11,11 @@ import { registerWalkthroughCommands } from './walkthrough/commands';
 import { ExportSceneCodeLens } from './export';
 import { tryToDetermineManimVersion } from './utils/version';
 
+export let manimNotebookContext: vscode.ExtensionContext;
+
 export async function activate(context: vscode.ExtensionContext) {
+    manimNotebookContext = context;
+
 	// Trigger the Manim shell to start listening to the terminal
 	ManimShell.instance;
 

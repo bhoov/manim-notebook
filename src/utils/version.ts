@@ -4,6 +4,7 @@ import { waitNewTerminalDelay, withoutAnsiCodes, onTerminalOutput } from './term
 import { EventEmitter } from 'events';
 import { Window, Logger } from '../logger';
 import { ManimShell } from '../manimShell';
+import { manimNotebookContext } from '../extension';
 
 /**
  * Manim version that the user has installed without the 'v' prefix, e.g. '1.2.3'.
@@ -45,12 +46,25 @@ function isAtLeastVersion(versionRequired: string, version: string): boolean {
  */
 export async function isAtLeastManimVersion(versionRequired: string): Promise<boolean> {
     if (!MANIM_VERSION) {
-        const determineAgainOption = "Determine my ManimGL version again";
-        const answer = await Window.showInformationMessage("You might be missing out"
-            + " on some Manim Notebook features because your ManimGL version"
-            + " could not be determined.", determineAgainOption, "I don't care");
-        if (answer === determineAgainOption) {
-            await tryToDetermineManimVersion();
+        const context = manimNotebookContext;
+        if (!context) {
+            return false;
+        }
+        const key = 'manim-notebook.lastWarningTimeMissingVersionDetection';
+        const lastWarningTime = context.globalState.get<number>(key, 0);
+        const currentTime = Date.now();
+        const thirtyMinutes = 30 * 60 * 1000;
+
+        if (currentTime - lastWarningTime > thirtyMinutes) {
+            context.globalState.update(key, currentTime);
+            const determineAgainOption = "Determine my ManimGL version again";
+            const answer = await Window.showInformationMessage("You might be"
+                + " missing out on some Manim Notebook features because your"
+                + " ManimGL version could not be determined.",
+                determineAgainOption, "I don't care");
+            if (answer === determineAgainOption) {
+                await tryToDetermineManimVersion();
+            }
         }
     }
     if (!MANIM_VERSION) {
