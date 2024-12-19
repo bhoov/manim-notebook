@@ -6,7 +6,7 @@ import {
 } from './utils/multiStepQuickPickUtil';
 import { findClassLines, findManimSceneName } from './pythonParsing';
 import { Logger, Window } from './logger';
-import { waitNewTerminalDelay } from './manimShell';
+import { waitNewTerminalDelay } from './utils/terminal';
 
 
 class VideoQuality {

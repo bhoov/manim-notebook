@@ -150,9 +150,9 @@ export class Logger {
  */
 export class Window {
 
-    public static async showInformationMessage(message: string) {
+    public static async showInformationMessage(message: string, ...items: string[]) {
         Logger.info(`💡 ${message}`);
-        return await window.showInformationMessage(message);
+        return await window.showInformationMessage(message, ...items);
     }
 
     public static async showWarningMessage(message: string, ...items: string[]) {
@@ -160,9 +160,9 @@ export class Window {
         return await window.showWarningMessage(message, ...items);
     }
 
-    public static async showErrorMessage(message: string) {
+    public static async showErrorMessage(message: string, ...items: string[]) {
         Logger.error(`💡 ${message}`);
-        return await window.showErrorMessage(message);
+        return await window.showErrorMessage(message, ...items);
     }
 }
 
@@ -217,7 +217,7 @@ export class LogRecorder {
         this.recorderStatusBar.backgroundColor = new vscode.ThemeColor(
             'statusBarItem.errorBackground');
 
-        // Right now, there is no way to set the log level programatically.
+        // Right now, there is no way to set the log level programmatically.
         // We can just show the pop-up to do so to users.
         // see https://github.com/microsoft/vscode/issues/223536
         await vscode.commands.executeCommand('workbench.action.setLogLevel');

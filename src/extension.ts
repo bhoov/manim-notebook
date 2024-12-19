@@ -9,10 +9,29 @@ import { exportScene } from './export';
 import { Logger, Window, LogRecorder } from './logger';
 import { registerWalkthroughCommands } from './walkthrough/commands';
 import { ExportSceneCodeLens } from './export';
+import { tryToDetermineManimVersion } from './utils/version';
+import { LAST_WARNING_NO_VERSION_KEY } from './utils/version';
 
-export function activate(context: vscode.ExtensionContext) {
+export let manimNotebookContext: vscode.ExtensionContext;
+
+/**
+ * Resets the global state of the extension.
+ * @param context The extension context.
+ */
+function restoreGlobalState(context: vscode.ExtensionContext) {
+    const globalState = context.globalState;
+    globalState.update(LAST_WARNING_NO_VERSION_KEY, 0);
+}
+
+export async function activate(context: vscode.ExtensionContext) {
+    manimNotebookContext = context;
+    restoreGlobalState(context);
+
 	// Trigger the Manim shell to start listening to the terminal
 	ManimShell.instance;
+
+	await tryToDetermineManimVersion(true);
+	
 
 	const previewManimCellCommand = vscode.commands.registerCommand(
 		'manim-notebook.previewManimCell', (cellCode?: string, startLine?: number) => {
@@ -86,6 +105,12 @@ export function activate(context: vscode.ExtensionContext) {
 			await LogRecorder.finishRecordingLogFile(context);
 		});
 
+	const redetectManimVersionCommand = vscode.commands.registerCommand(
+		'manim-notebook.redetectManimVersion', async () => {
+			Logger.info("💠 Command requested: Redetect Manim Version");
+			await tryToDetermineManimVersion();
+		});
+
 	registerWalkthroughCommands(context);
 
 	context.subscriptions.push(
@@ -98,6 +123,7 @@ export function activate(context: vscode.ExtensionContext) {
 		openWalkthroughCommand,
 		exportSceneCommand,
 		finishRecordingLogFileCommand,
+		redetectManimVersionCommand,
 	);
 	registerManimCellProviders(context);
 }

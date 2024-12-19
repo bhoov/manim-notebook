@@ -3,6 +3,7 @@ import { ManimShell, NoActiveShellError } from './manimShell';
 import { window, workspace } from 'vscode';
 import { Logger, Window } from './logger';
 import { findClassLines, findManimSceneName } from './pythonParsing';
+import { isAtLeastManimVersion } from './utils/version';
 
 /**
  * Runs the `manimgl` command in the terminal, with the current cursor's line number:
@@ -65,10 +66,15 @@ export async function startScene(lineStart?: number) {
         shouldPreviewWholeScene = false;
         cmds.push(`-se ${lineNumber + 1}`);
     }
-    const autoreload = await workspace.getConfiguration("manim-notebook").get("autoreload");
-    if (autoreload) {
-        cmds.push("--autoreload");
+
+    // Autoreload
+    if (await isAtLeastManimVersion("1.7.2")) {
+        const autoreload = await workspace.getConfiguration("manim-notebook").get("autoreload");
+        if (autoreload) {
+            cmds.push("--autoreload");
+        }
     }
+
     const command = cmds.join(" ");
 
     // Run the command

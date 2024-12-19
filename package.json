@@ -76,6 +76,11 @@
         "command": "manim-notebook.exportScene",
         "title": "Export current scene as CLI command",
         "category": "Manim Notebook"
+      },
+      {
+        "command": "manim-notebook.redetectManimVersion",
+        "title": "Redetect Manim version",
+        "category": "Manim Notebook"
       }
     ],
     "keybindings": [
@@ -114,7 +119,7 @@
         "manim-notebook.autoreload": {
           "type": "boolean",
           "default": "true",
-          "markdownDescription": "If enabled, Manim will be startup with the `--autoreload` flag, such that your imported Python modules are reloaded automatically in the background."
+          "markdownDescription": "If enabled, Manim will be startup with the `--autoreload` flag, such that your imported Python modules are reloaded automatically in the background. For this feature, ManimGL 1.7.2 or newer is required."
         },
         "manim-notebook.clipboardTimeout": {
           "type": "number",
