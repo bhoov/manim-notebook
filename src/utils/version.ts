@@ -41,6 +41,8 @@ function isAtLeastVersion(versionRequired: string, version: string): boolean {
     return true;
 }
 
+export const LAST_WARNING_NO_VERSION_KEY = 'manim-notebook.lastWarningTimeMissingVersionDetection';
+
 /**
  * Returns true if the current Manim version is at least the required version.
  */
@@ -50,13 +52,12 @@ export async function isAtLeastManimVersion(versionRequired: string): Promise<bo
         if (!context) {
             return false;
         }
-        const key = 'manim-notebook.lastWarningTimeMissingVersionDetection';
-        const lastWarningTime = context.globalState.get<number>(key, 0);
+        const lastWarningTime = context.globalState.get<number>(LAST_WARNING_NO_VERSION_KEY, 0);
         const currentTime = Date.now();
         const thirtyMinutes = 30 * 60 * 1000;
 
         if (currentTime - lastWarningTime > thirtyMinutes) {
-            context.globalState.update(key, currentTime);
+            context.globalState.update(LAST_WARNING_NO_VERSION_KEY, currentTime);
             const determineAgainOption = "Determine my ManimGL version again";
             const answer = await Window.showInformationMessage("You might be"
                 + " missing out on some Manim Notebook features because your"
